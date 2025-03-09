@@ -1,0 +1,3 @@
+nom,prenom,email,password
+Doe,John,john.doe@example.com
+Smith,Alice,alice.smith@example.com

@@ -1,0 +1,15 @@
+# Ignorer les environnements virtuels
+venv/
+*.pyc
+__pycache__/
+
+# Ignorer les dépendances Node.js
+node_modules/
+
+# Ignorer les fichiers de configuration IDE
+.vscode/
+.idea/
+
+# Ignorer les fichiers système
+.DS_Store
+Thumbs.db
