@@ -5,6 +5,33 @@ from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,Permissi
 # Create your models here.
 
 from django.contrib.auth.models import BaseUserManager
+#parametres
+class Departement(models.Model):
+    title = models.CharField(max_length=50,null=True)
+    def __str__(self):
+        return self.title
+
+class Annee(models.Model):
+    departement = models.ForeignKey(Departement,on_delete=models.CASCADE,null=True)
+    title = models.CharField(max_length=50)
+    def __str__(self):
+        return f"{self.title} {self.departement.title}"
+    
+class Specialite(models.Model):
+    annee = models.ForeignKey(Annee,on_delete=models.CASCADE,null=True)
+    title = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.annee.title} {self.title}"
+
+class Salle(models.Model):
+    departement = models.ForeignKey(Departement,on_delete=models.CASCADE,null=True)
+    type = models.CharField(max_length=50)
+    num = models.IntegerField()
+    disponible = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Salle {self.num} {self.type}"
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, nom, prenom, password=None, **extra_fields):
@@ -82,7 +109,51 @@ class Enseignant(User):
 
 # Modèle Étudiant
 class Etudiant(User):
-    annee_etude = models.IntegerField(null=True)
+    annee_etude = models.ForeignKey(Annee,on_delete=models.CASCADE,null=True)
+    specialite = models.ForeignKey(Specialite,on_delete=models.CASCADE,null=True)
     moyenne_etudiant = models.FloatField(null=True, blank=True)
     matricule = models.CharField(max_length=20, unique=True,null=True)
     chef_equipe = models.BooleanField(default=False)
+    def __str__(self):
+        return f"{self.nom} {self.prenom} - {self.matricule}"
+
+
+
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class Entreprise(models.Model):
+    STATUT_CHOICES = [
+        ('pending', 'En attente'),
+        ('approved', 'Approuvée'),
+        ('rejected', 'Rejetée'),
+    ]
+
+    nom = models.CharField(max_length=255)
+    secteur_activite = models.CharField(max_length=255)
+    adresse = models.TextField()
+    wilaya = models.CharField(max_length=100)
+    ville = models.CharField(max_length=100)
+    site_web = models.URLField(blank=True, null=True)
+
+    # Informations du représentant
+    representant_nom = models.CharField(max_length=255)
+    representant_poste = models.CharField(max_length=255)
+    representant_email = models.EmailField(unique=True)
+    representant_telephone = models.CharField(max_length=20)
+
+    # Statut de validation
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='pending')
+    date_soumission = models.DateTimeField(auto_now_add=True)
+
+    # Compte utilisateur du représentant (créé si validé)
+    compte_utilisateur = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+
+    # Motif du refus si l'entreprise est rejetée
+    motif_refus = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.nom} - {self.get_statut_display()}"
+
