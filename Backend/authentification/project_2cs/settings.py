@@ -152,3 +152,11 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # Vérifie bien l'IP et le port
+    }
+}
+

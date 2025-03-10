@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics,status
 from .models import *
 from .serializers import *
 import pandas as pd
@@ -14,9 +14,9 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+
 
 
 
@@ -114,6 +114,155 @@ class AdminRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Admin.objects.all()
     serializer_class = AdminSerializer
 
+#parametres
+class DepartementListCreateView(generics.ListCreateAPIView):
+    queryset = Departement.objects.all()
+    serializer_class = DepartementSerializer
+
+class DepartementRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Departement.objects.all()
+    serializer_class = DepartementSerializer
+
+class AnneeListCreateView(generics.ListCreateAPIView):
+    queryset = Annee.objects.all()
+    serializer_class = AnneeSerializer
+
+class AnneeRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Annee.objects.all()
+    serializer_class = AnneeSerializer
+
+class SpecialiteListCreateView(generics.ListCreateAPIView):
+    queryset = Specialite.objects.all()
+    serializer_class = SpecialiteSerializer
+
+class SpecialiteRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Specialite.objects.all()
+    serializer_class = SpecialiteSerializer
+
+class SalleListCreateView(generics.ListCreateAPIView):
+    queryset = Salle.objects.all()
+    serializer_class = SalleSerializer
+
+class SalleRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Salle.objects.all()
+    serializer_class = SalleSerializer
+
+
+
+class EntrepriseListCreateView(generics.ListCreateAPIView):
+    queryset = Entreprise.objects.all()
+    serializer_class = EntrepriseSerializer
+
+    def get_queryset(self):
+        statut = self.request.query_params.get('statut')
+        if statut:
+            return Entreprise.objects.filter(statut=statut)
+        return Entreprise.objects.all()
+
+
+
+class EntrepriseDeleteView(generics.DestroyAPIView):
+    queryset = Entreprise.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        entreprise = self.get_object()
+        entreprise.delete()
+        return Response({"message": "Entreprise supprimée avec succès"}, status=status.HTTP_204_NO_CONTENT)
+
+class EntrepriseValidationView(APIView):
+    def patch(self, request, pk):
+        try:
+            entreprise = Entreprise.objects.get(pk=pk)
+
+            if entreprise.statut != 'pending':
+                return Response({"error": "L'entreprise a déjà été traitée."}, status=400)
+
+            # Vérifier l'action demandée
+            action = request.data.get("action")  # "approve" ou "reject"
+
+            if action == "approve":
+                # Vérification si un utilisateur existe déjà
+                user = User.objects.filter(email=entreprise.representant_email).first()
+                if user:
+                    return Response({"error": "Un utilisateur avec cet email existe déjà."}, status=400)
+
+                # Génération et création de l'utilisateur
+                generated_password = secrets.token_urlsafe(10)
+                user = User.objects.create_user(
+                    email=entreprise.representant_email,
+                    nom=entreprise.representant_nom,
+                    prenom="",
+                    password=generated_password
+                )
+                user.is_entreprise = True  # Attribuer le rôle si nécessaire
+                user.save()
+
+                # Associer l'entreprise à l'utilisateur
+                entreprise.compte_utilisateur = user
+                entreprise.statut = "approved"
+                entreprise.save()
+
+                # Envoi de l'email
+                subject = "Validation de votre entreprise"
+                message = f"""
+                Bonjour {user.nom},
+
+                Votre entreprise "{entreprise.nom}" a été validée avec succès.
+
+                🔹 **Email** : {user.email}
+                🔹 **Mot de passe** : {generated_password}
+
+                📌 Veuillez vous connecter et changer votre mot de passe dès que possible.
+
+                Cordialement,  
+                L'équipe de gestion
+                """
+                send_mail(subject, message, 'your-email@gmail.com', [user.email], fail_silently=False)
+                return Response({"message": "Entreprise validée avec succès."})
+
+            elif action == "reject":
+                motif_refus = request.data.get("motif_refus", "Aucun motif précisé")
+                entreprise.statut = "rejected"
+                entreprise.motif_refus = motif_refus
+                entreprise.save()
+
+                # Envoi de l'email de refus
+                subject = "Refus de votre entreprise"
+                message = f"""
+                Bonjour {entreprise.representant_nom},
+
+                Nous sommes désolés de vous informer que votre entreprise "{entreprise.nom}" n'a pas été validée.
+
+                📌 **Motif du refus** : {motif_refus}
+
+                Vous pouvez nous contacter pour plus d'informations.
+
+                Cordialement,  
+                L'équipe de gestion
+                """
+                send_mail(subject, message, 'your-email@gmail.com', [entreprise.representant_email], fail_silently=False)
+                return Response({"message": "Entreprise refusée avec succès."})
+
+            else:
+                return Response({"error": "Action invalide. Utilisez 'approve' ou 'reject'."}, status=400)
+
+        except Entreprise.DoesNotExist:
+            return Response({"error": "Entreprise non trouvée."}, status=404)
+
+
+
+
+User = get_user_model()
+
+class UsersWithEntrepriseView(APIView):
+    def get(self, request):
+        # Récupérer les utilisateurs ayant une entreprise liée
+        users = User.objects.filter(entreprise__isnull=False)  
+        
+        # Sérialiser les utilisateurs
+        serializer = UserSerializer(users, many=True)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
@@ -193,6 +342,7 @@ def import_users(request, user_type):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
 
 
 
