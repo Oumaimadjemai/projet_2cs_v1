@@ -13,3 +13,4 @@ node_modules/
 # Ignorer les fichiers système
 .DS_Store
 Thumbs.db
+Backend/authentification/db.sqlite3
