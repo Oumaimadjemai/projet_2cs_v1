@@ -90,6 +90,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Vérifie si l'utilisateur peut voir une application spécifique"""
         return self.is_superuser  # Seul l'Admin peut voir toutes les apps
 
+    def is_enseignant(self):
+        """Vérifie si l'utilisateur est un enseignant."""
+        return hasattr(self, 'enseignant')
+
+    def is_entreprise(self):
+        """Vérifie si l'utilisateur est lié à une entreprise."""
+        return hasattr(self, 'entreprise')    
+
 # Modèle Admin (avec accès superuser)
 class Admin(User):
     objects = CustomUserManager()
