@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
-    'corsheaders',
 ]
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -103,8 +102,12 @@ WSGI_APPLICATION = 'project_2cs.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'service1',
+        'USER': 'root',  # Ou un autre utilisateur
+        'PASSWORD': 'root',
+        'HOST': 'localhost',
+        'PORT': '3306',  # Port par défaut de MySQL
     }
 }
 
