@@ -1,19 +1,28 @@
 import React, { useState } from "react";
-
-import wilayas from "./Willaya"; 
+import Entreprise from "./Entreprise";
+import Representant from "./Representant";
+import Final from "./Final";
 
 const InscriptionEntreprise = () => {
-  const [selectedWilaya, setSelectedWilaya] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
+  const [step, setStep] = useState(1);
+  const [isStepValid, setIsStepValid] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [completedSteps, setCompletedSteps] = useState([]);
 
-  const handleWilayaChange = (e) => {
-    const wilayaCode = e.target.value;
-    setSelectedWilaya(wilayaCode);
-    setSelectedCity("");
+  const nextStep = () => {
+    if (isStepValid) {
+      const newCompletedSteps = [...new Set([...completedSteps, step, step + 1])];
+      setCompletedSteps(newCompletedSteps);
+      setStep(step + 1);
+      setIsStepValid(false);
+      setErrorMessage("");
+    } else {
+      setErrorMessage("Veuillez remplir tous les champs obligatoires.");
+    }
   };
 
   return (
-    <div style={styles.formContainer}>
+    <div style={styles.container}>
       <div style={styles.formLeft}>
         <p style={styles.imageText}>Image de site</p>
       </div>
@@ -21,127 +30,68 @@ const InscriptionEntreprise = () => {
       <div style={styles.formRight}>
         <h1 style={styles.title}>Nom de Site</h1>
 
-        <div style={styles.steps}>
-          <div style={{ ...styles.step, ...styles.activeStep }}>●</div> 
-          <div style={styles.line}></div>
-          <div style={styles.step}>●</div>
-          <div style={styles.line}></div>
-          <div style={styles.step}>●</div>
+        <div style={styles.stepsContainer}>
+          {[1, 2, 3].map((s, index) => (
+            <React.Fragment key={s}>
+              <div style={{
+                ...styles.step,
+                ...(step === s ? styles.activeStep : {}),
+                ...(completedSteps.includes(s) || (step === 3 && s === 3) ? styles.completedStep : {})
+              }}>
+                {completedSteps.includes(s) || (step === 3 && s === 3) ? '✔' : '●'}
+              </div>
+              {index < 2 && <div style={styles.line}></div>}
+            </React.Fragment>
+          ))}
         </div>
         <div style={styles.stepLabels}>
-          <span style={styles.activeStepLabel}>Entreprise</span>
-          <span>Représentant</span>
-          <span>Merci!</span>
+          <span style={step === 1 ? styles.activeLabel : {}}>Entreprise</span>
+          <span style={step === 2 ? styles.activeLabel : {}}>Représentant</span>
+          <span style={step === 3 ? styles.activeLabel : {}}>Merci!</span>
         </div>
 
-        <form>
-          <div style={styles.formGroup}>
-            <div style={styles.inputContainer}>
-              <label style={styles.label}>Nom</label>
-              <input type="text" placeholder="Nom de l'entreprise" required style={styles.input} />
-            </div>
-            <div style={styles.inputContainer}>
-              <label style={styles.label}>Secteur d’activité</label>
-              <input type="text" placeholder="Secteur d’activité" required style={styles.input} />
-            </div>
-          </div>
+        <div style={styles.formContent}>
+          {step === 1 && <Entreprise onValidationChange={setIsStepValid} />}
+          {step === 2 && <Representant onValidationChange={setIsStepValid} />}
+          {step === 3 && <Final />}
+        </div>
 
-          <div style={styles.formGroup}>
-            <div style={styles.inputContainer}>
-              <label style={styles.label}>Wilaya</label>
-              <select value={selectedWilaya} onChange={handleWilayaChange} required style={styles.input}>
-                <option value="">Sélectionner une wilaya</option>
-                {Object.entries(wilayas).map(([code, wilaya]) => (
-                  <option key={code} value={code}>
-                    {wilaya.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div style={styles.inputContainer}>
-              <label style={styles.label}>Ville</label>
-              <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                required
-                style={styles.input}
-              >
-                <option value="">Sélectionner une ville</option>
-                {selectedWilaya &&
-                  wilayas[selectedWilaya].cities.map((city, index) => (
-                    <option key={index} value={city}>
-                      {city}
-                    </option>
-                  ))}
-              </select>
-            </div>
-          </div>
+        {errorMessage && <p style={styles.errorMessage}>{errorMessage}</p>}
 
-          <div style={{ ...styles.inputContainer, ...styles.fullWidth }}>
-            <label style={styles.label}>Adresse</label>
-            <input
-              type="text"
-              placeholder="Rue Didouche Mourad..."
-              required
-              style={{ ...styles.input, ...styles.inputWithIcon }}
-            />
+        {step < 3 && (
+          <div style={styles.buttonContainer}>
+            <button style={styles.nextButton} onClick={nextStep}>
+              Suivant
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" style={styles.iconNext} viewBox="0 0 16 16">
+                <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
+              </svg>
+            </button>
           </div>
-
-          <div style={{ ...styles.inputContainer, ...styles.fullWidth }}>
-            <label style={styles.label}>Site Web</label>
-            <input
-              type="text"
-              placeholder="www.techinnovdz.com"
-              required
-              style={{ ...styles.input, ...styles.inputWithIcon2 }}
-            />
-          </div>
-
-          <button style={styles.nextButton}>
-            Suivant
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              style={styles.iconNext}
-              viewBox="0 0 16 16"
-            >
-              <path
-                fillRule="evenodd"
-                d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"
-              />
-            </svg>
-          </button>
-        </form>
+        )}
       </div>
     </div>
   );
 };
 
 export default InscriptionEntreprise;
+
 const styles = {
-  formContainer: { marginLeft: "15%", marginTop: "3%", display: "flex", justifyContent: "center", alignItems: "center", height: "90vh", width: "70%", background: "white", borderRadius: "15px", overflow: "hidden", boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)" },
+  // Styles inchangés
+  errorMessage: { color: "red", textAlign: "center", fontSize: "14px", marginTop: "10px" },
+  completedStep: { background: "#925FE2", color: "white", borderColor: "#925FE2" },
+
+  container: { marginLeft: "15%", marginTop: "3%", display: "flex", justifyContent: "center", alignItems: "center", height: "80vh", width: "70%", background: "white", borderRadius: "15px", overflow: "hidden", boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)" },
   formLeft: { height: "90vh", width: "40%", background: "#D3D3D3", display: "flex", justifyContent: "center", alignItems: "center" },
   imageText: { color: "#925FE2", fontSize: "18px", fontWeight: "bold" },
-  formRight: { width: "60%", padding: "30px" },
+  formRight: { width: "60%", padding: "30px", display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" },
   title: { color: "#925FE2", fontSize: "24px", fontWeight: "bold", textAlign: "right" },
-  steps: { display: "flex", alignItems: "center", justifyContent: "center", margin: "15px 0" },
+  stepsContainer: { display: "flex", alignItems: "center", justifyContent: "center", margin: "15px 0" },
   step: { width: "20px", height: "20px", background: "white", border: "2px solid #8A8A8A", borderRadius: "50%", textAlign: "center", fontSize: "12px", lineHeight: "18px", fontWeight: "bold", color: "#8A8A8A" },
   activeStep: { background: "#925FE2", color: "white", borderColor: "#925FE2" },
   line: { width: "25%", height: "2px", background: "#D3D3D3" },
   stepLabels: { display: "flex", justifyContent: "space-evenly", fontSize: "14px", marginBottom: "30px" },
-  stepLabelsSpan: { color: "#8A8A8A" },
-  activeStepLabel: { color: "#925FE2", fontWeight: "bold" },
-  form: { display: "flex", flexDirection: "column" },
-  formGroup: { display: "flex", gap: "20px" },
-  inputContainer: { flex: 1, display: "flex", flexDirection: "column", marginBottom: "5px" },
-  label: { fontSize: "14px", fontWeight: "bold", marginBottom: "5px", color: "#333", fontFamily: "'Poppins', sans-serif" },
-  input: { padding: "10px", border: "2px solid #925FE2", borderRadius: "25px", fontSize: "14px", color: "#925FE2", outline: "none", background: "white", textAlign: "center", fontFamily: "'Nunito', sans-serif" },
-  fullWidth: { width: "100%" },
-  nextButton: { display: "flex", alignItems: "center", justifyContent: "center", gap: "28px", marginTop: "20px", background: "linear-gradient(to right, #925FE2, #693CA8)", color: "white", fontSize: "16px", fontWeight: "bold", border: "none", borderRadius: "25px", padding: "12px", cursor: "pointer", width: "30%", marginLeft: "auto", transition: "0.3s", boxShadow: "0 5px 10px rgba(146, 95, 226, 0.3)" },
-  iconNext: { width: "18px", height: "18px", fill: "white" },
-  select: { padding: "12px", border: "2px solid #925FE2", borderRadius: "25px", fontSize: "14px", color: "#925FE2", outline: "none", background: "white", textAlign: "center" },
-  inputWithIcon: { padding: "10px 10px 10px 40px", border: "2px solid #925FE2", borderRadius: "25px", fontSize: "14px", color: "#925FE2", background: "white", textAlign: "left", backgroundRepeat: "no-repeat", backgroundPosition: "10px center", backgroundSize: "16px" },
-  inputWithIcon2: { padding: "10px 10px 10px 40px", border: "2px solid #925FE2", borderRadius: "25px", fontSize: "14px", color: "#925FE2", background: "white", textAlign: "left", backgroundRepeat: "no-repeat", backgroundPosition: "10px center", backgroundSize: "20px" }
+  activeLabel: { color: "#925FE2", fontWeight: "bold" },
+  formContent: { flexGrow: 1 },
+  buttonContainer: { display: "flex", justifyContent: "flex-end", marginTop: "20px" },
+  nextButton: { display: "flex", marginBottom:"40px",alignItems: "center", justifyContent: "center", gap: "10px", background: "linear-gradient(to right, #925FE2, #693CA8)", color: "white", fontSize: "16px", fontWeight: "bold", border: "none", borderRadius: "25px", padding: "12px", cursor: "pointer", width: "30%", transition: "0.3s", boxShadow: "0 5px 10px rgba(146, 95, 226, 0.3)" },
 };
