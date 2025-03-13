@@ -80,7 +80,7 @@ const InscriptionRepresentant = ({ onValidationChange }) => {
             <option value="Développeur">Développeur</option>
             <option value="Designer">Designer</option>
             <option value="Marketing">Marketing</option>
-            <option value="Autre">Autre</option>
+          
           </select>
           {errors.poste && <span style={styles.error}>{errors.poste}</span>}
         </div>
