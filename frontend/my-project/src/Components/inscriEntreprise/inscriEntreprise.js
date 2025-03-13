@@ -76,7 +76,6 @@ const InscriptionEntreprise = () => {
 export default InscriptionEntreprise;
 
 const styles = {
-  // Styles inchangés
   errorMessage: { color: "red", textAlign: "center", fontSize: "14px", marginTop: "10px" },
   completedStep: { background: "#925FE2", color: "white", borderColor: "#925FE2" },
 
