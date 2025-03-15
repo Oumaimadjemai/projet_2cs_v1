@@ -47,6 +47,14 @@ INSTALLED_APPS = [
     'creationTheme',       
 
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        # Or other authentication methods like JWT
+    ],
+   
+}
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",  # Service 1
     "http://localhost:8001",  # Service 2 (si utilisé dans le frontend)
@@ -97,7 +105,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'service2',
         'USER': 'root',  # Ou un autre utilisateur
-        'PASSWORD': 'root',
+        'PASSWORD': 'khalida2003',
         'HOST': 'localhost',
         'PORT': '3306',  # Port par défaut de MySQL
     }
