@@ -4,6 +4,10 @@ import { ReactComponent as SearchIcon } from '../../../Assets/Icons/Search.svg';
 import { ReactComponent as EditIcon } from '../../../Assets/Icons/edit.svg';
 import { ReactComponent as DeleteIcon } from '../../../Assets/Icons/Delete.svg';
 import { ReactComponent as ArrowIcon } from '../../../Assets/Icons/Arrow.svg';
+import { ReactComponent as DraftIcon } from '../../../Assets/Icons/draft.svg';
+import { ReactComponent as CloudIcon } from '../../../Assets/Icons/cloud.svg';
+import { ReactComponent as CloseIcon } from '../../../Assets/Icons/close.svg';
+
 
 
 function EnseignantsListe() {
@@ -29,13 +33,13 @@ function EnseignantsListe() {
     const getGradeColor = (grade) => {
         switch (grade) {
             case "Professeur":
-                return {color: "#D43F8D", backgroundColor: "#D43F8D20"};
+                return { color: "#D43F8D", backgroundColor: "#D43F8D20" };
             case "MCF":
-                return {color:"#E63946", backgroundColor:"#E6394620"};
+                return { color: "#E63946", backgroundColor: "#E6394620" };
             case "Chercheur":
-                return {color:"#0095FF", backgroundColor:"#0095FF20"};
+                return { color: "#0095FF", backgroundColor: "#0095FF20" };
             case "Doctorant":
-                return {color:"#17BEBB", backgroundColor:"#17BEBB20"};
+                return { color: "#17BEBB", backgroundColor: "#17BEBB20" };
             default:
                 return "black";
         }
@@ -54,10 +58,13 @@ function EnseignantsListe() {
     useEffect(() => {
         if (dynamicListRef.current) {
             dynamicListRef.current.addEventListener("scroll", toggleVisibility);
-            return () => {
-                dynamicListRef.current.removeEventListener("scroll", toggleVisibility);
-            };
         }
+
+        return () => {
+            if (dynamicListRef.current) {
+                dynamicListRef.current.removeEventListener("scroll", toggleVisibility);
+            }
+        };
     }, []);
 
 
@@ -129,10 +136,11 @@ function EnseignantsListe() {
                                         </td>
                                         <td className='grade-td'>
                                             <span
-                                            style={{ 
-                                                color: getGradeColor(enseignant.grade).color, 
-                                                backgroundColor: getGradeColor(enseignant.grade).backgroundColor, 
-                                                border: `1px solid ${getGradeColor(enseignant.grade).color}` }}
+                                                style={{
+                                                    color: getGradeColor(enseignant.grade).color,
+                                                    backgroundColor: getGradeColor(enseignant.grade).backgroundColor,
+                                                    border: `1px solid ${getGradeColor(enseignant.grade).color}`
+                                                }}
                                             >
                                                 {enseignant.grade}
                                             </span>
@@ -183,7 +191,191 @@ function EnseignantsListe() {
                     )
                 }
             </div>
+            <AjouterEnseignant />
         </div >
+    )
+}
+
+const AjouterEnseignant = () => {
+
+    const [methodeAjouter, setMethodeAjouter] = useState(0);
+
+    const [file, setFile] = useState(null);
+
+    const handleDragOver = (event) => {
+        event.preventDefault(); // Prevent default behavior (prevents file from opening)
+    };
+
+    const handleDrop = (event) => {
+        event.preventDefault();
+        if (event.dataTransfer.files.length > 0) {
+            setFile(event.dataTransfer.files[0]); // Store the dropped file
+        }
+    };
+
+    const handleFileSelect = (event) => {
+        if (event.target.files.length > 0) {
+            setFile(event.target.files[0]); // Store the selected file
+        }
+    };
+
+
+    return (
+        <div className='ajouter-enseignant-container'>
+            <div className="ajouter-enseignant-wrapper">
+                <h1>Ajouter Enseignants</h1>
+                <form id='ajouterFormEnseignant'>
+                    <div className="ajouter-choice">
+                        <span
+                            className={`${methodeAjouter === 0 ? "current" : ""}`}
+                            onClick={() => setMethodeAjouter(0)}
+                        >Manuel</span>
+                        <span
+                            className={`${methodeAjouter === 1 ? "current" : ""}`}
+                            onClick={() => setMethodeAjouter(1)}
+                        >
+                            Importer Excel
+                        </span>
+                    </div>
+                    {
+                        methodeAjouter === 0 ? (
+                            <>
+                                <div className="ajouter-input-line">
+                                    <div className="input-flex">
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Nom</label>
+                                        <input type="text" name="nom" id="nom" />
+                                    </div>
+                                    <div className="input-flex">
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Prénom</label>
+                                        <input type="text" name="prenom" id="prenom" />
+                                    </div>
+                                </div>
+                                <div className="ajouter-input-line select-line">
+                                    <div className="input-flex">
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Adresse Email</label>
+                                        <input type="text" name="adresse" id="adresse" />
+                                    </div>
+                                    <div className="select-flex">
+                                        <div className="select-flex-line">
+                                            <div style={{ position: "relative", display: "inline-block" }}>
+                                                <select className="custom-select">
+                                                    <option>Grade</option>
+                                                    <option>Professeur</option>
+                                                    <option>Chercheur</option>
+                                                    <option>MCF</option>
+                                                    <option>Doctorant</option>
+                                                </select>
+                                                <svg
+                                                    width="10"
+                                                    height="6"
+                                                    viewBox="0 0 10 6"
+                                                    fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    style={{
+                                                        position: "absolute",
+                                                        right: "60px",
+                                                        top: "50%",
+                                                        transform: "translateY(-50%)",
+                                                        pointerEvents: "none"
+                                                    }}
+                                                >
+                                                    <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
+                                                </svg>
+                                            </div>
+                                            <div style={{ position: "relative", display: "inline-block" }}>
+                                                <select className="custom-select">
+                                                    <option>Sex</option>
+                                                    <option>Male</option>
+                                                    <option>Female</option>
+                                                </select>
+                                                <svg
+                                                    width="10"
+                                                    height="6"
+                                                    viewBox="0 0 10 6"
+                                                    fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    style={{
+                                                        position: "absolute",
+                                                        right: "60px",
+                                                        top: "50%",
+                                                        transform: "translateY(-50%)",
+                                                        pointerEvents: "none"
+                                                    }}
+                                                >
+                                                    <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
+                                                </svg>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="ajouter-input-line">
+                                    <div className="input-flex">
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Nom</label>
+                                        <input type="text" name="nom" id="nom" />
+                                    </div>
+                                    <div className="input-flex">
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Prénom</label>
+                                        <input type="text" name="prenom" id="prenom" />
+                                    </div>
+                                </div>
+                            </>
+                        ) :
+                            <div className="drop-file-container">
+                                <div
+                                    className="drop-file-wrapper"
+                                    onDragOver={handleDragOver}
+                                    onDrop={handleDrop}
+                                >
+                                    <CloudIcon />
+                                    <div className="structures-box">
+                                        {
+                                            !file ? (
+                                                <>
+                                                    <h2 style={{ color: "#292D32", fontSize: "1.25rem", fontWeight: "500" }}>
+                                                        Sélectionnez un fichier ou faites-le glisser ici
+                                                    </h2>
+                                                    <span style={{ color: "#A9ACB4" }}>
+                                                        Formats Excel et CSV, jusqu'à 50 Mo
+                                                    </span>
+                                                    <input
+                                                        type="file"
+                                                        id="fileUpload"
+                                                        style={{ display: "none" }}
+                                                        onChange={handleFileSelect}
+                                                    />
+                                                    <button onClick={(e) => {
+                                                        e.preventDefault();
+                                                        document.getElementById("fileUpload").click();
+                                                    }}>
+                                                        Parcourir un Fichier
+                                                    </button>
+                                                </>
+                                            ) :
+                                                <div className="file-preview">
+                                                    <p>{file.name}</p>
+                                                    <button className="delete-file" onClick={() => setFile(null)}>
+                                                    <CloseIcon />
+                                                    </button>
+                                                </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                    }
+
+                </form>
+                <div className="btns-form-line">
+                    <button className='brouillon-btn' style={{ backgroundColor: "#E2E4E5", color: "#060606" }}>
+                        <DraftIcon />
+                        Mettre En Brouillon
+                    </button>
+                    <button type='submit' className='ajout-btn' form='ajouterFormEnseignant'>
+                        Ajouter Enseignant
+                    </button>
+                </div>
+            </div>
+        </div>
     )
 }
 
