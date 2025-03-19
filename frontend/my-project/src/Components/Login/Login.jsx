@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../axios';  
-import reactconnet from '../../images/logo.jpg';
+import reactconnet from '../../Assets/Images/logo.jpg';
 
 function Login() {
    const [formData, updateFormData] = useState({ email: '', password: '' });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import reactlogoconnect from '../../images/logo.jpg';
+import reactlogoconnect from '../../Assets/Images/logo.jpg';
 
 
 import Login from './Login'

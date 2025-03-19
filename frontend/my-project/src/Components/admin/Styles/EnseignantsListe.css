@@ -1,0 +1,514 @@
+:root {
+    --main-color: #925FE2;
+    --supprimer-color: #D9534F;
+    --border-color: #D9E1E7;
+    --recherche-font-color: #8A8A8A;
+    --table-header-font-color: #727272;
+    --table-elements-font-color: #060606;
+    --pink-color: #D43F8D;
+    --red-color: #E63946;
+    --blue-color: #0095FF;
+    --green-color: #17BEBB;
+    --tr-border-color: #E4E4E4;
+    --btns-background-color: #E2E4E5;
+    --table-head-background: #F9F9F9;
+}
+
+#dynamic-liste {
+    height: calc(100vh - 65px);
+    overflow-y: auto;
+}
+
+#dynamic-liste::-webkit-scrollbar {
+    display: none;
+}
+
+.enseignants-liste-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.enseignants-liste-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding-right: 12px;
+}
+
+.enseignants-liste-wrapper .btns-container {
+    width: 100%;
+    padding: 0 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btns-container .ajouter-enseignants-btns {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.ajouter-enseignants-btns button,
+.enseignants-liste-wrapper .supprimer-btn button {
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 10px 12px;
+    border-radius: 22px;
+    color: var(--main-color);
+}
+
+.enseignants-liste-wrapper .supprimer-btn button {
+    background-color: var(--supprimer-color);
+    color: #fff;
+}
+
+.enseignants-liste-wrapper .recherche-enseignants-line {
+    width: 100%;
+    padding: 0 0.5rem;
+    min-height: 50px;
+    margin: 1rem 0;
+}
+
+.recherche-enseignants-line .recherche-enseignants-input {
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    border: 2px solid var(--border-color);
+    display: flex;
+}
+
+.recherche-enseignants-input button {
+    height: 100%;
+    padding: 0 1.6rem;
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 550;
+    color: var(--main-color);
+    border-right: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.recherche-enseignants-input .input-line {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+}
+
+.recherche-enseignants-input input {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    outline: none;
+    padding: 0 1rem
+}
+
+.recherche-enseignants-input input::placeholder {
+    color: var(--recherche-font-color);
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+.enseignants-table {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.enseignants-table table {
+    width: 100%;
+    border-collapse: separate;
+    /* Allows border-radius to work */
+    border-spacing: 0 7px;
+}
+
+.enseignants-table table thead {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.enseignants-table tr {
+    margin: 5px 0;
+    width: 100%;
+}
+
+.enseignants-table table thead th {
+    font-weight: 450;
+    font-size: 0.9rem;
+    color: var(--table-header-font-color);
+    padding: 1rem 0 !important;
+    background-color: var(--table-head-background);
+    border: 1px solid var(--tr-border-color);
+    border-left: none;
+    border-right: none;
+    width: 12.5%;
+    text-align: center;
+}
+
+.enseignants-table table thead th:first-child,
+.enseignants-table table thead th:last-child {
+    text-indent: 1rem;
+    /* Moves text inside without affecting table structure */
+    text-align: left;
+}
+
+.enseignants-table table td {
+    font-weight: 400;
+    font-size: 0.9rem;
+    color: var(--table-elements-font-color);
+    text-align: center;
+    border: 1px solid var(--tr-border-color);
+    border-left: none;
+    border-right: none;
+    padding: 0.6rem 0 !important;
+}
+
+.enseignants-table .last-td {
+    display: flex;
+    align-items: center;
+    /* Align elements vertically */
+    padding: 1rem;
+    text-align: center;
+}
+
+.last-td .number {
+    flex-grow: 1;
+    /* Takes up remaining space */
+    text-align: center;
+    /* Ensures text stays centered */
+}
+
+.last-td .line-btns {
+    display: flex;
+    gap: 5px;
+    margin-left: auto;
+    /* Pushes buttons to the right */
+    margin-right: 1rem;
+    /* Adds space from the right edge */
+}
+
+.last-td .line-btns button {
+    padding: 5px 0;
+    border-radius: 20px;
+    background-color: #E2E4E560;
+    width: 110px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+}
+
+.grade-td span {
+    padding: 5px 15px;
+    background-color: #D43F8D20;
+    border-radius: 20px;
+    color: var(--pink-color);
+    border: 1px solid var(--pink-color);
+    font-weight: 500;
+}
+
+.to-top .arrow-top {
+    transform: rotate(180deg);
+    color: #fff;
+}
+
+/*------------No enseignants---------------*/
+
+.enseignants-liste-wrapper .no-enseignants-available{
+    width: 100%;
+    height: calc(100vh - 280px);
+    background-color: #F9F9F9;
+    border-radius: 10px;
+    border: 3px solid #E4E4E4;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    font-family: "Kumbh Sans", sans-serif;
+}
+
+.no-enseignants-available .empty-icon{
+    width: 200px;
+    height: 170px;
+}
+
+.no-enseignants-available .lines-box{
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+/*----------Ajouter Enseignant Container-----------*/
+
+.ajouter-enseignant-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 900px;
+    height: 510px;
+    z-index: 20;
+}
+
+.ajouter-enseignant-container .ajouter-enseignant-wrapper {
+    width: 100%;
+    height: 100%;
+    border-radius: 40px;
+    background-color: #FCFAFA;
+    box-shadow: 2px 8px 30px rgba(0, 0, 0, 0.12);
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-family: "Poppins", sans-serif;
+}
+
+.ajouter-enseignant-wrapper .title-line{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ajouter-enseignant-wrapper .title-line .close-title-icon{
+    min-width: 36px;
+    min-height: 36px;
+    fill: #4F4F4F !important;
+}
+
+.ajouter-enseignant-wrapper h1 {
+    font-size: 1.4rem;
+    font-weight: 550;
+    color: #4F4F4F;
+}
+
+#ajouterFormEnseignant {
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+#ajouterFormEnseignant .ajouter-input-line {
+    width: 90%;
+    display: flex;
+    justify-content: space-between;
+}
+
+#ajouterFormEnseignant .select-line {
+    width: 100%;
+}
+
+#ajouterFormEnseignant .ajouter-input-line .input-flex {
+    display: flex;
+    flex-direction: column;
+}
+
+#ajouterFormEnseignant .ajouter-input-line .input-flex input {
+    width: 300px;
+    height: 42px;
+    padding: 0 15px;
+    border-radius: 20px;
+    border: 1px solid #A7A7A7;
+    font-size: 0.9rem;
+    outline: none;
+    background-color: transparent;
+    font-weight: 400;
+    color: #060606;
+}
+
+#ajouterFormEnseignant .select-flex {
+    display: flex;
+    justify-content: space-between;
+    width: 50%;
+    align-items: flex-end;
+}
+
+#ajouterFormEnseignant .select-flex-line {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+#ajouterFormEnseignant .select-flex-line select {
+    /*---to hide the default arrow---*/
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+#ajouterFormEnseignant .custom-select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 180px;
+    height: 42px;
+    padding: 0 10px;
+    border-radius: 20px;
+    border: 1px solid #A7A7A7;
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: #8A8A8A;
+    background-color: white;
+    cursor: pointer;
+    outline: none;
+}
+
+#ajouterFormEnseignant .select-icon {
+    color: #8A8A8A;
+    width: 10px;
+    height: 6px;
+    position: absolute;
+    right: 100px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: "none";
+}
+
+.ajouter-enseignant-container .btns-form-line {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.ajouter-enseignant-wrapper .btns-form-line button {
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 550;
+    padding: 10px 12px;
+    border-radius: 22px;
+    background-color: var(--main-color);
+    color: #fff;
+    display: flex;
+    gap: 10px;
+}
+
+#ajouterFormEnseignant .ajouter-choice {
+    display: flex;
+    gap: 2rem;
+}
+
+#ajouterFormEnseignant .ajouter-choice span {
+    font-weight: 500;
+    font-size: 1rem;
+    color: #4F4F4F;
+    line-height: 1.6;
+    cursor: pointer;
+}
+
+#ajouterFormEnseignant .ajouter-choice span.current {
+    color: var(--main-color);
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    /* Makes the underline thicker */
+    text-underline-offset: 5px;
+    /* Moves the underline further down */
+}
+
+#ajouterFormEnseignant .drop-file-container {
+    width: 100%;
+    height: 240px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#ajouterFormEnseignant .drop-file-wrapper{
+    width: 650px;
+    height: 100%;
+    background-color: #fff;
+    border-radius: 20px;
+    border: 2px dashed #CBD0DC;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+
+#ajouterFormEnseignant .structures-box{
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+#ajouterFormEnseignant .structures-box button{
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 40px;
+    color: var(--main-color);
+    display: flex;
+    gap: 10px;
+    border: 2px solid var(--main-color);
+    margin-top: 6px;
+}
+
+#ajouterFormEnseignant .file-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    padding: 6px 15px;
+    margin-top: 10px;
+    width: 100%;
+    border: 1px solid #ccc;
+}
+
+#ajouterFormEnseignant .file-preview p {
+    font-size: 0.9rem;
+    color: #333;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#ajouterFormEnseignant .delete-file {
+    width: 40px;
+    height: 40px;
+    color: var(--main-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1rem;
+    padding: 0;
+}
+
+#ajouterFormEnseignant .delete-file svg{
+    min-width: 22px; 
+    min-height: 22px;
+    flex-shrink: 0;
+}
+
+
+@media screen and (min-width: 1700px) {
+
+    .enseignants-table .last-td .line-btns {
+        margin-right: 3rem;
+    }
+
+}
+
+@media screen and (min-height: 700px) {
+    .ajouter-enseignant-container {
+        height: 600px;
+    }
+
+    #ajouterFormEnseignant .drop-file-container{
+        height: 300px;
+    }
+}
