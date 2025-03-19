@@ -14,7 +14,7 @@ export const AdminLayout = () => {
         {
           name: "Tableau de Bord",
           icon: <DashboardIcon />,
-          path: "/admin/dashboard",
+          path: "/admin",
         },
         {
           name: "Paramètres",
