@@ -220,6 +220,34 @@
     color: #fff;
 }
 
+/*------------No enseignants---------------*/
+
+.enseignants-liste-wrapper .no-enseignants-available{
+    width: 100%;
+    height: calc(100vh - 280px);
+    background-color: #F9F9F9;
+    border-radius: 10px;
+    border: 3px solid #E4E4E4;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    font-family: "Kumbh Sans", sans-serif;
+}
+
+.no-enseignants-available .empty-icon{
+    width: 200px;
+    height: 170px;
+}
+
+.no-enseignants-available .lines-box{
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: center;
+}
+
 /*----------Ajouter Enseignant Container-----------*/
 
 .ajouter-enseignant-container {
@@ -243,6 +271,19 @@
     flex-direction: column;
     justify-content: space-between;
     font-family: "Poppins", sans-serif;
+}
+
+.ajouter-enseignant-wrapper .title-line{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ajouter-enseignant-wrapper .title-line .close-title-icon{
+    min-width: 36px;
+    min-height: 36px;
+    fill: #4F4F4F !important;
 }
 
 .ajouter-enseignant-wrapper h1 {
