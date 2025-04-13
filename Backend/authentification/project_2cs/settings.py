@@ -47,6 +47,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    
 }
 # JWT Settings
 from datetime import timedelta
@@ -174,3 +175,12 @@ CACHES = {
     }
 }
 
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+cloudinary.config(
+    cloud_name="dkzq7dhey",
+    api_key="646551192782873",
+    api_secret="iCcix1MTZUavFpVZwBNq_vzKtGo"
+)
