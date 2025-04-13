@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,PermissionsMixin,Group,Permission
-
+from cloudinary.models import CloudinaryField
 # Create your models here.
 
 from django.contrib.auth.models import BaseUserManager
@@ -65,6 +65,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     nom = models.CharField(max_length=20)
     prenom = models.CharField(max_length=20)
+    photo_profil = CloudinaryField('image', blank=True, null=True)
     password = models.CharField(max_length=128)
 
     is_active = models.BooleanField(default=True)

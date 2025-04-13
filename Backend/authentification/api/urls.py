@@ -49,8 +49,7 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("change-password/", ChangePasswordView.as_view(), name="change-password"),
      path('users-with-entreprise/', UsersWithEntrepriseView.as_view(), name="users-with-entreprise"),
- 
-
+     
 
 
 

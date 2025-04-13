@@ -4,6 +4,7 @@ from django.contrib.auth.hashers import make_password
 from api.models import *
 from django.contrib.auth import authenticate
 import secrets
+import cloudinary.uploader
 
 from rest_framework_simplejwt.tokens import RefreshToken
     
@@ -30,17 +31,21 @@ class SalleSerializer(serializers.ModelSerializer):
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
+    photo_profil = serializers.ImageField(required=False) 
     class Meta:
         model = User
-        fields = ["id", "email", "nom", "prenom", "password", "is_staff", "is_superuser"]
+        fields = ["id", "email", "nom", "prenom", "password", "is_staff", "is_superuser","photo_profil"]
         extra_kwargs = {"password": {"write_only": True, "required": False}}
 
     def create(self, validated_data):
+        photo = validated_data.pop("Photo_profil", None)
         if "password" not in validated_data or not validated_data["password"]:
             generated_password = secrets.token_urlsafe(8)  # Générer un mot de passe
             validated_data["password"] = make_password(generated_password)  # Hasher et stocker
             self.generated_password = generated_password  # Stocker pour l'email
-
+        if photo:
+            result = cloudinary.uploader.upload(photo)
+            validated_data["Photo_profil"] = result["secure_url"]
         user = super().create(validated_data)
         user.generated_password = getattr(self, "generated_password", None)  # Ajouter au user
         return user
