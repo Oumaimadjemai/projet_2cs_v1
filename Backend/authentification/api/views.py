@@ -451,5 +451,55 @@ class ChangePasswordView(APIView):
         user.save()
         return Response({"message": "Mot de passe modifié avec succès."}, status=status.HTTP_200_OK)
 
+class EnseignantDetailView(APIView):
+    """
+    Endpoint pour récupérer les informations d'un enseignant
+    """
+    def get(self, request, pk):
+        try:
+            enseignant = Enseignant.objects.get(id=pk)
+            return Response({
+                "id": enseignant.id,
+                "nom": enseignant.nom,
+                "prenom": enseignant.prenom
+            })
+        except Enseignant.DoesNotExist:
+            return Response({"error": "Enseignant introuvable"}, status=status.HTTP_404_NOT_FOUND)
+
+class EntrepriseDetailView(APIView):
+    """
+    Endpoint pour récupérer les informations d'une entreprise
+    """
+    def get(self, request, pk):
+        try:
+            entreprise = Entreprise.objects.get(id=pk)
+            return Response({
+                "id": entreprise.id,
+                "nom": entreprise.nom
+            })
+        except Entreprise.DoesNotExist:
+            return Response({"error": "Entreprise introuvable"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class VerifyUserAPIView(APIView):
+    """
+    Vérifie si l'utilisateur est un enseignant ou une entreprise.
+    """
+
+    def get(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            return Response(
+                {"error": "Utilisateur non authentifié"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        return Response({
+            "is_enseignant": user.is_enseignant(),
+            "is_entreprise": user.is_entreprise(),
+            "user_id": user.id
+        })
+
+
 
 
