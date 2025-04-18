@@ -1,12 +1,18 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import '../Styles/DecoEsi.css'
 import logoESISBA from '../../../Assets/Images/logo_ESISBA.png'
+import { AppContext } from '../../../App';
+import { useTranslation } from 'react-i18next';
 
 function DecoEsi() {
 
-    const getFormattedDate = () => {
+    const { lang } = useContext(AppContext)
+
+    const { t } = useTranslation();
+
+    const getFormattedDate = (lang) => {
         const options = { year: "numeric", month: "long", day: "numeric" };
-        return new Date().toLocaleDateString("en-US", options);
+        return new Date().toLocaleDateString(lang, options);
     };
 
     return (
@@ -14,14 +20,14 @@ function DecoEsi() {
             <div className="deco-wrapper">
                 <div className="school-name-box">
                     <div className="date-line" style={{ fontWeight: "350", fontSize: "0.9rem" }}>
-                        {getFormattedDate()}
+                        {getFormattedDate(lang)}
                     </div>
                     <div className="school-name-line">
                         <span style={{ fontSize: "1.5rem", fontWeight: "520" }}>
-                            École Supérieure En Informatique
+                            {t('schoolName')}
                         </span>
                         <span style={{ fontSize: "0.9rem" }}>
-                            8 Mai 1945 - Sidi-Bel-Abbès
+                            {t('school')}
                         </span>
                     </div>
                 </div>

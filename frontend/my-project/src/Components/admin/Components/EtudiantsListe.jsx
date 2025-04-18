@@ -1,46 +1,55 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
-import '../Styles/EnseignantsListe.css';
+import '../Styles/EtudiantsListe.css';
 import { ReactComponent as SearchIcon } from '../../../Assets/Icons/Search.svg';
 import { ReactComponent as EditIcon } from '../../../Assets/Icons/edit.svg';
 import { ReactComponent as DeleteIcon } from '../../../Assets/Icons/Delete.svg';
 import { ReactComponent as ArrowIcon } from '../../../Assets/Icons/Arrow.svg';
 import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/EmptyState.svg';
-import { AjouterEnseignant } from './AjouterEnseignant';
+import { AjouterEtudiant } from './AjouterEtudiant';
 import { AppContext } from '../../../App';
 import '../../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
 
+function EtudiantsListe() {
 
-function EnseignantsListe() {
+    const { isRtl } = useContext(AppContext);
 
-    const enseignants = [
-        { id: 1, name: "Djamel Bensaber", matricule: "000E123", email: "a.bencaber@esi-sba.dz", grade: "Professeur", sujetsEncadres: 3 },
-        { id: 2, name: "Amine Boukhalfa", matricule: "000E456", email: "a.boukhalfa@esi-sba.dz", grade: "MCF", sujetsEncadres: 5 },
-        { id: 3, name: "Nadia Yousfi", matricule: "000E789", email: "n.yousfi@esi-sba.dz", grade: "Professeur", sujetsEncadres: 2 },
-        { id: 1, name: "Djamel Bensaber", matricule: "000E123", email: "a.bencaber@esi-sba.dz", grade: "Chercheur", sujetsEncadres: 3 },
-        { id: 2, name: "Amine Boukhalfa", matricule: "000E456", email: "a.boukhalfa@esi-sba.dz", grade: "Doctorant", sujetsEncadres: 5 },
-        { id: 3, name: "Nadia Yousfi", matricule: "000E789", email: "n.yousfi@esi-sba.dz", grade: "Professeur", sujetsEncadres: 2 },
-        { id: 1, name: "Djamel Bensaber", matricule: "000E123", email: "a.bencaber@esi-sba.dz", grade: "MCF", sujetsEncadres: 3 },
-        { id: 2, name: "Amine Boukhalfa", matricule: "000E456", email: "a.boukhalfa@esi-sba.dz", grade: "MCF", sujetsEncadres: 5 },
-        { id: 3, name: "Nadia Yousfi", matricule: "000E789", email: "n.yousfi@esi-sba.dz", grade: "Doctorant", sujetsEncadres: 2 },
-        { id: 1, name: "Djamel Bensaber", matricule: "000E123", email: "a.bencaber@esi-sba.dz", grade: "Professeur", sujetsEncadres: 3 },
-        { id: 2, name: "Amine Boukhalfa", matricule: "000E456", email: "a.boukhalfa@esi-sba.dz", grade: "Chercheur", sujetsEncadres: 5 },
-        { id: 3, name: "Nadia Yousfi", matricule: "000E789", email: "n.yousfi@esi-sba.dz", grade: "Professeur", sujetsEncadres: 2 },
-        { id: 1, name: "Djamel Bensaber", matricule: "000E123", email: "a.bencaber@esi-sba.dz", grade: "Doctorant", sujetsEncadres: 3 },
-        { id: 2, name: "Amine Boukhalfa", matricule: "000E456", email: "a.boukhalfa@esi-sba.dz", grade: "MCF", sujetsEncadres: 5 },
-        { id: 3, name: "Nadia Yousfi", matricule: "000E789", email: "n.yousfi@esi-sba.dz", grade: "Chercheur", sujetsEncadres: 2 }
+    const etudiants = [
+        { id: 1, name: "Derki Ayet Halima", matricule: "000E123", email: "ah.derki@esi-sba.dz", annee: "4ème-SIW", moyen: 14.98 },
+        { id: 2, name: "Rachid Benhammou ", matricule: "000E456", email: "r.benhamou@esi-sba.dz", annee: "2ème", moyen: 12.11 },
+        { id: 3, name: "Yasmine Boudjemaa", matricule: "000E789", email: "y.boudjemaa@esi-sba.dz", annee: "4ème-SIW", moyen: 16.15 },
+        { id: 1, name: "Derki Ayet Halima", matricule: "000E123", email: "ah.derki@esi-sba.dz", annee: "5ème-IASD", moyen: 14.98 },
+        { id: 2, name: "Rachid Benhammou ", matricule: "000E456", email: "r.benhamou@esi-sba.dz", annee: "3ème", moyen: 12.11 },
+        { id: 3, name: "Yasmine Boudjemaa", matricule: "000E789", email: "y.boudjemaa@esi-sba.dz", annee: "4ème-IASD", moyen: 16.15 },
+        { id: 1, name: "Derki Ayet Halima", matricule: "000E123", email: "ah.derki@esi-sba.dz", annee: "2ème", moyen: 14.98 },
+        { id: 2, name: "Rachid Benhammou ", matricule: "000E456", email: "r.benhamou@esi-sba.dz", annee: "5ème-SIW", moyen: 12.11 },
+        { id: 3, name: "Yasmine Boudjemaa", matricule: "000E789", email: "y.boudjemaa@esi-sba.dz", annee: "3ème", moyen: 16.15 },
+        { id: 1, name: "Derki Ayet Halima", matricule: "000E123", email: "ah.derki@esi-sba.dz", annee: "4ème-SIW", moyen: 14.98 },
+        { id: 2, name: "Rachid Benhammou ", matricule: "000E456", email: "r.benhamou@esi-sba.dz", annee: "3ème", moyen: 12.11 },
+        { id: 3, name: "Yasmine Boudjemaa", matricule: "000E789", email: "y.boudjemaa@esi-sba.dz", annee: "5ème-ISI", moyen: 16.15 },
+        { id: 1, name: "Derki Ayet Halima", matricule: "000E123", email: "ah.derki@esi-sba.dz", annee: "4ème-ISI", moyen: 14.98 },
+        { id: 2, name: "Rachid Benhammou ", matricule: "000E456", email: "r.benhamou@esi-sba.dz", annee: "2ème", moyen: 12.11 },
+        { id: 3, name: "Yasmine Boudjemaa", matricule: "000E789", email: "y.boudjemaa@esi-sba.dz", annee: "2ème", moyen: 16.15 }
     ];
 
-    const getGradeColor = (grade) => {
-        switch (grade) {
-            case "Professeur":
+    const getAnneeColor = (annee) => {
+        switch (annee) {
+            case "2ème":
+                return { color: "#FF8F0D", backgroundColor: "#FF8F0D20" };
+            case "3ème":
+                return { color: "#884DFF", backgroundColor: "#884DFF20" };
+            case "4ème-SIW":
+                return { color: "#E66AA8", backgroundColor: "#E66AA820" };
+            case "5ème-SIW":
                 return { color: "#D43F8D", backgroundColor: "#D43F8D20" };
-            case "MCF":
-                return { color: "#E63946", backgroundColor: "#E6394620" };
-            case "Chercheur":
-                return { color: "#0095FF", backgroundColor: "#0095FF20" };
-            case "Doctorant":
-                return { color: "#17BEBB", backgroundColor: "#17BEBB20" };
+            case "4ème-ISI":
+                return { color: "#00E096", backgroundColor: "#00E09620" };
+            case "5ème-ISI":
+                return { color: "#00B87C", backgroundColor: "#00B87C20" };
+            case "4ème-IASD":
+                return { color: "#33A9FF", backgroundColor: "#33A9FF20" };
+            case "5ème-IASD":
+                return { color: "#006FCC", backgroundColor: "#006FCC20" };
             default:
                 return "black";
         }
@@ -79,29 +88,25 @@ function EnseignantsListe() {
         }
     };
 
-    const [ajouterEnseignantClicked, setAjouterEnseignantClicked] = useState(false);
+    const [ajouterEtudiantClicked, setAjouterEtudiantClicked] = useState(false);
 
-    const cancelAjouter = () => setAjouterEnseignantClicked(false)
-
-    //-----------AppContext-------//
-
-    const { isRtl } = useContext(AppContext);
+    const cancelAjouter = () => setAjouterEtudiantClicked(false)
 
     const { t } = useTranslation();
 
     return (
-        <div className='enseignants-liste-container' id='dynamic-liste' ref={dynamicListRef}>
-            <div className="enseignants-liste-wrapper" style={{ paddingRight: isRtl ? "0" : "12px", paddingLeft: isRtl ? "12px" : "0" }}>
+        <div className='etudiants-liste-container' id='dynamic-liste' ref={dynamicListRef}>
+            <div className="etudiants-liste-wrapper" style={{ paddingRight: isRtl ? "0" : "12px", paddingLeft: isRtl ? "12px" : "0" }}>
                 <div className="btns-container">
-                    <div className="ajouter-enseignants-btns">
+                    <div className="ajouter-etudiants-btns">
                         <button>
                             {t('enseignantsPage.exportBtn')}
                         </button>
                         <button
                             style={{ color: "#fff", backgroundColor: "#925FE2" }}
-                            onClick={() => setAjouterEnseignantClicked(true)}
+                            onClick={() => setAjouterEtudiantClicked(true)}
                         >
-                            {t('enseignantsPage.addBtn')}
+                            {t('etudiantsPage.addBtn')}
                         </button>
                     </div>
                     <div className="supprimer-btn" style={{ marginRight: "0.5rem" }}>
@@ -110,8 +115,8 @@ function EnseignantsListe() {
                         </button>
                     </div>
                 </div>
-                <div className="recherche-enseignants-line">
-                    <div className="recherche-enseignants-input">
+                <div className="recherche-etudiants-line">
+                    <div className="recherche-etudiants-input">
                         <button
                             style={{
                                 borderRight: isRtl ? "none" : "2px solid #D9E1E7",
@@ -125,12 +130,12 @@ function EnseignantsListe() {
                         </button>
                         <div className="input-line">
                             <SearchIcon />
-                            <input type="text" placeholder={t('enseignantsPage.searchPlaceholder')} />
+                            <input type="text" placeholder={t('etudiantsPage.searchPlaceholder')} />
                         </div>
                     </div>
                 </div>
 
-                <div className="enseignants-table">
+                <div className="etudiants-table">
                     <table>
                         <thead>
                             <tr>
@@ -146,13 +151,12 @@ function EnseignantsListe() {
                                         paddingLeft: isRtl ? undefined : "1rem",
                                         paddingRight: isRtl ? "0.5rem" : undefined,
                                         textAlign: isRtl ? "right" : "left"
-                                    }}
-                                >
+                                    }}                                    >
                                     {t('enseignantsPage.tableNom')}
                                 </th>
                                 <th>{t('enseignantsPage.tableMat')}</th>
                                 <th style={{ width: "25%" }}>{t('enseignantsPage.tableEmail')}</th>
-                                <th>{t('enseignantsPage.tableGrade')}</th>
+                                <th>{t('etudiantsPage.tableAnnee')}</th>
                                 <th
                                     style={{
                                         width: "100%",
@@ -163,17 +167,16 @@ function EnseignantsListe() {
                                         borderRight: isRtl ? "none" : "1px solid #E4E4E4",
                                         borderLeft: isRtl ? "1px solid #E4E4E4" : "none",
                                         textAlign: isRtl ? "right" : "left"
-                                    }}
-                                >
-                                    {t('enseignantsPage.tableSujets')}
+                                    }}                                >
+                                    {t('etudiantsPage.tableMoyen')}
                                 </th>
                             </tr>
                         </thead>
                         {
-                            enseignants.length !== 0 && (
+                            etudiants.length !== 0 && (
                                 <tbody>
                                     {
-                                        enseignants.map((enseignant) => (
+                                        etudiants.map((etudiant) => (
                                             <tr>
                                                 <td
                                                     style={{
@@ -192,23 +195,23 @@ function EnseignantsListe() {
                                                         textOverflow: "ellipsis"
                                                     }}
                                                 >
-                                                    {enseignant.name}
+                                                    {etudiant.name}
                                                 </td>
                                                 <td>
-                                                    {enseignant.matricule}
+                                                    {etudiant.matricule}
                                                 </td>
                                                 <td style={{ width: "25%" }}>
-                                                    {enseignant.email}
+                                                    {etudiant.email}
                                                 </td>
                                                 <td className='grade-td'>
                                                     <span
                                                         style={{
-                                                            color: getGradeColor(enseignant.grade).color,
-                                                            backgroundColor: getGradeColor(enseignant.grade).backgroundColor,
-                                                            border: `1px solid ${getGradeColor(enseignant.grade).color}`
+                                                            color: getAnneeColor(etudiant.annee).color,
+                                                            backgroundColor: getAnneeColor(etudiant.annee).backgroundColor,
+                                                            border: `1px solid ${getAnneeColor(etudiant.annee).color}`
                                                         }}
                                                     >
-                                                        {enseignant.grade}
+                                                        {etudiant.annee}
                                                     </span>
                                                 </td>
                                                 <td
@@ -222,7 +225,7 @@ function EnseignantsListe() {
                                                         borderLeft: isRtl ? "1px solid #E4E4E4" : "none",
                                                     }}
                                                 >
-                                                    <span className="number">{enseignant.sujetsEncadres}</span>
+                                                    <span className="number">{etudiant.moyen}</span>
                                                     <div
                                                         className="line-btns"
                                                         style={{
@@ -248,15 +251,15 @@ function EnseignantsListe() {
                         }
                     </table>
                     {
-                        enseignants.length === 0 && (
-                            <div className="no-enseignants-available">
+                        etudiants.length === 0 && (
+                            <div className="no-etudiants-available">
                                 <EmptyIcon className='empty-icon' />
                                 <div className="lines-box">
                                     <h1 style={{ fontSize: "1.45rem", fontWeight: "650" }}>
-                                        {t('enseignantsPage.noEnseignants')}
+                                        {t('etudiantsPage.noEtudiants')}
                                     </h1>
                                     <span style={{ width: "600px", textAlign: "center", color: "#4F4F4F", fontWeight: "500" }}>
-                                        {t('enseignantsPage.startAdd')}
+                                        {t('etudiantsPage.startAdd')}
                                     </span>
                                 </div>
                             </div>
@@ -292,12 +295,13 @@ function EnseignantsListe() {
                 }
             </div>
             {
-                ajouterEnseignantClicked && (
-                    <AjouterEnseignant annulerAjouter={cancelAjouter} />
+                ajouterEtudiantClicked && (
+                    <AjouterEtudiant annulerAjouter={cancelAjouter} />
                 )
             }
         </div >
     )
 }
 
-export default EnseignantsListe
+export default EtudiantsListe
+

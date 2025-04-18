@@ -5,7 +5,7 @@ import { ReactComponent as CloseIcon } from '../../../Assets/Icons/close.svg';
 import '../../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
 
-export const AjouterEnseignant = ({ annulerAjouter }) => {
+export const AjouterEtudiant = ({ annulerAjouter }) => {
 
     const [methodeAjouter, setMethodeAjouter] = useState(0);
 
@@ -50,16 +50,16 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
     const { t } = useTranslation();
 
     return (
-        <div className='ajouter-enseignant-container'>
-            <div className="ajouter-enseignant-wrapper">
+        <div className='ajouter-etudiant-container'>
+            <div className="ajouter-etudiant-wrapper">
                 <div className="title-line">
-                    <h1>{t('enseignantsPage.addTitle')}</h1>
+                    <h1>{t('etudiantsPage.addBtn')}</h1>
                     <svg width="36" height="36" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ cursor: "pointer" }} onClick={() => annulerAjouter()}>
                         <path d="M25 27.9168L14.7917 38.1252C14.4098 38.5071 13.9237 38.6981 13.3334 38.6981C12.7431 38.6981 12.257 38.5071 11.875 38.1252C11.4931 37.7432 11.3021 37.2571 11.3021 36.6668C11.3021 36.0766 11.4931 35.5904 11.875 35.2085L22.0834 25.0002L11.875 14.7918C11.4931 14.4099 11.3021 13.9238 11.3021 13.3335C11.3021 12.7432 11.4931 12.2571 11.875 11.8752C12.257 11.4932 12.7431 11.3022 13.3334 11.3022C13.9237 11.3022 14.4098 11.4932 14.7917 11.8752L25 22.0835L35.2084 11.8752C35.5903 11.4932 36.0764 11.3022 36.6667 11.3022C37.257 11.3022 37.7431 11.4932 38.125 11.8752C38.507 12.2571 38.698 12.7432 38.698 13.3335C38.698 13.9238 38.507 14.4099 38.125 14.7918L27.9167 25.0002L38.125 35.2085C38.507 35.5904 38.698 36.0766 38.698 36.6668C38.698 37.2571 38.507 37.7432 38.125 38.1252C37.7431 38.5071 37.257 38.6981 36.6667 38.6981C36.0764 38.6981 35.5903 38.5071 35.2084 38.1252L25 27.9168Z" fill="#000000" fill-opacity="0.8" />
                     </svg>
 
                 </div>
-                <form id='ajouterFormEnseignant'>
+                <form id='ajouterFormEtudiant'>
                     <div className="ajouter-choice">
                         <span
                             className={`${methodeAjouter === 0 ? "current" : ""}`}
@@ -74,7 +74,7 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                     </div>
                     {
                         methodeAjouter === 0 ? (
-                            <>
+                            <div className='ajouter-etudiant-inner-container'>
                                 <div className="ajouter-input-line">
                                     <div className="input-flex">
                                         <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.nameInput')}</label>
@@ -94,11 +94,15 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                                         <div className="select-flex-line">
                                             <div style={{ position: "relative", display: "inline-block" }}>
                                                 <select className="custom-select">
-                                                    <option>{t('enseignantsPage.gradeSelect')}</option>
-                                                    <option>Professeur</option>
-                                                    <option>Chercheur</option>
-                                                    <option>MCF</option>
-                                                    <option>Doctorant</option>
+                                                    <option>{t('etudiantsPage.anneeInput')}</option>
+                                                    <option>2ème</option>
+                                                    <option>3ème</option>
+                                                    <option>4ème-SIW</option>
+                                                    <option>4ème-ISI</option>
+                                                    <option>4ème-IASD</option>
+                                                    <option>5ème-SIW</option>
+                                                    <option>5ème-ISI</option>
+                                                    <option>5ème-IASD</option>
                                                 </select>
                                                 <svg
                                                     width="10"
@@ -146,15 +150,21 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                                 </div>
                                 <div className="ajouter-input-line">
                                     <div className="input-flex">
-                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.MatInput')}</label>
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.PwdInput')}</label>
                                         <input type="text" name="nom" id="nom" />
                                     </div>
                                     <div className="input-flex">
-                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.PwdInput')}</label>
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.MatInput')}</label>
                                         <input type="text" name="prenom" id="prenom" />
                                     </div>
                                 </div>
-                            </>
+                                <div className="ajouter-input-line">
+                                    <div className="input-flex">
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('etudiantsPage.tableMoyen')}</label>
+                                        <input type="text" name="nom" id="nom" />
+                                    </div>
+                                </div>
+                            </div>
                         ) :
                             <div className="drop-file-container">
                                 <div className="drop-file-wrapper" onDragOver={handleDragOver} onDrop={handleDrop}>
@@ -207,13 +217,13 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                                     <DraftIcon />
                                     {t('enseignantsPage.brouillonBtn')}
                                 </button>
-                                <button type='submit' className='ajout-btn' form='ajouterFormEnseignant'>
-                                    {t('enseignantsPage.addBtn')}
+                                <button type='submit' className='ajout-btn' form='ajouterFormEtudiant'>
+                                    {t('etudiantsPage.addBtn')}
                                 </button>
                             </> :
                             <>
-                                <button type='submit' className='ajout-btn' form='ajouterFormEnseignant'>
-                                    {t('enseignantsPage.addEnseignants')}
+                                <button type='submit' className='ajout-btn' form='ajouterFormEtudiant'>
+                                    {t('etudiantsPage.addEtudiants')}
                                 </button>
                             </>
                     }

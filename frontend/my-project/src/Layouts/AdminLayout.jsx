@@ -7,53 +7,56 @@ import { ReactComponent as ParametersIcon } from '../Assets/Icons/University.svg
 import { ReactComponent as ThemesIcon } from '../Assets/Icons/Lightbulb.svg';
 import { ReactComponent as GroupesIcon } from '../Assets/Icons/People.svg';
 import { ReactComponent as SoutenancesIcon } from '../Assets/Icons/Mortarboard.svg';
+import { useTranslation } from 'react-i18next';
 
 export const AdminLayout = () => {
 
+  const { t } = useTranslation();
+
     const adminMenu = [
         {
-          name: "Tableau de Bord",
+          name: t("navElements.dashaboard"),
           icon: <DashboardIcon />,
           path: "/admin",
         },
         {
-          name: "Paramètres",
+          name: t("navElements.parametres"),
           icon: <ParametersIcon />,
           subMenu: [
             {
-                name:"Enseignants",
+                name:t("navElements.enseignants"),
                 path: "/admin/enseignants"
             },
             {
-                name:"Étudiants",
+                name:t("navElements.etudiants"),
                 path: "/admin/etudiants"
             },
             {
-                name:"Entreprises",
+                name:t("navElements.entreprise"),
                 path: "/admin/entreprises"
             },
             {
-                name:"Admins",
+                name:t("navElements.admins"),
                 path: "/admin/admins"
             },
             {
-                name:"Paramètres Scolarité",
+                name:t("navElements.scolarite"),
                 path: "/admin/scolarite"
             },
           ],
         },
         {
-          name: "Thèmes Projet",
+          name: t("navElements.themes"),
           icon: <ThemesIcon />,
           path: "/admin/themes",
         },
         {
-          name: "Groupes de Projet",
+          name: t("navElements.groupes"),
           icon: <GroupesIcon />,
           path: "/admin/groupes",
         },
         {
-          name: "Soutenances",
+          name: t("navElements.soutenances"),
           icon: <SoutenancesIcon />,
           path: "/admin/soutenances",
         },

@@ -1,0 +1,8 @@
+.input-inscription{
+    border: 1.5px solid #7042C0;
+}
+
+.input-inscription::placeholder{
+    color: #A67EF2;
+    font-family: 'Nunito', sans-serif
+}

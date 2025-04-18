@@ -1,10 +1,17 @@
-import React from 'react'
+import React, {useContext} from 'react'
 import '../Styles/TopBar.css'
 import { ReactComponent as NotificationIcon } from '../../../Assets/Icons/Reminder.svg'
 import franceFlag from '../../../Assets/Images/la-france.png';
 import defaultAccountPicture from '../../../Assets/Images/default_picture.jpeg';
+import ukFlag from '../../../Assets/Images/royaume-uni.png';
+import saudiFlag from '../../../Assets/Images/saudi-arabia.png'
+import { AppContext } from '../../../App';
+
 
 function TopBar() {
+
+    const { lang } = useContext(AppContext)
+
     return (
         <div className='topbar-container'>
             <div className='topbar-wrapper'>
@@ -13,7 +20,7 @@ function TopBar() {
                         <NotificationIcon className='icon' />
                     </div>
                     <div className="param-box">
-                        <img src={franceFlag} alt='drapeau de france' />
+                        <img  src={lang === 'fr' ? franceFlag : lang === 'en' ? ukFlag : saudiFlag} alt='drapeau de france' />
                     </div>
                     <div className="user-line-box">
                         <div className="user-account">
