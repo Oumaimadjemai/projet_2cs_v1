@@ -556,3 +556,52 @@ def get_user_by_email(request):
         return Response({'error': 'Utilisateur non trouvé'}, status=status.HTTP_404_NOT_FOUND)
 
 
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Etudiant, Annee, Specialite
+from .serializers import EtudiantSerializer
+
+class EtudiantsByAnneeView(APIView):
+    def get(self, request, annee_id):
+        etudiants = Etudiant.objects.filter(annee_etude__id=annee_id)
+        serializer = EtudiantSerializer(etudiants, many=True)
+        return Response(serializer.data)
+
+class EtudiantsByAnneeAndSpecialiteView(APIView):
+    def get(self, request, annee_id, specialite_id):
+        etudiants = Etudiant.objects.filter(annee_etude__id=annee_id, specialite__id=specialite_id)
+        serializer = EtudiantSerializer(etudiants, many=True)
+        return Response(serializer.data)
+
+class EtudiantsByAnneeWithoutSpecialiteView(APIView):
+    def get(self, request, annee_id):
+        etudiants = Etudiant.objects.filter(annee_etude__id=annee_id, specialite__isnull=True)
+        serializer = EtudiantSerializer(etudiants, many=True)
+        return Response(serializer.data)
+
+class AnneeByDepartementView(APIView):
+    def get(self, request, departement_id):
+        annees = Annee.objects.filter(departement__id=departement_id)
+        serializer = AnneeSerializer(annees, many=True)
+        return Response(serializer.data)
+class SpecialiteByAnneeView(APIView):
+    def get(self, request, annee_id):
+        specialites = Specialite.objects.filter(annee__id=annee_id)
+        serializer = SpecialiteSerializer(specialites, many=True)
+        return Response(serializer.data)
+class SpecialiteByAnneeAndDepartementView(APIView):
+    def get(self, request, annee_id, departement_id):
+        specialites = Specialite.objects.filter(
+            annee__id=annee_id,
+            annee__departement__id=departement_id
+        )
+        serializer = SpecialiteSerializer(specialites, many=True)
+        return Response(serializer.data)
+class SalleByDepartementView(APIView):
+    def get(self, request, departement_id):
+        salles = Salle.objects.filter(departement__id=departement_id)
+        serializer = SalleSerializer(salles, many=True)
+        return Response(serializer.data)
+
