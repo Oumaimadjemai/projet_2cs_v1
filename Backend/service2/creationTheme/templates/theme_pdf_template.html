@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #fff;
+            color: #000;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+            border-bottom: 2px solid black;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .school-info {
+            flex: 0.85;
+            font-size: 12px;
+            color: #093a6a;
+            line-height: 1.2;
+            padding-right: 5px;
+        }
+
+        .school-info.ar {
+            flex: 1;
+            font-family: 'Arial', sans-serif;
+            text-align: right;
+            font-size: 13px;
+            line-height: 1.4;
+            padding-left: 5px;
+        }
+
+        .logo-center {
+            flex: 0 0 auto;
+            padding: 0 15px;
+        }
+
+        .logo-center img {
+            height: 110px;
+        }
+
+        .titre-fiche {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .titre-fiche h3 {
+            color: #000;
+            font-size: 22px;
+            display: inline-block;
+            border: 1px solid #000;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #000;
+            color: #000;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            text-align: left;
+            padding: 8px;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 8px;
+        }
+
+        .label {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            color: #093a6a;
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="school-info">
+            <div>République Algérienne Démocratique et Populaire</div>
+            <div>Ministère de l'Enseignement Supérieur et de la Recherche Scientifique</div>
+            <div><strong>ÉCOLE SUPÉRIEURE EN INFORMATIQUE</strong></div>
+            <div>8 Mai 1945 - Sidi-Bel-Abbès</div>
+        </div>
+
+        <div class="logo-center">
+            <img src="{{ logo_path }}" alt="logo">
+        </div>
+
+        <div class="school-info ar">
+            <div>الجمهورية الجزائرية الديمقراطية الشعبية</div>
+            <div>وزارة التعليم العالي والبحث العلمي</div>
+            <div><strong>المدرسة العليا للإعلام الآلي</strong></div>
+            <div>سيدي بلعباس - 1945 ماي 8</div>
+        </div>
+    </div>
+
+    <div class="titre-fiche">
+        <h3>Fiche de présentation du projet</h3>
+    </div>
+
+    <table>
+        <tr><td class="label">Titre complet</td><td>{{ theme.titre }}</td></tr>
+        <tr><td class="label">Encadreur</td><td>{{ encadreur }}</td></tr>
+        <tr><td class="label">Résumé</td><td>{{ theme.resume }}</td></tr>
+        <tr><td class="label">Outils et Langages</td><td>{{ theme.outils_et_language }}</td></tr>
+        <tr><td class="label">Plan de travail</td><td>{{ theme.plan_travail }}</td></tr>
+    </table>
+
+</body>
+</html>
