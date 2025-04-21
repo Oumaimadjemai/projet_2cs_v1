@@ -586,19 +586,19 @@ class AnneeByDepartementView(APIView):
         annees = Annee.objects.filter(departement__id=departement_id)
         serializer = AnneeSerializer(annees, many=True)
         return Response(serializer.data)
-class SpecialiteByAnneeView(APIView):
-    def get(self, request, annee_id):
-        specialites = Specialite.objects.filter(annee__id=annee_id)
-        serializer = SpecialiteSerializer(specialites, many=True)
-        return Response(serializer.data)
-class SpecialiteByAnneeAndDepartementView(APIView):
-    def get(self, request, annee_id, departement_id):
-        specialites = Specialite.objects.filter(
-            annee__id=annee_id,
-            annee__departement__id=departement_id
-        )
-        serializer = SpecialiteSerializer(specialites, many=True)
-        return Response(serializer.data)
+# class SpecialiteByAnneeView(APIView):
+#     def get(self, request, annee_id):
+#         specialites = Specialite.objects.filter(annee__id=annee_id)
+#         serializer = SpecialiteSerializer(specialites, many=True)
+#         return Response(serializer.data)
+# class SpecialiteByAnneeAndDepartementView(APIView):
+#     def get(self, request, annee_id, departement_id):
+#         specialites = Specialite.objects.filter(
+#             annee__id=annee_id,
+#             annee__departement__id=departement_id
+#         )
+#         serializer = SpecialiteSerializer(specialites, many=True)
+#         return Response(serializer.data)
 class SalleByDepartementView(APIView):
     def get(self, request, departement_id):
         salles = Salle.objects.filter(departement__id=departement_id)
