@@ -2,6 +2,8 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from Backend.service2.service2 import settings
 from .models import Theme
 from .serializers import ThemeSerializer
 from .utils import verify_user
