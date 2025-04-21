@@ -186,6 +186,8 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
+
+from Backend.service2.service2 import settings
 from .models import Theme
 from .serializers import ThemeSerializer
 from .utils import verify_user
@@ -328,8 +330,14 @@ class ThemeViewSet(viewsets.ViewSet):
     def get_themes_by_enseignant(self, request, enseignant_id):
         themes = Theme.objects.filter(enseignant_id=enseignant_id)
         serializer = ThemeSerializer(themes, many=True)
-        return Response(serializer.data)
-
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_themes_by_entreprise(self, request, entreprise_id):
+        """
+        Récupère les thèmes liés à un representant entreprise spécifique.
+        """
+        themes = Theme.objects.filter(entreprise_id=entreprise_id)
+        serializer = ThemeSerializer(themes, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 # Nouvelle vue pour retourner un PDF existant
 class ThemePDFView(APIView):
     def get(self, request, theme_id):

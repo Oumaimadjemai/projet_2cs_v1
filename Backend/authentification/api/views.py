@@ -501,5 +501,107 @@ class VerifyUserAPIView(APIView):
         })
 
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth import get_user_model
+from .models import Etudiant, Enseignant, Admin, Entreprise
 
+User = get_user_model()
+
+@api_view(['GET'])
+def get_user_by_email(request):
+    email = request.query_params.get('email')
+    if not email:
+        return Response({'error': 'Email manquant dans les paramètres'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(email=email)
+
+        # Déterminer le type d'utilisateur
+        if hasattr(user, 'etudiant'):
+            user_type = 'etudiant'
+        elif hasattr(user, 'enseignant'):
+            user_type = 'enseignant'
+        elif hasattr(user, 'admin'):
+            user_type = 'admin'
+        elif Entreprise.objects.filter(compte_utilisateur=user).exists():
+            user_type = 'entreprise'
+        else:
+            user_type = 'utilisateur'
+
+        data = {
+            'id': user.id,
+            'nom': user.nom,
+            'prenom': user.prenom,
+            'email': user.email,
+            'type': user_type,
+            'photo_profil': str(user.photo_profil) if user.photo_profil else None,
+        }
+
+        # Ajouter infos spécifiques si étudiant
+        if user_type == 'etudiant':
+            etu = user.etudiant
+            data.update({
+                'matricule': etu.matricule,
+                'annee': etu.annee_etude.title if etu.annee_etude else None,
+                'specialite': etu.specialite.title if etu.specialite else None,
+                'moyenne': etu.moyenne_etudiant,
+                'chef_equipe': etu.chef_equipe
+            })
+
+        return Response(data, status=status.HTTP_200_OK)
+
+    except User.DoesNotExist:
+        return Response({'error': 'Utilisateur non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Etudiant, Annee, Specialite
+from .serializers import EtudiantSerializer
+
+class EtudiantsByAnneeView(APIView):
+    def get(self, request, annee_id):
+        etudiants = Etudiant.objects.filter(annee_etude__id=annee_id)
+        serializer = EtudiantSerializer(etudiants, many=True)
+        return Response(serializer.data)
+
+class EtudiantsByAnneeAndSpecialiteView(APIView):
+    def get(self, request, annee_id, specialite_id):
+        etudiants = Etudiant.objects.filter(annee_etude__id=annee_id, specialite__id=specialite_id)
+        serializer = EtudiantSerializer(etudiants, many=True)
+        return Response(serializer.data)
+
+class EtudiantsByAnneeWithoutSpecialiteView(APIView):
+    def get(self, request, annee_id):
+        etudiants = Etudiant.objects.filter(annee_etude__id=annee_id, specialite__isnull=True)
+        serializer = EtudiantSerializer(etudiants, many=True)
+        return Response(serializer.data)
+
+class AnneeByDepartementView(APIView):
+    def get(self, request, departement_id):
+        annees = Annee.objects.filter(departement__id=departement_id)
+        serializer = AnneeSerializer(annees, many=True)
+        return Response(serializer.data)
+# class SpecialiteByAnneeView(APIView):
+#     def get(self, request, annee_id):
+#         specialites = Specialite.objects.filter(annee__id=annee_id)
+#         serializer = SpecialiteSerializer(specialites, many=True)
+#         return Response(serializer.data)
+# class SpecialiteByAnneeAndDepartementView(APIView):
+#     def get(self, request, annee_id, departement_id):
+#         specialites = Specialite.objects.filter(
+#             annee__id=annee_id,
+#             annee__departement__id=departement_id
+#         )
+#         serializer = SpecialiteSerializer(specialites, many=True)
+#         return Response(serializer.data)
+class SalleByDepartementView(APIView):
+    def get(self, request, departement_id):
+        salles = Salle.objects.filter(departement__id=departement_id)
+        serializer = SalleSerializer(salles, many=True)
+        return Response(serializer.data)
 

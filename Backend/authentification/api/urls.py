@@ -53,13 +53,21 @@ urlpatterns = [
     path('enseignants/<int:pk>/', EnseignantDetailView.as_view(), name='get_enseignant'),
     path('entreprises/<int:pk>/', EntrepriseDetailView.as_view(), name='get_entreprise'),
     path('verify-user/', VerifyUserAPIView.as_view(), name='verify_user'),
+    
+    path('utilisateur/by-email/', get_user_by_email, name='get_user_by_email'),
 
- 
+    path('etudiants/annee/<int:annee_id>/', EtudiantsByAnneeView.as_view(), name='etudiants_by_annee'),
+    path('etudiants/annee/<int:annee_id>/specialite/<int:specialite_id>/', EtudiantsByAnneeAndSpecialiteView.as_view(), name='etudiants_by_annee_and_specialite'),
+    path('etudiants/annee/<int:annee_id>/sans_specialite/', EtudiantsByAnneeWithoutSpecialiteView.as_view(), name='etudiants_by_annee_without_specialite'),
 
-
-
-
-
+    path('annees/departement/<int:departement_id>/', AnneeByDepartementView.as_view(), name='annees_by_departement'),
+    # path('specialites/annee/<int:annee_id>/', SpecialiteByAnneeView.as_view(), name='specialites_by_annee'),
+    # path('specialites/annee/<int:annee_id>/departement/<int:departement_id>/', SpecialiteByAnneeAndDepartementView.as_view(), name='specialites_by_annee_and_departement'),
+    path('salles/departement/<int:departement_id>/', SalleByDepartementView.as_view(), name='salles_by_departement'),
 ]
+
+
+
+
 
     

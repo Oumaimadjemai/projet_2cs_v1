@@ -18,7 +18,7 @@ class Annee(models.Model):
         return f"{self.title} {self.departement.title}"
     
 class Specialite(models.Model):
-    annee = models.ForeignKey(Annee,on_delete=models.CASCADE,null=True)
+    #annee = models.ForeignKey(Annee,on_delete=models.CASCADE,null=True)
     title = models.CharField(max_length=50)
 
     def __str__(self):

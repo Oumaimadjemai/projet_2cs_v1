@@ -114,6 +114,10 @@ from django.contrib.auth import authenticate, get_user_model
 
 User = get_user_model()
 
+from rest_framework import serializers
+from django.contrib.auth import authenticate
+from .models import User, Entreprise
+
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
@@ -157,28 +161,34 @@ class UserLoginSerializer(serializers.Serializer):
 
             # Ajouter les détails en fonction du type d'utilisateur
             if user_type == "etudiant":
-                user_info.update({
-                    "annee_etude": user.etudiant.annee_etude.id,
-                    "moyenne": user.etudiant.moyenne_etudiant,
-                    "matricule": user.etudiant.matricule,
-                    "chef_equipe": user.etudiant.chef_equipe,
-                    "specialite": user.etudiant.specialite.id
-                })
+                if user.etudiant:  # Vérifier si l'utilisateur est bien associé à un étudiant
+                    user_info.update({
+                        "annee_etude": user.etudiant.annee_etude.id if user.etudiant.annee_etude else None,
+                        "moyenne": user.etudiant.moyenne_etudiant,
+                        "matricule": user.etudiant.matricule,
+                        "chef_equipe": user.etudiant.chef_equipe,
+                        "specialite": user.etudiant.specialite.id if user.etudiant.specialite else None
+                    })
+                else:
+                    raise serializers.ValidationError("Cet utilisateur n'est pas associé à un étudiant valide.")
             elif user_type == "enseignant":
                 user_info.update({
-                    "grade": ""
+                    "grade": ""  # Ajoutez les détails de l'enseignant ici
                 })
             elif user_type == "entreprise":
-                user_info.update({
-                    "entreprise_id": entreprise.id,
-                    "nom_entreprise": entreprise.nom,
-                    "secteur_activite": entreprise.secteur_activite,
-                    "adresse": entreprise.adresse,
-                    "wilaya": entreprise.wilaya,
-                    "ville": entreprise.ville,
-                    "site_web": entreprise.site_web,
-                    "statut": entreprise.statut
-                })
+                if entreprise:
+                    user_info.update({
+                        "entreprise_id": entreprise.id,
+                        "nom_entreprise": entreprise.nom,
+                        "secteur_activite": entreprise.secteur_activite,
+                        "adresse": entreprise.adresse,
+                        "wilaya": entreprise.wilaya,
+                        "ville": entreprise.ville,
+                        "site_web": entreprise.site_web,
+                        "statut": entreprise.statut
+                    })
+                else:
+                    raise serializers.ValidationError("Entreprise non trouvée pour cet utilisateur.")
 
             data['user'] = user
             data["user_info"] = user_info

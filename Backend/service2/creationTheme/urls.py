@@ -22,6 +22,7 @@ urlpatterns = [
     path('themes/<int:theme_id>/pdf/', ThemePDFView.as_view(), name='theme-pdf'),
     path('themes/pdfs/', AllThemePDFsView.as_view(), name='all_theme_pdfs'),
 
- 
+    path('themes/entreprise/<int:entreprise_id>/', ThemeViewSet.as_view({'get': 'get_themes_by_entreprise'}), name='themes-par-entreprise'),
+
 
     ]
