@@ -53,7 +53,7 @@ urlpatterns = [
     path('enseignants/<int:pk>/', EnseignantDetailView.as_view(), name='get_enseignant'),
     path('entreprises/<int:pk>/', EntrepriseDetailView.as_view(), name='get_entreprise'),
     path('verify-user/', VerifyUserAPIView.as_view(), name='verify_user'),
-
+    path('utilisateur/by-email/', get_user_by_email, name='get_user_by_email'),
  
 
 

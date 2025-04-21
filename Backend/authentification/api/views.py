@@ -501,5 +501,58 @@ class VerifyUserAPIView(APIView):
         })
 
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth import get_user_model
+from .models import Etudiant, Enseignant, Admin, Entreprise
+
+User = get_user_model()
+
+@api_view(['GET'])
+def get_user_by_email(request):
+    email = request.query_params.get('email')
+    if not email:
+        return Response({'error': 'Email manquant dans les paramètres'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(email=email)
+
+        # Déterminer le type d'utilisateur
+        if hasattr(user, 'etudiant'):
+            user_type = 'etudiant'
+        elif hasattr(user, 'enseignant'):
+            user_type = 'enseignant'
+        elif hasattr(user, 'admin'):
+            user_type = 'admin'
+        elif Entreprise.objects.filter(compte_utilisateur=user).exists():
+            user_type = 'entreprise'
+        else:
+            user_type = 'utilisateur'
+
+        data = {
+            'id': user.id,
+            'nom': user.nom,
+            'prenom': user.prenom,
+            'email': user.email,
+            'type': user_type,
+            'photo_profil': str(user.photo_profil) if user.photo_profil else None,
+        }
+
+        # Ajouter infos spécifiques si étudiant
+        if user_type == 'etudiant':
+            etu = user.etudiant
+            data.update({
+                'matricule': etu.matricule,
+                'annee': etu.annee_etude.title if etu.annee_etude else None,
+                'specialite': etu.specialite.title if etu.specialite else None,
+                'moyenne': etu.moyenne_etudiant,
+                'chef_equipe': etu.chef_equipe
+            })
+
+        return Response(data, status=status.HTTP_200_OK)
+
+    except User.DoesNotExist:
+        return Response({'error': 'Utilisateur non trouvé'}, status=status.HTTP_404_NOT_FOUND)
 
 
