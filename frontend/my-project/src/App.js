@@ -5,7 +5,7 @@ import Enseignanteinterface from './Components/enseignante/Components/enseignant
 import Entrepriseinterface from './Components/entreprise/Components/entrepriseinterface';
 import Login from './Components/Login/Login';
 import Pagedacceuille from './Components/Login/Pagedacceuille';
-// import InscriptionEntreprise from "./Components/inscriEntreprise/inscriEntreprise";
+import InscriptionEntreprise from "./Components/inscriEntreprise/inscriEntreprise";
 import { AdminLayout } from "./Layouts/AdminLayout";
 import Dashboard from "./Components/admin/Components/Dashboard";
 import EnseignantsListe from "./Components/admin/Components/EnseignantsListe";
@@ -14,7 +14,7 @@ function App() {
     <div className='App'>
       <Routes>
         {/* pour la racine */}
-        <Route index element={<Pagedacceuille />} />
+        <Route path="/" element={<Pagedacceuille />} />
         <Route path="/admin" element={<AdminLayout />} >
           <Route index element={<Dashboard />} />
           <Route path="enseignants" element={<EnseignantsListe />} />
@@ -33,6 +33,8 @@ function App() {
         <Route path="/enseignant" element={<Enseignanteinterface />} ></Route>
         <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
         <Route><Route path="/login" element={<Login />} /></Route>
+        <Route><Route path="/inscription" element={< InscriptionEntreprise/>} /></Route>
+
       </Routes>
     </div>
   );
