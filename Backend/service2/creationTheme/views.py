@@ -278,6 +278,15 @@ class ThemeViewSet(viewsets.ViewSet):
         themes = Theme.objects.filter(enseignant_id=enseignant_id)
         serializer = ThemeSerializer(themes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def get_themes_by_entreprise(self, request, entreprise_id):
+        """
+        Récupère les thèmes liés à un representant entreprise spécifique.
+        """
+        themes = Theme.objects.filter(entreprise_id=entreprise_id)
+        serializer = ThemeSerializer(themes, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 class PriorityViewSet(viewsets.ModelViewSet):
     """
     Gère les opérations CRUD pour les priorités.

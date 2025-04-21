@@ -14,6 +14,7 @@ urlpatterns = [
     path('themes/', ThemeAPIView.as_view(), name='theme-list-create'),
     path('themes/<int:pk>/', ThemeDetailAPIView.as_view(), name='theme-detail'),
     path('themes/enseignant/<int:enseignant_id>/', ThemeViewSet.as_view({'get': 'get_themes_by_enseignant'}), name='themes-par-enseignant'),
+    path('themes/entreprise/<int:entreprise_id>/', ThemeViewSet.as_view({'get': 'get_themes_by_entreprise'}), name='themes-par-entreprise'),
     # URLs pour les priorités
     path('priorities/', PriorityViewSet.as_view({'get': 'list', 'post': 'create'}), name='priority-list'),
     path('priorities/<int:pk>/', PriorityViewSet.as_view({
