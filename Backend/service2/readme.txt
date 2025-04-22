@@ -12,3 +12,5 @@ Download the installer: msys2-x86_64-20250221.exe
 // run this in terminal 
 pacman -Syu
 pacman -S mingw-w64-x86_64-cairo mingw-w64-x86_64-gobject-introspection mingw-w64-x86_64-pango
+////
+pip install xmltodict requests

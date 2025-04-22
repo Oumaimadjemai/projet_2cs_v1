@@ -46,6 +46,9 @@ function Login() {
             navigate('/enseignant');
          } else if (user_info.type === "entreprise") {
             navigate('/entreprise');
+         }
+         else if (user_info.type === "etudiant") {
+            navigate('/etudiant');
          } else {
             console.error("Type d'utilisateur inconnu");
          }
@@ -95,7 +98,9 @@ function Login() {
                      </div>
                      {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
                      <div className="text-sm text-mypurple text-right">
-                        <a href="#" className="hover:underline">Mot de passe oublié ?</a>
+                     <NavLink to="/mot-de-passe-oublie" className="hover:underline">
+                    Mot de passe oublié ?
+                    </NavLink>
                      </div>
                      <div className="flex items-center w-full my-2">
                         <hr className="flex-grow border-gray-300" />

@@ -9,6 +9,10 @@ import InscriptionEntreprise from "./Components/inscriEntreprise/inscriEntrepris
 import { AdminLayout } from "./Layouts/AdminLayout";
 import Dashboard from "./Components/admin/Components/Dashboard";
 import EnseignantsListe from "./Components/admin/Components/EnseignantsListe";
+import Etudiantinterface from "./Components/Etudiant/Components/etudiantinterface";
+
+import Groupes from "./Components/Etudiant/pages/Groupes";
+import Invitations from "./Components/Etudiant/pages/Invitation";
 function App() {
   return (
     <div className='App'>
@@ -31,6 +35,12 @@ function App() {
         </Route>
 
         <Route path="/enseignant" element={<Enseignanteinterface />} ></Route>
+        <Route path="/etudiant" element={<Etudiantinterface />} >
+        <Route path="dashboard" element={<EnseignantsListe />} />
+        <Route path="groupes" element={<Groupes />} />
+        <Route path="invitations" element={<Invitations />} />
+        </Route>
+
         <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
         <Route><Route path="/login" element={<Login />} /></Route>
         <Route><Route path="/inscription" element={< InscriptionEntreprise/>} /></Route>

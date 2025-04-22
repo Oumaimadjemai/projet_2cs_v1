@@ -187,7 +187,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 
-from Backend.service2.service2 import settings
+#from Backend.service2.service2 import settings
 from .models import Theme
 from .serializers import ThemeSerializer
 from .utils import verify_user
@@ -198,29 +198,36 @@ import requests
 from django.template.loader import render_to_string
 from django.core.files.base import ContentFile  # Import pour sauvegarder le PDF
 from urllib.parse import urljoin
+from .discovery import discover_service
 
 # External service URLs
-SERVICE_1_URL = "http://localhost:8000"
-SERVICE_2_URL = "http://localhost:8001"
+# SERVICE_1_URL = "http://localhost:8000"
+# SERVICE_2_URL = "http://localhost:8001"
+SERVICE1_APP = 'SERVICE1-CLIENT'  # Nom utilisé dans Eureka
+def get_service1_url():
+    return discover_service(SERVICE1_APP)
 
 # 🔁 Helpers
 def get_nom_annee(annee_id):
     if annee_id:
-        response = requests.get(f"{SERVICE_1_URL}/annees/{annee_id}/")
+        base = get_service1_url()
+        response = requests.get(f"{base}/annees/{annee_id}/")
         if response.status_code == 200:
             return response.json().get("title", "N/A")
     return "N/A"
 
 def get_nom_specialite(specialite_id):
     if specialite_id:
-        response = requests.get(f"{SERVICE_1_URL}/specialites/{specialite_id}/")
+        base = get_service1_url()
+        response = requests.get(f"{base}/specialites/{specialite_id}/")
         if response.status_code == 200:
             return response.json().get("title", "N/A")
     return "N/A"
 
 def get_nom_enseignant(enseignant_id):
     if enseignant_id:
-        response = requests.get(f"{SERVICE_1_URL}/enseignants/{enseignant_id}/")
+        base = get_service1_url()
+        response = requests.get(f"{base}/enseignants/{enseignant_id}/")
         if response.status_code == 200:
             data = response.json()
             return f"{data.get('nom', '')} {data.get('prenom', '')}"

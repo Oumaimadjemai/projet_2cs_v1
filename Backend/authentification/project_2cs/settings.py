@@ -184,3 +184,6 @@ cloudinary.config(
     api_key="646551192782873",
     api_secret="iCcix1MTZUavFpVZwBNq_vzKtGo"
 )
+PORT = 8000
+EUREKA_URL = 'http://localhost:8761/eureka/apps/'
+EUREKA_APP_NAME = 'SERVICE1-CLIENT'
