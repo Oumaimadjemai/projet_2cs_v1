@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Theme ,Priority
+from .models import Theme
 
 class ThemeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -7,7 +7,3 @@ class ThemeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class PrioritySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Priority
-        fields = '__all__'

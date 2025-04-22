@@ -15,10 +15,20 @@ from datetime import timedelta
 import datetime
 
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+import os
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']  # Add this to point to your static directory
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Where the static files will be collected for production
 
+# Media files (used for uploaded content like logos or PDFs)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'  # Directory where media files will be stored
+
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR / 'media'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -78,10 +88,25 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'service2.urls'
 
+# TEMPLATES = [
+#     {
+#         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+#         'DIRS': [],
+#         'APP_DIRS': True,
+#         'OPTIONS': {
+#             'context_processors': [
+#                 'django.template.context_processors.debug',
+#                 'django.template.context_processors.request',
+#                 'django.contrib.auth.context_processors.auth',
+#                 'django.contrib.messages.context_processors.messages',
+#             ],
+#         },
+#     },
+# ]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # Point to your templates directory
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -94,6 +119,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'service2.wsgi.application'
 
 
@@ -105,7 +131,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'service2',
         'USER': 'root',  # Ou un autre utilisateur
-        'PASSWORD': 'root',
+        'PASSWORD': 'khalida2003',
         'HOST': 'localhost',
         'PORT': '3306',  # Port par défaut de MySQL
     }
