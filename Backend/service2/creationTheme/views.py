@@ -261,6 +261,32 @@ def generate_pdf(request, theme_id):
     return response
 
 # 🌟 API to list and create themes
+# class ThemeAPIView(APIView):
+
+#     def get(self, request):
+#         themes = Theme.objects.all()
+#         serializer = ThemeSerializer(themes, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+#     def post(self, request):
+#         user_data = verify_user(request, role=["enseignant", "entreprise"])
+#         if not user_data:
+#             return Response({"detail": "Utilisateur non authentifié ou rôle incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         data = request.data.copy()
+#         if user_data.get("is_enseignant"):
+#             data['enseignant_id'] = user_data['user_id']
+#         elif user_data.get("is_entreprise"):
+#             data['entreprise_id'] = user_data['user_id']
+
+#         serializer = ThemeSerializer(data=data)
+#         if serializer.is_valid():
+#             theme = serializer.save()
+
+#             # 🚨 Modification ici : Appeler la fonction pour générer et sauvegarder le PDF
+#             return generate_pdf(request, theme.id)
+
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class ThemeAPIView(APIView):
 
     def get(self, request):
@@ -269,11 +295,18 @@ class ThemeAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        # ✅ Vérifie que l'utilisateur est bien un enseignant ou une entreprise
         user_data = verify_user(request, role=["enseignant", "entreprise"])
-        if not user_data:
-            return Response({"detail": "Utilisateur non authentifié ou rôle incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user_data or not (user_data.get("is_enseignant") or user_data.get("is_entreprise")):
+            return Response(
+                {"detail": "Accès refusé. Seuls les enseignants ou les entreprises peuvent créer un thème."},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         data = request.data.copy()
+
+        # ✅ Associe correctement l'utilisateur au thème
         if user_data.get("is_enseignant"):
             data['enseignant_id'] = user_data['user_id']
         elif user_data.get("is_entreprise"):
@@ -283,7 +316,7 @@ class ThemeAPIView(APIView):
         if serializer.is_valid():
             theme = serializer.save()
 
-            # 🚨 Modification ici : Appeler la fonction pour générer et sauvegarder le PDF
+            # ✅ Génère automatiquement le PDF après la création du thème
             return generate_pdf(request, theme.id)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
