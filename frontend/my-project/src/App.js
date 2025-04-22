@@ -1,10 +1,15 @@
 
 import { Route, Routes } from "react-router";
+import React, { useState } from 'react';
+
 import './App.css';
 import Enseignanteinterface from './Components/enseignante/Components/enseignanteinterface';
 import Entrepriseinterface from './Components/entreprise/Components/entrepriseinterface';
 import Login from './Components/Login/Login';
 import Pagedacceuille from './Components/Login/Pagedacceuille';
+import DemandeEntreprise from './Components/entreprise/listdemande'
+import EntreprisesPage from './Components/entreprise/ListEntreprise';
+import AjouterEntreprisePage from './Components/entreprise/AjouterEntreprise';
 import InscriptionEntreprise from "./Components/inscriEntreprise/inscriEntreprise";
 import { AdminLayout } from "./Layouts/AdminLayout";
 import Dashboard from "./Components/admin/Components/Dashboard";
@@ -13,7 +18,14 @@ import Etudiantinterface from "./Components/Etudiant/Components/etudiantinterfac
 
 import Groupes from "./Components/Etudiant/pages/Groupes";
 import Invitations from "./Components/Etudiant/pages/Invitation";
+
+
 function App() {
+  const [cards, setCards] = useState([]);
+
+  const handleAddEntreprise = (newCompany) => {
+    setCards((prev) => [...prev, newCompany]);
+  };
   return (
     <div className='App'>
       <Routes>
@@ -45,8 +57,23 @@ function App() {
         <Route><Route path="/login" element={<Login />} /></Route>
         <Route><Route path="/inscription" element={< InscriptionEntreprise/>} /></Route>
 
-      </Routes>
-    </div>
+  {/* pour la racine */}
+  <Route path="/" element={<Pagedacceuille />} ></Route>
+ {/* pour admin */}
+ {/* <Route path="/admin" element={<Admininterface/>} ></Route> */}
+  {/* pour enseignant */}
+  <Route path="/enseignant" element={<Enseignanteinterface />} ></Route>
+ {/* pour enseignant */}
+ <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
+{/* pour login */}
+<Route><Route path="/login" element={<Login/>} /></Route>
+
+<Route path="/listEntreprise"element={<EntreprisesPage cards={cards} setCards={setCards} />}/>
+ <Route path="/ajouterEntreprise" element={<AjouterEntreprisePage onAddEntreprise={handleAddEntreprise} />}/>
+ <Route path="/demandeEntreprise" element={<DemandeEntreprise />} />
+</Routes>
+
+   </div> 
   );
 }
 
