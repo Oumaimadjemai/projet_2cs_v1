@@ -4,9 +4,14 @@ import datetime
 import requests
 from django.db import models
 from django.core.exceptions import ValidationError
+from .discovery import discover_service
 
-SERVICE_1_URL = "http://localhost:8000"  # Replace with actual Service 1 URL
+# SERVICE_1_URL = "http://localhost:8000"  # Replace with actual Service 1 URL
 
+SERVICE1_APP = 'SERVICE1-CLIENT'  # Nom utilisé dans Eureka
+
+def get_service1_url():
+    return discover_service(SERVICE1_APP)
 
 def generate_annee_academique_id():
     current_year = datetime.datetime.now().year
@@ -15,14 +20,17 @@ def generate_annee_academique_id():
 
 def validate_specialite_id(specialite_id):
     if specialite_id:
-        response = requests.get(f"{SERVICE_1_URL}/specialites/{specialite_id}/")
+        base = get_service1_url()
+        # base = SERVICE_1_URL  # Replace with actual Service 1 URL
+        response = requests.get(f"{base}/specialites/{specialite_id}/")
         if response.status_code != 200:
             raise ValidationError(f"L'ID spécialité '{specialite_id}' est introuvable dans le service 1.")
 
 
 def validate_annee_id(annee_id):
     if annee_id:
-        response = requests.get(f"{SERVICE_1_URL}/annees/{annee_id}/")
+        base = get_service1_url()
+        response = requests.get(f"{base}/annees/{annee_id}/")
         if response.status_code != 200:
             raise ValidationError(f"L'ID année '{annee_id}' est introuvable dans le service 1.")
 
@@ -79,11 +87,13 @@ class Theme(models.Model):
                     validate_specialite_id(item['specialite_id'])
 
         if self.enseignant_id:
-            response = requests.get(f"{SERVICE_1_URL}/enseignants/{self.enseignant_id}/")
+            base = get_service1_url()
+            response = requests.get(f"{base}/enseignants/{self.enseignant_id}/")
             if response.status_code != 200:
                 raise ValidationError(f"L'ID enseignant '{self.enseignant_id}' est introuvable dans le service 1.")
 
         if self.entreprise_id:
-            response = requests.get(f"{SERVICE_1_URL}/entreprises/{self.entreprise_id}/")
+            base = get_service1_url()
+            response = requests.get(f"{base}/entreprises/{self.entreprise_id}/")
             if response.status_code != 200:
                 raise ValidationError(f"L'ID entreprise '{self.entreprise_id}' est introuvable dans le service 1.")
