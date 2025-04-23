@@ -605,3 +605,21 @@ class SalleByDepartementView(APIView):
         serializer = SalleSerializer(salles, many=True)
         return Response(serializer.data)
 
+class VerifyAdminView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        # Ici on détermine le "type" dynamiquement
+        if hasattr(user, 'admin'):
+            user_type = "admin"
+        elif hasattr(user, 'enseignant'):
+            user_type = "enseignant"
+        elif hasattr(user, 'entreprise'):
+            user_type = "entreprise"
+        else:
+            user_type = "etudiant"
+
+        is_admin = user_type == "admin"
+        return Response({"is_admin": is_admin})
