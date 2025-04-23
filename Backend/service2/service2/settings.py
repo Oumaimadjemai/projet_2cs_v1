@@ -185,11 +185,15 @@ REST_FRAMEWORK = {
     )
 }
 
-PORT = 8001
-EUREKA_URL = 'http://localhost:8761/eureka/apps/'
-EUREKA_APP_NAME = 'SERVICE2-CLIENT'
+# PORT = 8001
+# EUREKA_URL = 'http://localhost:8761/eureka/apps/'
+# EUREKA_APP_NAME = 'SERVICE2-CLIENT'
 
+EUREKA_URL = os.getenv('EUREKA_URL', 'http://localhost:8761/eureka/')
+EUREKA_APP_NAME = os.getenv('EUREKA_APP_NAME', 'SERVICE2-CLIENT')
+PORT = int(os.getenv('PORT', '8001'))
 
+ALLOWED_HOSTS = ["*"]
 
 
 
