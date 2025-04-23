@@ -4,7 +4,7 @@ import { ReactComponent as SearchIcon } from '../../../Assets/Icons/Search.svg';
 import { ReactComponent as EditIcon } from '../../../Assets/Icons/edit.svg';
 import { ReactComponent as DeleteIcon } from '../../../Assets/Icons/Delete.svg';
 import { ReactComponent as ArrowIcon } from '../../../Assets/Icons/Arrow.svg';
-import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/EmptyState.svg';
+import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/notFound.svg';
 import { AjouterEnseignant } from './AjouterEnseignant';
 import { AppContext } from '../../../App';
 import '../../Partials/Components/i18n'

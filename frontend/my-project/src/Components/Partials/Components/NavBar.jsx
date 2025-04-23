@@ -12,6 +12,7 @@ import { ReactComponent as HelpIcon } from '../../../Assets/Icons/help.svg';
 import { ReactComponent as InfoIcon } from '../../../Assets/Icons/info.svg';
 import { ReactComponent as LockIcon } from '../../../Assets/Icons/lock-open.svg';
 import { ReactComponent as TranslateIcon } from '../../../Assets/Icons/Translate.svg';
+import { ReactComponent as LogoIcon } from '../../../Assets/Icons/logo-white.svg';
 import './i18n'
 import { useTranslation } from 'react-i18next';
 import { AppContext } from '../../../App';
@@ -87,7 +88,8 @@ function NavBar({ menuItems, racinePath }) {
     return (
         <div className='navbar-container'>
             <div className="nevbar-wrapper">
-                <div className="logo-box">
+                <div className="logo-box" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <LogoIcon style= {{width: "60px", height: "60px"}} />
                 </div>
                 <div className="lists-container">
                     <ul>

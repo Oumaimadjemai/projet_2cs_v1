@@ -8,3 +8,11 @@ dism /online /Enable-Feature /FeatureName:TelnetClient
 redis-cli ping // to check redis server with powershell
 pip install pandas
  pip install django-cors-headers
+
+
+Les commandes:
+venv\Scripts\activate
+python manage.py runserver
+pour migrate:
+python manage.py makemigrations
+python manage.py migrate

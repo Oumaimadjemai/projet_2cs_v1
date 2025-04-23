@@ -222,7 +222,7 @@
 
 /*------------No enseignants---------------*/
 
-.etudiants-liste-wrapper .no-etudiants-available{
+.etudiants-liste-wrapper .no-etudiants-available {
     width: 100%;
     height: calc(100vh - 280px);
     background-color: #F9F9F9;
@@ -236,12 +236,12 @@
     font-family: "Kumbh Sans", sans-serif;
 }
 
-.no-etudiants-available .empty-icon{
+.no-etudiants-available .empty-icon {
     width: 200px;
     height: 170px;
 }
 
-.no-etudiants-available .lines-box{
+.no-etudiants-available .lines-box {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
@@ -256,7 +256,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     width: 900px;
-    height: 515px;
+    height: 510px;
     z-index: 20;
 }
 
@@ -266,21 +266,21 @@
     border-radius: 40px;
     background-color: #FCFAFA;
     box-shadow: 2px 8px 30px rgba(0, 0, 0, 0.12);
-    padding: 3rem 2rem 1rem 2rem;
+    padding: 3rem 2rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     font-family: "Poppins", sans-serif;
 }
 
-.ajouter-etudiant-wrapper .title-line{
+.ajouter-etudiant-wrapper .title-line {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.ajouter-etudiant-wrapper .title-line .close-title-icon{
+.ajouter-etudiant-wrapper .title-line .close-title-icon {
     min-width: 36px;
     min-height: 36px;
     fill: #4F4F4F !important;
@@ -299,7 +299,7 @@
     gap: 1.5rem;
 }
 
-#ajouterFormEtudiant .ajouter-etudiant-inner-container{
+#ajouterFormEtudiant .ajouter-etudiant-inner-container {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -398,6 +398,7 @@
     color: #fff;
     display: flex;
     gap: 10px;
+
 }
 
 #ajouterFormEtudiant .ajouter-choice {
@@ -430,7 +431,7 @@
     align-items: center;
 }
 
-#ajouterFormEtudiant .drop-file-wrapper{
+#ajouterFormEtudiant .drop-file-wrapper {
     width: 650px;
     height: 100%;
     background-color: #fff;
@@ -442,7 +443,7 @@
     align-items: center;
 }
 
-#ajouterFormEtudiant .structures-box{
+#ajouterFormEtudiant .structures-box {
     width: 90%;
     display: flex;
     flex-direction: column;
@@ -450,7 +451,7 @@
     gap: 0.45rem;
 }
 
-#ajouterFormEtudiant .structures-box button{
+#ajouterFormEtudiant .structures-box button {
     font-family: "Kumbh Sans", sans-serif;
     font-size: 1.1rem;
     font-weight: 500;
@@ -495,11 +496,62 @@
     padding: 0;
 }
 
-#ajouterFormEtudiant .delete-file svg{
-    min-width: 22px; 
+#ajouterFormEtudiant .delete-file svg {
+    min-width: 22px;
     min-height: 22px;
     flex-shrink: 0;
 }
+
+.etudiants-liste-container .saved-success {
+    position: absolute;
+    width: 260px;
+    height: 70px;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #FCFAFA;
+    box-shadow: 2px 8px 30px rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    justify-content: space-around;
+}
+
+.saved-success.animated {
+    animation: fadeInOutBounce 3s ease-in-out;
+}
+
+@keyframes fadeInOutBounce {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, 20px); /* start below */
+    }
+
+    10% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    20% {
+        transform: translate(-50%, -5px);
+    }
+
+    30% {
+        transform: translate(-50%, 0);
+    }
+
+    90% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+}
+
 
 
 @media screen and (min-width: 1700px) {
@@ -512,10 +564,10 @@
 
 @media screen and (min-height: 700px) {
     .ajouter-etudiant-container {
-        height: 600px;
+        height: 510px;
     }
 
-    #ajouterFormEtudiant .drop-file-container{
+    #ajouterFormEtudiant .drop-file-container {
         height: 300px;
     }
 }

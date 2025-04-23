@@ -1,0 +1,82 @@
+#dynamic-liste {
+    height: calc(100vh - 65px);
+    overflow-y: auto;
+}
+
+#dynamic-liste::-webkit-scrollbar {
+    display: none;
+}
+
+.notifications-container{
+    width: 100%;
+    height: 100%;
+}
+
+.notifications-container .notifications-wrapper{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 0 1rem;
+    gap: 2rem;
+}
+
+.notifications-wrapper .notification-cards-container{
+    width: 100%;
+    max-width: 1200px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(430px, 1fr));
+    gap: 1rem;
+    justify-content: center !important;
+}
+
+.notification-cards-container .notification-card{
+    min-width: 430px;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 8px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 25px;
+    padding: 1rem 1.4rem;
+    background: linear-gradient(135deg, #fff, #f9f9f9);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    user-select: none;
+    margin: 0 auto;
+    gap: 0.4rem;
+    position: relative;
+}
+
+.notification-card .user-line,
+.notification-card .notification-title{
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.notification-card .user-role{
+    width: 110px;
+    padding: 5px 0;
+    background-color: #0095FF25;
+    color: #0095FF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: 1px solid #0095FF;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.notification-card .time, 
+.notification-card .voir-plus{
+    align-self: flex-end;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    color: #323232;
+}
+
+.notification-card .more{
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+}

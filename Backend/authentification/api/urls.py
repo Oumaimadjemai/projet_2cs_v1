@@ -48,8 +48,14 @@ urlpatterns = [
     path("password-reset-confirm/", PasswordResetConfirmView.as_view(), name="password-reset-confirm"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("change-password/", ChangePasswordView.as_view(), name="change-password"),
-     path('users-with-entreprise/', UsersWithEntrepriseView.as_view(), name="users-with-entreprise"),
      
+    path('users-with-entreprise/', UsersWithEntrepriseView.as_view(), name="users-with-entreprise"),
+    path('enseignants/<int:pk>/', EnseignantDetailView.as_view(), name='get_enseignant'),
+    path('entreprises/<int:pk>/', EntrepriseDetailView.as_view(), name='get_entreprise'),
+    path('verify-user/', VerifyUserAPIView.as_view(), name='verify_user'),
+
+ 
+
 
 
 

@@ -18,20 +18,21 @@ class Annee(models.Model):
         return f"{self.title} {self.departement.title}"
     
 class Specialite(models.Model):
-    annee = models.ForeignKey(Annee,on_delete=models.CASCADE,null=True)
     title = models.CharField(max_length=50)
 
     def __str__(self):
-        return f"{self.annee.title} {self.title}"
+        return self.title
 
 class Salle(models.Model):
-    departement = models.ForeignKey(Departement,on_delete=models.CASCADE,null=True)
+    departement = models.ForeignKey(Departement, on_delete=models.CASCADE, null=True)
     type = models.CharField(max_length=50)
     num = models.IntegerField()
     disponible = models.BooleanField(default=True)
+    nom_salle = models.CharField(max_length=100, null=True, blank=True)  # Nouveau champ
 
     def __str__(self):
         return f"Salle {self.num} {self.type}"
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, nom, prenom, password=None, **extra_fields):

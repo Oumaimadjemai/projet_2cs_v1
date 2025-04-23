@@ -252,6 +252,7 @@
     transform: translate(-50%, -50%);
     width: 900px;
     height: 510px;
+    max-height: 510px;
     z-index: 20;
 }
 
@@ -500,7 +501,7 @@
 
 @media screen and (min-height: 700px) {
     .ajouter-enseignant-container {
-        height: 600px;
+        max-height: 510px;
     }
 
     #ajouterFormEnseignant .drop-file-container{
