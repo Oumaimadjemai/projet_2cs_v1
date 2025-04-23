@@ -184,6 +184,14 @@ cloudinary.config(
     api_key="646551192782873",
     api_secret="iCcix1MTZUavFpVZwBNq_vzKtGo"
 )
-PORT = 8000
-EUREKA_URL = 'http://localhost:8761/eureka/apps/'
-EUREKA_APP_NAME = 'SERVICE1-CLIENT'
+import os
+# PORT = 8000
+# EUREKA_URL = 'http://localhost:8761/eureka/apps/'
+# EUREKA_APP_NAME = 'SERVICE1-CLIENT'
+# Eureka settings
+EUREKA_URL = os.getenv('EUREKA_URL', 'http://localhost:8761/eureka/')
+EUREKA_APP_NAME = os.getenv('EUREKA_APP_NAME', 'SERVICE1-CLIENT')
+PORT = int(os.getenv('PORT', '8000'))
+
+ALLOWED_HOSTS = ["*"]
+
