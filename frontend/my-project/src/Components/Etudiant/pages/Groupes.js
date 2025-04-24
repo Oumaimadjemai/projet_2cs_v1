@@ -475,8 +475,8 @@ const Groupes = () => {
         </div>
       </div>
 
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-4">My Groups</h3>
+      <div className="mb-6 ">
+        {/* <h3 className="text-lg font-semibold mb-4">My Groups</h3> */}
         {loading.groups && groups.length === 0 ? (
           <Spin tip="Loading groups..." />
         ) : groups.length > 0 ? (
@@ -485,48 +485,60 @@ const Groupes = () => {
             dataSource={groups}
             renderItem={(group) => (
               <List.Item>
-                <Card
-                  title={group.name}
-                  actions={[
-                    <Button
-                      type="primary"
-                      onClick={() => showInviteModal(group)}
-                      className="bg-mypurple"
-                    >
-                      Invite Member
-                    </Button>
-                  ]}
-                  className="h-full"
-                >
-                  <div className="space-y-2">
-                    <p>
-                      <span className="font-semibold">Leader:</span> {getUserDisplay(group.chef_id)}
-                    </p>
-                    <p className="font-semibold">Members:</p>
-                    <div className="flex -space-x-4 overflow-x-auto p-1">
-                      {group.members.length > 0 ? (
-                        group.members.map(memberId => {
-                          const user = userDetails[memberId];
-                          const profileImage = user?.profileImageUrl || '/default-avatar.png';
-                          return (
-                            <img
-                              key={memberId}
-                              src={profileImage}
-                              alt={user?.name || `User ${memberId}`}
-                              title={user?.name || `User ${memberId}`}
-                              className="w-12 h-12 rounded-full border-2 border-white shadow-md object-cover"
-                            />
-                          );
-                        })
-                      ) : (
-                        <p className="text-gray-500">No members yet</p>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500">
-                      Created: {new Date(group.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </Card>
+               
+ <Card
+  title={
+    <div className="flex justify-between items-center">
+      <span className="text-lg font-bold text-mypurple">{group.name}</span>
+      <span className="text-sm text-gray-400">
+        {new Date(group.created_at).toLocaleDateString()}
+      </span>
+    </div>
+  }
+  actions={[
+    <Button
+      type="primary"
+      onClick={() => showInviteModal(group)}
+      className="bg-mypurple hover:bg-purple-700 transition duration-200 rounded-full px-5"
+    >
+      Invite Member
+    </Button>
+  ]}
+  className="max-w-sm w-full rounded-2xl shadow-[rgba(0,0,0,0.1)_0px_4px_12px] border border-gray-100 p-4 bg-white hover:shadow-[rgba(0,0,0,0.2)_0px_6px_15px] transition-all duration-300"
+>
+  <div className="space-y-4">
+    <p className="text-gray-700">
+      <span className="font-semibold text-gray-800">Leader:</span>{' '}
+      {getUserDisplay(group.chef_id)}
+    </p>
+
+    <div>
+      <p className="font-semibold text-gray-800 mb-2">Members:</p>
+      <div className="flex -space-x-4 overflow-x-auto p-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        {group.members.length > 0 ? (
+          group.members.map(memberId => {
+            const user = userDetails[memberId];
+            const profileImage = user?.profileImageUrl || '/default-avatar.png';
+            return (
+              <img
+                key={memberId}
+                src={profileImage}
+                alt={user?.name || `User ${memberId}`}
+                title={user?.name || `User ${memberId}`}
+                className="w-12 h-12 rounded-full border-2 border-white shadow-md object-cover hover:scale-105 transition-transform duration-200"
+              />
+            );
+          })
+        ) : (
+          <p className="text-gray-500">No members yet</p>
+        )}
+      </div>
+    </div>
+  </div>
+</Card>
+
+
+
               </List.Item>
             )}
           />

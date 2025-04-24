@@ -14,6 +14,8 @@ import Etudiantinterface from "./Components/Etudiant/Components/etudiantinterfac
 import Groupes from "./Components/Etudiant/pages/Groupes";
 import Invitations from "./Components/Etudiant/pages/Invitation";
 import Themeselectionform from "./Components/Etudiant/pages/ThemeSelectionForm";
+import { EtudiantLayout } from "./Layouts/EtudiantLayout";
+import Theme from "./Components/Etudiant/pages/Theme";
 function App() {
   return (
     <div className='App'>
@@ -36,10 +38,14 @@ function App() {
         </Route>
 
         <Route path="/enseignant" element={<Enseignanteinterface />} ></Route>
-        <Route path="/etudiant" element={<Etudiantinterface />} >
-        <Route path="dashboard" element={<Themeselectionform  />} />
+        <Route path="/etudiant" element={<EtudiantLayout />} >
+        <Route index element={<Dashboard />} />
+
+        {/* <Route path="dashboard" element={<Themeselectionform  />} /> */}
         <Route path="groupes" element={<Groupes />} />
         <Route path="invitations" element={<Invitations />} />
+        <Route path="themes" element={<Theme />} />
+
         </Route>
 
         <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
