@@ -23,7 +23,7 @@ app.use(express.json());
 
 const eurekaClient = new Eureka({
   instance: {
-    app: "SERVICE3_NODE",
+    app: "SERVICE3-NODE",
     hostName: process.env.HOSTNAME || "localhost",
     ipAddr: process.env.IP || "127.0.0.1",
     port: {
@@ -175,6 +175,7 @@ const verifyJWT = async (req, res, next) => {
     res.status(403).json({ error: "Token invalide" });
   }
 };
+
 
 // Endpoints de santé pour Eureka
 app.get("/health", (req, res) => res.status(200).json({ status: "UP" }));
@@ -559,92 +560,6 @@ app.get("/api/theme-selection/my-choices", verifyJWT, async (req, res) => {
   }
 });
 
-// Save theme selections (P1, P2, P3)
-// app.post('/api/theme-selection/save-choices', verifyJWT, async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-//     const { p1, p2, p3 } = req.body;
-
-//     // Validate that all choices are different
-//     if (p1 === p2 || p1 === p3 || p2 === p3) {
-//       return res.status(400).json({ error: "All choices must be different" });
-//     }
-
-//     // Validate that choices exist in service2
-//     const service2Url = await discoverService2();
-//     const validateTheme = async (themeId) => {
-//       try {
-//         await axios.get(`${service2Url}/themes/${themeId}/`, {
-//           headers: { Authorization: req.headers.authorization }
-//         });
-//         return true;
-//       } catch {
-//         return false;
-//       }
-//     };
-
-//     const validations = await Promise.all([p1, p2, p3].map(validateTheme));
-//     if (validations.some(valid => !valid)) {
-//       return res.status(400).json({ error: "One or more theme IDs are invalid" });
-//     }
-
-//     // Save or update selections
-//     const selection = await ThemeSelection.findOneAndUpdate(
-//       { user_id: userId },
-//       {
-//         choices: { p1, p2, p3 },
-//         status: 'draft'
-//       },
-//       { upsert: true, new: true }
-//     );
-
-//     res.json({
-//       success: true,
-//       message: "Choices saved successfully",
-//       selection
-//     });
-//   } catch (error) {
-//     console.error('Error saving theme selections:', error);
-//     res.status(500).json({
-//       error: "Error saving theme selections",
-//       details: error.message
-//     });
-//   }
-// });
-
-// // Submit final theme selections
-// app.post('/api/theme-selection/submit', verifyJWT, async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-
-//     const selection = await ThemeSelection.findOne({ user_id: userId });
-//     if (!selection) {
-//       return res.status(400).json({ error: "No selections found to submit" });
-//     }
-
-//     // Validate all choices are set
-//     if (!selection.choices.p1 || !selection.choices.p2 || !selection.choices.p3) {
-//       return res.status(400).json({ error: "All three choices must be selected before submitting" });
-//     }
-
-//     // Update status to submitted
-//     selection.status = 'submitted';
-//     selection.submitted_at = new Date();
-//     await selection.save();
-
-//     res.json({
-//       success: true,
-//       message: "Theme selections submitted successfully",
-//       selection
-//     });
-//   } catch (error) {
-//     console.error('Error submitting theme selections:', error);
-//     res.status(500).json({
-//       error: "Error submitting theme selections",
-//       details: error.message
-//     });
-//   }
-// });
 app.post("/api/theme-selection/save-choices", verifyJWT, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -756,149 +671,7 @@ app.post("/api/theme-selection/save-choices", verifyJWT, async (req, res) => {
     });
   }
 });
-// app.post('/api/theme-selection/submit', verifyJWT, async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-//     const selection = await ThemeSelection.findOne({ user_id: userId });
 
-//     // Validate existence
-//     if (!selection) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "No draft found to submit"
-//       });
-//     }
-
-//     // Validate completeness
-//     if (!selection.choices.p1 || !selection.choices.p2 || !selection.choices.p3) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Incomplete selections",
-//         missing: [
-//           !selection.choices.p1 && "P1",
-//           !selection.choices.p2 && "P2",
-//           !selection.choices.p3 && "P3"
-//         ].filter(Boolean)
-//       });
-//     }
-
-//     // Additional business rules
-//     if (selection.status === 'submitted') {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Selections already submitted",
-//         submitted_at: selection.submitted_at
-//       });
-//     }
-
-//     // Add deadline check if needed
-//     /*
-//     if (new Date() > SUBMISSION_DEADLINE) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Submission period has ended"
-//       });
-//     }
-//     */
-
-//     // Update and save
-//     selection.status = 'submitted';
-//     selection.submitted_at = new Date();
-//     await selection.save();
-
-//     res.json({
-//       success: true,
-//       message: "Theme selections submitted successfully",
-//       data: selection
-//     });
-
-//   } catch (error) {
-//     console.error('Submission error:', error);
-//     res.status(500).json({
-//       success: false,
-//       error: "Submission failed",
-//       details: process.env.NODE_ENV === 'development' ? error.message : undefined
-//     });
-//   }
-// });
-
-// Gestion de l'arrêt propre
-
-// app.post('/api/theme-selection/submit', verifyJWT, async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-
-//     // First try to find existing selection
-//     let selection = await ThemeSelection.findOne({ user_id: userId });
-
-//     // If no existing selection, check if selections are in request body
-//     if (!selection) {
-//       const { p1, p2, p3 } = req.body;
-
-//       // If no selections in body either, return error
-//       if (!p1 || !p2 || !p3) {
-//         return res.status(400).json({
-//           success: false,
-//           error: "No existing draft and no selections provided in request"
-//         });
-//       }
-
-//       // Create new submission if selections are in body
-//       selection = await ThemeSelection.create({
-//         user_id: userId,
-//         choices: { p1, p2, p3 },
-//         status: 'submitted',
-//         submitted_at: new Date()
-//       });
-
-//       return res.json({
-//         success: true,
-//         message: "Theme selections submitted successfully",
-//         data: selection
-//       });
-//     }
-
-//     // Existing selection validation
-//     if (!selection.choices.p1 || !selection.choices.p2 || !selection.choices.p3) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Incomplete selections",
-//         missing: [
-//           !selection.choices.p1 && "P1",
-//           !selection.choices.p2 && "P2",
-//           !selection.choices.p3 && "P3"
-//         ].filter(Boolean)
-//       });
-//     }
-
-//     if (selection.status === 'submitted') {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Selections already submitted",
-//         submitted_at: selection.submitted_at
-//       });
-//     }
-
-//     // Update existing selection
-//     selection.status = 'submitted';
-//     selection.submitted_at = new Date();
-//     await selection.save();
-
-//     res.json({
-//       success: true,
-//       message: "Theme selections submitted successfully",
-//       data: selection
-//     });
-
-//   } catch (error) {
-//     console.error('Submission error:', error);
-//     res.status(500).json({
-//       success: false,
-//       error: "Submission failed",
-//       details: process.env.NODE_ENV === 'development' ? error.message : undefined
-//     });
-//   }
-// });
 app.post("/api/theme-selection/submit", verifyJWT, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -996,6 +769,14 @@ app.post("/api/theme-selection/submit", verifyJWT, async (req, res) => {
     });
   }
 });
+
+// server.js (ou app.js)
+app.get("/api/theme-selection/submissions", verifyJWT, async (req, res) => {
+  const submissions = await ThemeSelection.find({ status: "submitted" });
+  // renvoie [{ user_id, choices: { p1,p2,p3 } }, …]
+  res.json(submissions);
+});
+
 process.on("SIGINT", () => {
   console.log("Déconnexion de Eureka...");
   eurekaClient.stop(() => {
