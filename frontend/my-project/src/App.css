@@ -8,7 +8,7 @@
   width: 100%;
   height: 100vh;
   display: grid;
-  grid-template-columns: minmax(20%, 23%) auto;
+  grid-template-columns: minmax(245px, 260px) auto;
   grid-template-rows: minmax(50px, 65px) 1fr;
   gap: 5px;
 }
