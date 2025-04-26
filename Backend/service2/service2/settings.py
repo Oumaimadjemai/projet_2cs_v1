@@ -86,6 +86,16 @@ MIDDLEWARE = [
     
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_METHODS = (
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+)
+
 ROOT_URLCONF = 'service2.urls'
 
 # TEMPLATES = [
@@ -130,8 +140,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'service2',
-        'USER': 'root',  # Ou un autre utilisateur
-        'PASSWORD': 'root',
+        'USER': 'ayet',  # Ou un autre utilisateur
+        'PASSWORD': '2004',
         'HOST': 'localhost',
         'PORT': '3306',  # Port par défaut de MySQL
     }

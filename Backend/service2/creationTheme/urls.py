@@ -5,6 +5,7 @@ from .views import *
 
 
 
+
 urlpatterns = [
     path('themes/', ThemeAPIView.as_view(), name='theme-list-create'),
     path('themes/<int:pk>/', ThemeDetailAPIView.as_view(), name='theme-detail'),

@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext} from "react";
 import './InscriptionEntreprise.css'
 import '../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
+import { InscriContext } from "./inscriEntreprise";
 
 const InscriptionRepresentant = ({ onValidationChange }) => {
+
+  const { entreprise, setEntreprise } = useContext(InscriContext);
+  
   const [formData, setFormData] = useState({
     nom: "",
     prenom: "",
@@ -40,7 +44,7 @@ const InscriptionRepresentant = ({ onValidationChange }) => {
     setErrors({ ...errors, [name]: errorMsg });
   };
 
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <form>
@@ -88,7 +92,7 @@ const InscriptionRepresentant = ({ onValidationChange }) => {
             <option value="Développeur">Développeur</option>
             <option value="Designer">Designer</option>
             <option value="Marketing">Marketing</option>
-          
+
           </select>
           {errors.poste && <span style={styles.error}>{errors.poste}</span>}
         </div>

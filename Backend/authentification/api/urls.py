@@ -18,6 +18,7 @@ urlpatterns = [
     path('enseignants/<int:pk>/', EnseignantRetrieveUpdateDeleteView.as_view(), name='enseignant-detail'),
 
  
+
     path('admins/', AdminListCreateView.as_view(), name='admin-list-create'),
     path('admins/<int:pk>/', AdminRetrieveUpdateDeleteView.as_view(), name='admin-detail'),
 

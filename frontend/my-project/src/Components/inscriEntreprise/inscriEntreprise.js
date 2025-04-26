@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, createContext } from "react";
 import Entreprise from "./Entreprise";
 import Representant from "./Representant";
 import Final from "./Final";
@@ -7,6 +7,8 @@ import logoImg from '../../Assets/Images/logo-login.jpg';
 import '../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
 import { AppContext } from "../../App";
+
+export const InscriContext = createContext();
 
 const InscriptionEntreprise = () => {
   const [step, setStep] = useState(1);
@@ -35,76 +37,92 @@ const InscriptionEntreprise = () => {
     }
   }
 
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   const { isRtl } = useContext(AppContext);
 
+  const [entreprise, setEntreprise] = useState({
+    nom: "",
+    secteur_activite: "",
+    wilaya: "",
+    ville: "",
+    adresse: "",
+    site_web: "",
+    representant_nom: "",
+    representant_prenom: "",
+    representant_poste: "",
+    representant_email: "",
+    representant_telephone: ""
+  })
+
   return (
-    <div style={styles.container}>
-      <div style={styles.formLeft}>
-        <img src={logoImg} alt="logo" style={{width: "100%", height: "100%"}} />
-      </div>
-
-      <div style={styles.formRight}>
-        <h1 style={styles.title}>CodeGradia</h1>
-
-        <div style={styles.stepsContainer}>
-          {[1, 2, 3].map((s, index) => (
-            <React.Fragment key={s}>
-              <div style={{
-                ...styles.step,
-                ...(s < step ? styles.completedStep : {}),
-                ...(s === step ? styles.currentStep : {})
-              }}>
-                {completedSteps.includes(s) ? (
-                  <CheckIcon />
-                ) : (
-                  <div
-                    style={{
-                      ...(s === step ? styles.activateCircle : styles.circle),
-                    }}
-                  />
-                )}
-              </div>
-              {index < 2 && <div style={styles.line}></div>}
-            </React.Fragment>
-          ))}
-        </div>
-        <div style={styles.stepLabels}>
-          <span style={{ ...styles.label, ...(step === 1 ? styles.activeLabel : {}) }}>{t('login.entrepriseLabel')}</span>
-          <span style={{ ...styles.label, ...(step === 2 ? styles.activeLabel : {}) }}>{t('login.represantant')}</span>
-          <span style={{ ...styles.label, ...(step === 3 ? styles.activeLabel : {}) }}>{t('login.merci')}</span>
+    <InscriContext.Provider value={{entreprise, setEntreprise}}>
+      <div style={styles.container}>
+        <div style={styles.formLeft}>
+          <img src={logoImg} alt="logo" style={{ width: "100%", height: "100%" }} />
         </div>
 
-        <div style={styles.formContent}>
-          {step === 1 && <Entreprise onValidationChange={setIsStepValid} />}
-          {step === 2 && <Representant onValidationChange={setIsStepValid} />}
-          {step === 3 && <Final />}
-        </div>
+        <div style={styles.formRight}>
+          <h1 style={styles.title}>CodeGradia</h1>
 
-        {errorMessage && <p style={styles.errorMessage}>{errorMessage}</p>}
-
-        {step < 3 && (
-          <div style={styles.buttonContainer}>
-            {
-              step === 2 &&
-              <button style={styles.previousButton} onClick={returnStep}>
-                <svg width="20" height="20" viewBox="0 0 32 32" style={{ transform: isRtl ? "" : "scaleX(-1)" }} fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path fill-rule="evenodd" clip-rule="evenodd" d="M10.4393 5.93934C11.0251 5.35355 11.9749 5.35355 12.5607 5.93934L21.5607 14.9393C22.1464 15.5251 22.1464 16.4749 21.5607 17.0607L12.5607 26.0607C11.9749 26.6464 11.0251 26.6464 10.4393 26.0607C9.85355 25.4749 9.85355 24.5251 10.4393 23.9393L18.3787 16L10.4393 8.06066C9.85355 7.47487 9.85355 6.52513 10.4393 5.93934Z" fill="#00000070" />
-                </svg>
-                {t('login.revenir')}
-              </button>
-            }
-            <button style={styles.nextButton} onClick={nextStep}>
-            {t('login.suivant')}
-              <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: isRtl ? "scaleX(-1)" : "" }}>
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M10.4393 5.93934C11.0251 5.35355 11.9749 5.35355 12.5607 5.93934L21.5607 14.9393C22.1464 15.5251 22.1464 16.4749 21.5607 17.0607L12.5607 26.0607C11.9749 26.6464 11.0251 26.6464 10.4393 26.0607C9.85355 25.4749 9.85355 24.5251 10.4393 23.9393L18.3787 16L10.4393 8.06066C9.85355 7.47487 9.85355 6.52513 10.4393 5.93934Z" fill="white" />
-              </svg>
-            </button>
+          <div style={styles.stepsContainer}>
+            {[1, 2, 3].map((s, index) => (
+              <React.Fragment key={s}>
+                <div style={{
+                  ...styles.step,
+                  ...(s < step ? styles.completedStep : {}),
+                  ...(s === step ? styles.currentStep : {})
+                }}>
+                  {completedSteps.includes(s) ? (
+                    <CheckIcon />
+                  ) : (
+                    <div
+                      style={{
+                        ...(s === step ? styles.activateCircle : styles.circle),
+                      }}
+                    />
+                  )}
+                </div>
+                {index < 2 && <div style={styles.line}></div>}
+              </React.Fragment>
+            ))}
           </div>
-        )}
+          <div style={styles.stepLabels}>
+            <span style={{ ...styles.label, ...(step === 1 ? styles.activeLabel : {}) }}>{t('login.entrepriseLabel')}</span>
+            <span style={{ ...styles.label, ...(step === 2 ? styles.activeLabel : {}) }}>{t('login.represantant')}</span>
+            <span style={{ ...styles.label, ...(step === 3 ? styles.activeLabel : {}) }}>{t('login.merci')}</span>
+          </div>
+
+          <div style={styles.formContent}>
+            {step === 1 && <Entreprise onValidationChange={setIsStepValid} />}
+            {step === 2 && <Representant onValidationChange={setIsStepValid} />}
+            {step === 3 && <Final />}
+          </div>
+
+          {errorMessage && <p style={styles.errorMessage}>{errorMessage}</p>}
+
+          {step < 3 && (
+            <div style={styles.buttonContainer}>
+              {
+                step === 2 &&
+                <button style={styles.previousButton} onClick={returnStep}>
+                  <svg width="20" height="20" viewBox="0 0 32 32" style={{ transform: isRtl ? "" : "scaleX(-1)" }} fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M10.4393 5.93934C11.0251 5.35355 11.9749 5.35355 12.5607 5.93934L21.5607 14.9393C22.1464 15.5251 22.1464 16.4749 21.5607 17.0607L12.5607 26.0607C11.9749 26.6464 11.0251 26.6464 10.4393 26.0607C9.85355 25.4749 9.85355 24.5251 10.4393 23.9393L18.3787 16L10.4393 8.06066C9.85355 7.47487 9.85355 6.52513 10.4393 5.93934Z" fill="#00000070" />
+                  </svg>
+                  {t('login.revenir')}
+                </button>
+              }
+              <button style={styles.nextButton} onClick={nextStep}>
+                {t('login.suivant')}
+                <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: isRtl ? "scaleX(-1)" : "" }}>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M10.4393 5.93934C11.0251 5.35355 11.9749 5.35355 12.5607 5.93934L21.5607 14.9393C22.1464 15.5251 22.1464 16.4749 21.5607 17.0607L12.5607 26.0607C11.9749 26.6464 11.0251 26.6464 10.4393 26.0607C9.85355 25.4749 9.85355 24.5251 10.4393 23.9393L18.3787 16L10.4393 8.06066C9.85355 7.47487 9.85355 6.52513 10.4393 5.93934Z" fill="white" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </InscriContext.Provider>
   );
 };
 

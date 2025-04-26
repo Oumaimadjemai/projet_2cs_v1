@@ -16,7 +16,7 @@ export const GroupeLayout = () => {
   )
 }
 
-function Groupes() {
+function GroupesEnseignant() {
     const enseignants = [
         { id: 1, name: "Djamel Bensaber", matricule: "000E123", email: "a.bencaber@esi-sba.dz", grade: "Professeur", sujetsEncadres: 3 },
         { id: 2, name: "Amine Boukhalfa", matricule: "000E456", email: "a.boukhalfa@esi-sba.dz", grade: "MCF", sujetsEncadres: 5 },
@@ -286,4 +286,4 @@ function Groupes() {
     )
 }
 
-export default Groupes
+export default GroupesEnseignant

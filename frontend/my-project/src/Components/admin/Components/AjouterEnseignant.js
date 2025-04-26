@@ -1,11 +1,15 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { ReactComponent as DraftIcon } from '../../../Assets/Icons/draft.svg';
 import { ReactComponent as CloudIcon } from '../../../Assets/Icons/cloud.svg';
 import { ReactComponent as CloseIcon } from '../../../Assets/Icons/close.svg';
 import '../../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
+import { EnseignantContext } from './EnseignantsListe';
 
-export const AjouterEnseignant = ({ annulerAjouter }) => {
+export const AjouterEnseignant = ({ annulerAjouter, handleDraftSave }) => {
+
+    const { setEnseignants } = useContext(EnseignantContext)
 
     const [methodeAjouter, setMethodeAjouter] = useState(0);
 
@@ -49,6 +53,80 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
 
     const { t } = useTranslation();
 
+    const [annees, setAnnees] = useState([])
+    const [specialites, setSpecialites] = useState([])
+
+    useEffect(() => {
+
+        axios.get('http://127.0.0.1:8000/annees/')
+            .then((res) => setAnnees(res.data))
+            .catch((err) => console.error("Erreur Axios :", err))
+
+        axios.get('http://127.0.0.1:8000/specialites/')
+            .then((res) => setSpecialites(res.data))
+            .catch((err) => console.error("Erreur Axios :", err))
+
+    }, [])
+
+
+    const [newTeacher, setNewTeacher] = useState({
+        email: "",
+        nom: "",
+        prenom: "",
+        grade: "",
+        matricule: "",
+    })
+
+    useEffect(() => {
+        const savedDraft = localStorage.getItem("brouillonEnseignant");
+        if (savedDraft) {
+            setNewTeacher(JSON.parse(savedDraft));
+        }
+    }, []);
+
+
+    const AddTeacher = (e) => {
+
+        e.preventDefault();
+
+        axios.post('http://127.0.0.1:8000/enseignants/', newTeacher)
+            .then((res) => {
+                const data = Array.isArray(res.data) ? res.data : [res.data];
+                setEnseignants(prev => [...prev, ...data]);
+                annulerAjouter();
+                localStorage.removeItem("brouillonEnseignant");
+            })
+            .catch((err) => {
+                console.error("Erreur Axios :", err);
+                if (err.response) {
+                    console.error("Détails de l'erreur :", err.response.data);
+                }
+            });
+
+    }
+
+    const AddTeachers = (e) => {
+        e.preventDefault();
+
+        if (!file) {
+            alert("Please select a file first.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        axios.post("http://127.0.0.1:8000/import/enseignant/", formData)
+            .then((res) => {
+                alert('Data added successfully');
+                console.log(res.data);
+            })
+            .catch(error => {
+                console.error('Upload error:', error.response.data);
+                alert('Error uploading file.');
+            });
+    };
+
     return (
         <div className='ajouter-enseignant-container'>
             <div className="ajouter-enseignant-wrapper">
@@ -78,22 +156,48 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                                 <div className="ajouter-input-line">
                                     <div className="input-flex">
                                         <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.nameInput')}</label>
-                                        <input type="text" name="nom" id="nom" />
+                                        <input
+                                            type="text"
+                                            name="nom"
+                                            id="nom"
+                                            required
+                                            value={newTeacher.nom}
+                                            onChange={(e) => setNewTeacher({ ...newTeacher, nom: e.target.value })}
+                                        />
                                     </div>
                                     <div className="input-flex">
                                         <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.prenomInput')}</label>
-                                        <input type="text" name="prenom" id="prenom" />
+                                        <input
+                                            type="text"
+                                            name="prenom"
+                                            id="prenom"
+                                            required
+                                            value={newTeacher.prenom}
+                                            onChange={(e) => setNewTeacher({ ...newTeacher, prenom: e.target.value })}
+                                        />
                                     </div>
                                 </div>
                                 <div className="ajouter-input-line select-line">
                                     <div className="input-flex">
                                         <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.emailInput')}</label>
-                                        <input type="text" name="adresse" id="adresse" />
+                                        <input
+                                            type="email"
+                                            name="adresse"
+                                            id="adresse"
+                                            required
+                                            value={newTeacher.email}
+                                            onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
+                                        />
                                     </div>
                                     <div className="select-flex">
                                         <div className="select-flex-line">
                                             <div style={{ position: "relative", display: "inline-block" }}>
-                                                <select className="custom-select">
+                                                <select
+                                                    className="custom-select"
+                                                    required
+                                                    value={newTeacher.grade}
+                                                    onChange={(e) => setNewTeacher({ ...newTeacher, grade: e.target.value })}
+                                                >
                                                     <option>{t('enseignantsPage.gradeSelect')}</option>
                                                     <option>Professeur</option>
                                                     <option>Chercheur</option>
@@ -147,11 +251,14 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                                 <div className="ajouter-input-line">
                                     <div className="input-flex">
                                         <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.MatInput')}</label>
-                                        <input type="text" name="nom" id="nom" />
-                                    </div>
-                                    <div className="input-flex">
-                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.PwdInput')}</label>
-                                        <input type="text" name="prenom" id="prenom" />
+                                        <input
+                                            type="text"
+                                            name="nom"
+                                            id="nom"
+                                            required
+                                            value={newTeacher.matricule}
+                                            onChange={(e) => setNewTeacher({ ...newTeacher, matricule: e.target.value })}
+                                        />
                                     </div>
                                 </div>
                             </>
@@ -203,16 +310,33 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                     {
                         methodeAjouter === 0 ?
                             <>
-                                <button className='brouillon-btn' style={{ backgroundColor: "#E2E4E5", color: "#060606" }}>
+                                <button
+                                    className='brouillon-btn'
+                                    style={{ backgroundColor: "#E2E4E5", color: "#060606" }}
+                                    onClick={() => {
+                                        localStorage.setItem("brouillonEtudiant", JSON.stringify(newTeacher));
+                                        handleDraftSave();
+                                    }}
+                                >
                                     <DraftIcon />
                                     {t('enseignantsPage.brouillonBtn')}
                                 </button>
-                                <button type='submit' className='ajout-btn' form='ajouterFormEnseignant'>
+                                <button
+                                    type='submit'
+                                    className='ajout-btn'
+                                    form='ajouterFormEnseignant'
+                                    onClick={(e) => AddTeacher(e)}
+                                >
                                     {t('enseignantsPage.addBtn')}
                                 </button>
                             </> :
                             <>
-                                <button type='submit' className='ajout-btn' form='ajouterFormEnseignant'>
+                                <button 
+                                type='submit' 
+                                className='ajout-btn' 
+                                form='ajouterFormEnseignant'
+                                onClick={(e) => AddTeachers(e)}
+                                >
                                     {t('enseignantsPage.addEnseignants')}
                                 </button>
                             </>

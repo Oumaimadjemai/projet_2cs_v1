@@ -10,12 +10,12 @@ import { ReactComponent as SearchIcon } from '../../../Assets/Icons/Search.svg';
 import { ReactComponent as CloseIcon } from '../../../Assets/Icons/close-rounded.svg';
 import { ReactComponent as CheckIcon } from '../../../Assets/Icons/check-rounded.svg';
 import { ReactComponent as CircleArrowIcon } from '../../../Assets/Icons/circle-left-arrow.svg';
+import defaultAccountPicture from '../../../Assets/Images/default_picture.jpeg';
+import axios from 'axios';
 
 const DemandeEntreprise = () => {
   const navigate = useNavigate();
   const [openMenu, setOpenMenu] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterBy, setFilterBy] = useState('all');
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [demandes, setDemandes] = useState([
     {
@@ -54,22 +54,7 @@ const DemandeEntreprise = () => {
       image: 'https://i.pravatar.cc/80?img=23',
       status: 'pending',
     },
-  ]);
-
-  const filteredDemandes = demandes.filter((demande) => {
-    const nomEntreprise = (demande.name || '').toLowerCase();
-    const nomRepresentant = (demande.representant || '').toLowerCase();
-    const term = searchTerm.toLowerCase();
-
-    if (filterBy === 'nom') {
-      return nomEntreprise.includes(term);
-    } else if (filterBy === 'representant') {
-      return nomRepresentant.includes(term);
-    } else {
-      return nomEntreprise.includes(term) || nomRepresentant.includes(term) ||
-        demande.secteur.toLowerCase().includes(term);
-    }
-  });
+  ])
 
   const handleAction = (id, action) => {
     setDemandes(demandes.map(demande =>
@@ -117,11 +102,23 @@ const DemandeEntreprise = () => {
 
   }, [])
 
+  const [entreprises, setEntreprises] = useState([])
+
+  useEffect(() => {
+
+    axios.get('http://127.0.0.1:8000/entreprises/')
+      .then((res) => setEntreprises(res.data))
+      .catch((err) => console.error('Axios Error', err))
+
+  }, [])
+
+  const filterdEntreprises = entreprises.filter((e) => e.statut === "pending")
+
   return (
     <div style={styles.page}>
       <div style={styles.header}>
         <h2 style={styles.title}>
-          Les Demandes d'entreprises <span style={{ color: '#888' }}>{filteredDemandes.length}</span>
+          Les Demandes d'entreprises <span style={{ color: '#888' }}>{filterdEntreprises.length}</span>
         </h2>
         <div style={styles.btnGroup}>
           <button className="precedent-btn" onClick={() => navigate('/admin/entreprises')}>
@@ -160,11 +157,11 @@ const DemandeEntreprise = () => {
         </div>
       </div>
 
-      {filteredDemandes.length === 0 ? (
+      {filterdEntreprises.length === 0 ? (
         <div style={styles.noResult}>Aucun résultat trouvé</div>
       ) : (
         <div style={styles.grid}>
-          {filteredDemandes.map((d) => (
+          {filterdEntreprises.map((d) => (
             <div key={d.id} style={styles.card}>
               <div style={styles.menuDots} onClick={() => setOpenMenu(openMenu === d.id ? null : d.id)}>
                 <FiMoreVertical />
@@ -182,29 +179,29 @@ const DemandeEntreprise = () => {
               </div>
 
               <div style={styles.imageContainer}>
-                <img src={d.image} alt="company" style={styles.image} />
+                <img src={d.photo_profil ? d.photo_profil : defaultAccountPicture} alt="company" style={styles.image} />
               </div>
 
               <div style={styles.cardTitle}>
-                {d.name}
+                {d.nom}
                 <span style={styles.nouveauBadge}>Nvl</span>
               </div>
 
               <div style={styles.cardsect}>
                 <div style={styles.field}>
                   Secteur<br />
-                  <span style={{ color: d.secteurColor, fontWeight: '600' }}>{d.secteur}</span>
+                  <span style={{ color: d.secteurColor, fontWeight: '600' }}>{d.secteur_activite}</span>
                 </div>
                 <div style={styles.field}>
                   Représentant<br />
                   <span style={{ color: "#4F4F4F" }}>
-                    {d.representant}
+                    {d.representant_nom} {d.representant_prenom}
                   </span>
 
                 </div>
               </div>
 
-              {d.status === 'pending' ? (
+              {d.statut === 'pending' ? (
                 <div className='btns-card-line' style={styles.actionButtons}>
                   <button className='supprimer-btn'>
                     <CloseIcon style={{ marginRight: "5px" }} />

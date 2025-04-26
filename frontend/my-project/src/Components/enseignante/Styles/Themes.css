@@ -142,18 +142,19 @@
 }
 
 .themes-cards-container .theme-card {
-    max-width: 300px;
+    min-width: 300px;
     display: flex;
     flex-direction: column;
     box-shadow: 2px 8px 20px rgba(0, 0, 0, 0.2);
     border-radius: 25px;
-    padding: 1.7rem 0;
+    padding: 2.2rem 0;
     align-items: center;
     background: linear-gradient(135deg, #fff, #f9f9f9);
     transition: box-shadow 0.3s ease;
     user-select: none;
     margin: 0 auto;
     position: relative;
+    cursor: pointer;
 }
 
 
@@ -364,6 +365,19 @@
     resize: none;
 }
 
+#ajouterFormTheme .ajouter-input-line .select-flex input{
+    height: 42px;
+    padding: 0 15px;
+    border-radius: 20px;
+    border: 1px solid #A7A7A7;
+    font-size: 0.9rem;
+    outline: none;
+    background-color: transparent;
+    font-weight: 400;
+    color: #060606;
+    resize: none;
+}
+
 #ajouterFormTheme .ajouter-input-line .input-flex textarea{
     padding: 10px 15px;
     min-height: 80px;
@@ -461,7 +475,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    width: 200px;
+    width: 49%;
     height: 42px;
     padding: 0 10px;
     border-radius: 20px;
