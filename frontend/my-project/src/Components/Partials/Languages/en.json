@@ -51,7 +51,7 @@
         "addBtn": "Add Professor",
         "exportBtn": "Export To Excel",
         "desactivateBtn": "Disable All",
-        "filterBtn": "Filtere",
+        "filterBtn": "Filter",
         "searchPlaceholder": "Search for a professor by name or email",
         "addTitle": "Add Professors",
         "nameInput": "First Name",

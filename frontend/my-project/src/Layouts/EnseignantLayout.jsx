@@ -15,7 +15,7 @@ export const EnseignantLayout = () => {
         {
           name: t("navElements.themes"),
           icon: <ThemesIcon />,
-          path: "/enseignant/themes",
+          path: "/enseignant",
         },
         {
           name: t("navElements.groupes"),

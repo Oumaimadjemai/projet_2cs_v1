@@ -19,6 +19,13 @@ import { EnseignantLayout } from "./Layouts/EnseignantLayout";
 import Themes from "./Components/admin/Components/Themes";
 import Notifications from "./Components/admin/Components/Notifications";
 // import IntroPage from "./Components/Login/IntroPage";
+import DemandeEntreprise from './Components/entreprise/Pages/listdemande'
+import EntrepriseList, { EntrepriseListLayout } from "./Components/entreprise/Pages/ListEntreprise";
+import AjouterEntreprisePage from './Components/entreprise/Components/AjouterEntreprise';
+import ThemesEnseignant from "./Components/enseignante/Components/ThemesEnseignant";
+import Groupes, { GroupeLayout } from "./Components/enseignante/Components/Groupes";
+import PrioriteSpecialite from "./Components/entreprise/Components/ExampleSelect";
+import GroupeDetail from "./Components/enseignante/Components/GroupeDetail";
 
 export const AppContext = createContext();
 
@@ -42,44 +49,60 @@ function App() {
   //   setShowIntro(false); // Hide the intro screen
   // };
 
+  const [cards, setCards] = useState([]);
+
+  const handleAddEntreprise = (newCompany) => {
+    setCards((prev) => [...prev, newCompany]);
+  };
+
   return (
     <AppContext.Provider value={{ isRtl, setIsRtl, setLang, lang }}>
       {/* {showIntro ? (
         <IntroPage onTimeout={handleIntroTimeout} />
       ) : ( */}
-        <div className='App'>
-          <Routes>
-            {/* pour la racine */}
-            <Route index element={<Pagedacceuille />} />
-            <Route path="/admin" element={<AdminLayout />} >
-              <Route index element={<Dashboard />} />
-              <Route path="enseignants" element={<EnseignantsListe />} />
-              <Route path="etudiants" element={<EtudiantsListe />} />
-              <Route path="entreprises" element={<h1>entreprises</h1>} />
-              <Route path="admins" element={<h1>admins</h1>} />
-              <Route path="scolarite" element={<ScolariteLayout />} >
-                <Route index element={<ParametresScolarite />} />
-                <Route path="departements" element={<Departements />} />
-                <Route path="salles" element={<Salles />} />
-                <Route path="specialites" element={<Specialites />} />
-                <Route path="annees" element={<Annees />} />
-              </Route>
-              <Route path="themes" element={<Themes />} />
-              <Route path="groupes" element={<h1>groupes</h1>} />
-              <Route path="soutenances" element={<h1>soutenances</h1>} />
-              <Route path="profile" element={<h1>profile</h1>} />
-              <Route path="notifications" element={<Notifications />} />
+      <div className='App'>
+        <Routes>
+          {/* pour la racine */}
+          <Route index element={<Pagedacceuille />} />
+          <Route path="/admin" element={<AdminLayout />} >
+            <Route index element={<Dashboard />} />
+            <Route path="enseignants" element={<EnseignantsListe />} />
+            <Route path="etudiants" element={<EtudiantsListe />} />
+            <Route path="entreprises" element={<EntrepriseListLayout />} >
+              <Route index element={<EntrepriseList />} />
+              <Route path="demandes" element={<DemandeEntreprise />} />
             </Route>
+            <Route path="admins" element={<h1>admins</h1>} />
+            <Route path="scolarite" element={<ScolariteLayout />} >
+              <Route index element={<ParametresScolarite />} />
+              <Route path="departements" element={<Departements />} />
+              <Route path="salles" element={<Salles />} />
+              <Route path="specialites" element={<Specialites />} />
+              <Route path="annees" element={<Annees />} />
+            </Route>
+            <Route path="themes" element={<Themes />} />
+            <Route path="groupes" element={<h1>groupes</h1>} />
+            <Route path="soutenances" element={<h1>soutenances</h1>} />
+            <Route path="profile" element={<h1>profile</h1>} />
+            <Route path="notifications" element={<Notifications />} />
+          </Route>
 
-            <Route path="/enseignant" element={<EnseignantLayout />} >
+          <Route path="/enseignant" element={<EnseignantLayout />} >
+            <Route index element={<ThemesEnseignant />} />
+            <Route path="groupes" element={<GroupeLayout />} >
+              <Route index  element={<Groupes />}  />
+              <Route path="detail" element= {<GroupeDetail />} />
             </Route>
-            <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
-            <Route path="/login">
-              <Route index element={<Login />} />
-              <Route path="incrientreprise" element={<InscriptionEntreprise />} />
-            </Route>
-          </Routes>
-        </div>
+            <Route path="example" element={<PrioriteSpecialite />} />
+          </Route>
+          <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
+          <Route path="/login">
+            <Route index element={<Login />} />
+            <Route path="entreprise" element={<InscriptionEntreprise />} />
+          </Route>
+          <Route path="/ajouterEntreprise" element={<AjouterEntreprisePage onAddEntreprise={handleAddEntreprise} />} />
+        </Routes>
+      </div>
       {/* )} */}
     </AppContext.Provider>
   );
