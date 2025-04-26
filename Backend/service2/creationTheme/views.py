@@ -204,8 +204,21 @@ from .discovery import discover_service
 # SERVICE_1_URL = "http://localhost:8000"
 # SERVICE_2_URL = "http://localhost:8001"
 SERVICE1_APP = 'SERVICE1-CLIENT'  # Nom utilisé dans Eureka
+import requests
+import xml.etree.ElementTree as ET
+
 def get_service1_url():
-    return discover_service(SERVICE1_APP)
+    try:
+        res = requests.get("http://localhost:8761/eureka/apps/SERVICE1-CLIENT", headers={'Accept': 'application/json'})
+        instances = res.json()['application']['instance']
+        # If multiple instances, take the first one
+        instance = instances[0] if isinstance(instances, list) else instances
+        host = instance['hostName']
+        port = instance['port']['$']
+        return f"http://{host}:{port}"
+    except Exception as e:
+        print("Error resolving service1 from Eureka:", e)
+        return "http://localhost:8000"  # Fallback
 
 # 🔁 Helpers
 def get_nom_annee(annee_id):
@@ -261,6 +274,32 @@ def generate_pdf(request, theme_id):
     return response
 
 # 🌟 API to list and create themes
+# class ThemeAPIView(APIView):
+
+#     def get(self, request):
+#         themes = Theme.objects.all()
+#         serializer = ThemeSerializer(themes, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+#     def post(self, request):
+#         user_data = verify_user(request, role=["enseignant", "entreprise"])
+#         if not user_data:
+#             return Response({"detail": "Utilisateur non authentifié ou rôle incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         data = request.data.copy()
+#         if user_data.get("is_enseignant"):
+#             data['enseignant_id'] = user_data['user_id']
+#         elif user_data.get("is_entreprise"):
+#             data['entreprise_id'] = user_data['user_id']
+
+#         serializer = ThemeSerializer(data=data)
+#         if serializer.is_valid():
+#             theme = serializer.save()
+
+#             # 🚨 Modification ici : Appeler la fonction pour générer et sauvegarder le PDF
+#             return generate_pdf(request, theme.id)
+
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class ThemeAPIView(APIView):
 
     def get(self, request):
@@ -269,11 +308,18 @@ class ThemeAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        # ✅ Vérifie que l'utilisateur est bien un enseignant ou une entreprise
         user_data = verify_user(request, role=["enseignant", "entreprise"])
-        if not user_data:
-            return Response({"detail": "Utilisateur non authentifié ou rôle incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user_data or not (user_data.get("is_enseignant") or user_data.get("is_entreprise")):
+            return Response(
+                {"detail": "Accès refusé. Seuls les enseignants ou les entreprises peuvent créer un thème."},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         data = request.data.copy()
+
+        # ✅ Associe correctement l'utilisateur au thème
         if user_data.get("is_enseignant"):
             data['enseignant_id'] = user_data['user_id']
         elif user_data.get("is_entreprise"):
@@ -283,7 +329,7 @@ class ThemeAPIView(APIView):
         if serializer.is_valid():
             theme = serializer.save()
 
-            # 🚨 Modification ici : Appeler la fonction pour générer et sauvegarder le PDF
+            # ✅ Génère automatiquement le PDF après la création du thème
             return generate_pdf(request, theme.id)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -415,3 +461,131 @@ class ThemesByAnneeSpecialiteAPIView(APIView):
         serializer = ThemeSerializer(filtered_themes, many=True)
         return Response(serializer.data)
 
+def is_admin_user(request):
+    auth_header = request.headers.get('Authorization')
+    print("AUTH HEADER RECEIVED:", auth_header)
+
+    if not auth_header:
+        print("No Authorization header!")
+        return False
+
+    try:
+        base = get_service1_url()
+        url = f"{base}/verify-admin/"
+        print("Calling URL:", url)
+        response = requests.get(url, headers={'Authorization': auth_header})
+        print("Response status:", response.status_code)
+        print("Response body:", response.text)
+
+        if response.status_code == 200:
+            return response.json().get("is_admin", False)
+    except Exception as e:
+        print("Error in verify-admin call:", e)
+
+    return False
+
+class ValiderThemeView(APIView):
+    def patch(self, request, theme_id):
+        if not is_admin_user(request):
+            return Response({"detail": "Accès interdit. Admin seulement."}, status=status.HTTP_403_FORBIDDEN)
+
+        theme = get_object_or_404(Theme, id=theme_id)
+        theme.valide = True
+        theme.motif = ""
+        theme.save()
+        return Response({"message": "Thème validé avec succès."}, status=status.HTTP_200_OK)
+
+class RefuserThemeView(APIView):
+    def patch(self, request, theme_id):
+        if not is_admin_user(request):
+            return Response({"detail": "Accès interdit. Admin seulement."}, status=status.HTTP_403_FORBIDDEN)
+
+        motif = request.data.get("motif", "").strip()
+        if not motif:
+            return Response({"error": "Le motif est requis pour refuser un thème."}, status=status.HTTP_400_BAD_REQUEST)
+
+        theme = get_object_or_404(Theme, id=theme_id)
+        theme.valide = False
+        theme.motif = motif
+        theme.save()
+        return Response({"message": "Thème refusé avec motif."}, status=status.HTTP_200_OK)
+
+
+from django.db.models import Q
+
+class ThemesEnAttenteView(APIView):
+    def get(self, request):
+        if not is_admin_user(request):
+            return Response({"detail": "Accès interdit. Admin seulement."}, status=status.HTTP_403_FORBIDDEN)
+
+        # 🔍 Filtre: valide=False et motif soit None soit ""
+        themes_en_attente = Theme.objects.filter(
+            valide=False
+        ).filter(
+            Q(motif__isnull=True) | Q(motif="")
+        )
+
+        if not themes_en_attente.exists():
+            return Response({"message": "Aucun thème en attente."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ThemeSerializer(themes_en_attente, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ThemesValidésView(APIView):
+    def get(self, request):
+        if not is_admin_user(request):
+            return Response({"detail": "Accès interdit. Admin seulement."}, status=status.HTTP_403_FORBIDDEN)
+
+        themes_valides = Theme.objects.filter(valide=True)
+
+        if not themes_valides.exists():
+            return Response({"message": "Aucun thème validé."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ThemeSerializer(themes_valides, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ThemesRefusesView(APIView):
+    def get(self, request):
+        if not is_admin_user(request):
+            return Response({"detail": "Accès interdit. Admin seulement."}, status=status.HTTP_403_FORBIDDEN)
+
+        # Filtrer pour obtenir uniquement les thèmes avec valide=False et un motif non vide
+        themes_refuses = Theme.objects.filter(valide=False).exclude(motif="").exclude(motif__isnull=True)
+
+        if not themes_refuses.exists():
+            return Response({"message": "Aucun thème refusé."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ThemeSerializer(themes_refuses, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ReserverThemeView(APIView):
+    def patch(self, request, theme_id):
+        if not is_admin_user(request):
+            return Response({"detail": "Accès interdit. Admin seulement."}, status=status.HTTP_403_FORBIDDEN)
+
+        # Récupérer le thème à partir de l'ID
+        theme = get_object_or_404(Theme, id=theme_id)
+
+        # Mettre à jour le champ 'reserve' du thème à True
+        theme.reserve = True
+        theme.save()
+
+        return Response({"message": "Thème réservé avec succès."}, status=status.HTTP_200_OK)
+
+
+class ThemesReservesView(APIView):
+    def get(self, request):
+        if not is_admin_user(request):
+            return Response({"detail": "Accès interdit. Admin seulement."}, status=status.HTTP_403_FORBIDDEN)
+
+        # Filtrer les thèmes où reserve=True
+        themes_reserves = Theme.objects.filter(reserve=True)
+
+        if not themes_reserves.exists():
+            return Response({"message": "Aucun thème réservé."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ThemeSerializer(themes_reserves, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

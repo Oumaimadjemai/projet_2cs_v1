@@ -64,6 +64,7 @@ class Theme(models.Model):
 
     # Removed: specialite_id and priorite
     annee_id = models.IntegerField(null=True)
+    numberOfGrp = models.IntegerField(null=True)
 
     # 👇 New field for multiple specialité + priorité
     priorities = models.JSONField(

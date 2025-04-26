@@ -58,7 +58,7 @@ class AdminSerializer(UserSerializer):
 class EnseignantSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = Enseignant
-        fields = UserSerializer.Meta.fields
+        fields = UserSerializer.Meta.fields +["matricule","grade"]
 
 class EtudiantSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
@@ -172,9 +172,11 @@ class UserLoginSerializer(serializers.Serializer):
                 else:
                     raise serializers.ValidationError("Cet utilisateur n'est pas associé à un étudiant valide.")
             elif user_type == "enseignant":
-                user_info.update({
-                    "grade": ""  # Ajoutez les détails de l'enseignant ici
-                })
+                if user.enseignant:
+                    user_info.update({
+                        "matricule":user.enseignant.matricule,
+                        "grade":user.enseignant.grade
+                    })
             elif user_type == "entreprise":
                 if entreprise:
                     user_info.update({

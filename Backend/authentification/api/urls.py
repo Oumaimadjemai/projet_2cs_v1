@@ -64,6 +64,7 @@ urlpatterns = [
     # path('specialites/annee/<int:annee_id>/', SpecialiteByAnneeView.as_view(), name='specialites_by_annee'),
     # path('specialites/annee/<int:annee_id>/departement/<int:departement_id>/', SpecialiteByAnneeAndDepartementView.as_view(), name='specialites_by_annee_and_departement'),
     path('salles/departement/<int:departement_id>/', SalleByDepartementView.as_view(), name='salles_by_departement'),
+    path("verify-admin/", VerifyAdminView.as_view(), name="verify-admin"),
 ]
 
 

@@ -8,5 +8,6 @@ dism /online /Enable-Feature /FeatureName:TelnetClient
 redis-cli ping // to check redis server with powershell
 pip install pandas
  pip install django-cors-headers
+ pip install py_eureka_client
 ----
 in service 2

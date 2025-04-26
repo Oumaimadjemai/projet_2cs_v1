@@ -1,15 +1,7 @@
 
 from django.urls import path
 
-from .views import (
-    ThemeAPIView,
-    ThemeDetailAPIView,
-    ThemeViewSet, 
-    ThemesByAnneeAPIView,
-    ThemesByAnneeSpecialiteAPIView, 
-    ThemePDFView,
-    AllThemePDFsView   
-)
+from .views import *
 
 
 
@@ -23,6 +15,14 @@ urlpatterns = [
     path('themes/pdfs/', AllThemePDFsView.as_view(), name='all_theme_pdfs'),
 
     path('themes/entreprise/<int:entreprise_id>/', ThemeViewSet.as_view({'get': 'get_themes_by_entreprise'}), name='themes-par-entreprise'),
+    path('themes/entreprise/<int:entreprise_id>/', ThemeViewSet.as_view({'get': 'get_themes_by_entreprise'}), name='themes-par-entreprise'),
+    path('themes/<int:theme_id>/valider/', ValiderThemeView.as_view(), name='valider-theme'),
+    path('themes/<int:theme_id>/refuser/', RefuserThemeView.as_view(), name='refuser-theme'),
+    path('themes/en-attente/', ThemesEnAttenteView.as_view(), name='themes-en-attente'),
+    path('themes/valides/', ThemesValidésView.as_view(), name='themes_valides'),
+    path('themes/refuses/', ThemesRefusesView.as_view(), name='themes_refuses'),
+    path('themes/<int:theme_id>/reserver/', ReserverThemeView.as_view(), name='reserver-theme'),
+    path('themes/reserves/', ThemesReservesView.as_view(), name='themes-reserves'),
 
 
     ]

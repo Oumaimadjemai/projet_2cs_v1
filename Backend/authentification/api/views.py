@@ -121,6 +121,12 @@ class AdminRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 class DepartementListCreateView(generics.ListCreateAPIView):
     queryset = Departement.objects.all()
     serializer_class = DepartementSerializer
+    def create(self, request, *args, **kwargs):
+        is_many = isinstance(request.data, list)
+        serializer = self.get_serializer(data=request.data, many=is_many)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class DepartementRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Departement.objects.all()
@@ -129,14 +135,27 @@ class DepartementRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView)
 class AnneeListCreateView(generics.ListCreateAPIView):
     queryset = Annee.objects.all()
     serializer_class = AnneeSerializer
+    def create(self, request, *args, **kwargs):
+        is_many = isinstance(request.data, list)
+        serializer = self.get_serializer(data=request.data, many=is_many)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class AnneeRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Annee.objects.all()
     serializer_class = AnneeSerializer
+    
 
 class SpecialiteListCreateView(generics.ListCreateAPIView):
     queryset = Specialite.objects.all()
     serializer_class = SpecialiteSerializer
+    def create(self, request, *args, **kwargs):
+        is_many = isinstance(request.data, list)
+        serializer = self.get_serializer(data=request.data, many=is_many)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class SpecialiteRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Specialite.objects.all()
@@ -145,6 +164,12 @@ class SpecialiteRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 class SalleListCreateView(generics.ListCreateAPIView):
     queryset = Salle.objects.all()
     serializer_class = SalleSerializer
+    def create(self, request, *args, **kwargs):
+        is_many = isinstance(request.data, list)
+        serializer = self.get_serializer(data=request.data, many=is_many)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class SalleRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Salle.objects.all()
@@ -605,3 +630,21 @@ class SalleByDepartementView(APIView):
         serializer = SalleSerializer(salles, many=True)
         return Response(serializer.data)
 
+class VerifyAdminView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        # Ici on détermine le "type" dynamiquement
+        if hasattr(user, 'admin'):
+            user_type = "admin"
+        elif hasattr(user, 'enseignant'):
+            user_type = "enseignant"
+        elif hasattr(user, 'entreprise'):
+            user_type = "entreprise"
+        else:
+            user_type = "etudiant"
+
+        is_admin = user_type == "admin"
+        return Response({"is_admin": is_admin})
