@@ -292,6 +292,79 @@ class UsersWithEntrepriseView(APIView):
         
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+
+class CreateEntrepriseAndUserView(APIView):
+    def post(self, request):
+        data = request.data
+
+        # Extract entreprise and representant info
+        nom = data.get('nom')
+        secteur_activite = data.get('secteur_activite')
+        adresse = data.get('adresse')
+        wilaya = data.get('wilaya')
+        ville = data.get('ville')
+        site_web = data.get('site_web')
+
+        representant_nom = data.get('representant_nom')
+        representant_poste = data.get('representant_poste')
+        representant_email = data.get('representant_email')
+        representant_telephone = data.get('representant_telephone')
+
+        if not representant_email:
+            return Response({"error": "L'email du représentant est requis."}, status=400)
+
+        # Check if user already exists
+        if User.objects.filter(email=representant_email).exists():
+            return Response({"error": "Un utilisateur avec cet email existe déjà."}, status=400)
+
+        # Generate password and create user
+        generated_password = secrets.token_urlsafe(10)
+        user = User.objects.create_user(
+            email=representant_email,
+            nom=representant_nom,
+            prenom="",
+            password=generated_password
+        )
+        user.is_entreprise = True
+        user.save()
+
+        # Create entreprise and link to user
+        entreprise = Entreprise.objects.create(
+            nom=nom,
+            secteur_activite=secteur_activite,
+            adresse=adresse,
+            wilaya=wilaya,
+            ville=ville,
+            site_web=site_web,
+            representant_nom=representant_nom,
+            representant_poste=representant_poste,
+            representant_email=representant_email,
+            representant_telephone=representant_telephone,
+            statut="approved",  # directly approved
+            compte_utilisateur=user
+        )
+
+        # Send email to representant
+        subject = "Création de votre compte Entreprise"
+        message = f"""
+        Bonjour {user.nom},
+
+        Votre entreprise "{entreprise.nom}" a été créée et validée avec succès.
+
+        🔹 **Email** : {user.email}
+        🔹 **Mot de passe** : {generated_password}
+
+        📌 Veuillez vous connecter à la plateforme et changer votre mot de passe dès que possible.
+
+        Cordialement,  
+        L'équipe de gestion
+        """
+        send_mail(subject, message, 'your-email@gmail.com', [user.email], fail_silently=False)
+
+        return Response({"message": "Entreprise et compte utilisateur créés avec succès."}, status=status.HTTP_201_CREATED)
+
+
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def import_users(request, user_type):

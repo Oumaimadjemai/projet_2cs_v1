@@ -36,6 +36,7 @@ urlpatterns = [
     path('entreprises/', EntrepriseListCreateView.as_view(), name='entreprise-list'),
     path('entreprises/<int:pk>/valider/', EntrepriseValidationView.as_view(), name='entreprise-valider'),
     path("entreprises/<int:pk>/delete/", EntrepriseDeleteView.as_view(), name="entreprise-delete"),
+    path('entreprises/create-manual/', CreateEntrepriseAndUserView.as_view(), name='create-entreprise-manual'),
     path('import/<str:user_type>/', import_users, name='import-users'),
 
   

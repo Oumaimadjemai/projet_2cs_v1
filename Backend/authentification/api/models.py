@@ -22,7 +22,7 @@ class Specialite(models.Model):
     title = models.CharField(max_length=50)
 
     def __str__(self):
-        return f"{self.annee.title} {self.title}"
+        return f"{self.title}"
 
 class Salle(models.Model):
     departement = models.ForeignKey(Departement,on_delete=models.CASCADE,null=True)
@@ -152,6 +152,7 @@ class Entreprise(models.Model):
 
     # Informations du représentant
     representant_nom = models.CharField(max_length=255)
+    representant_prenom = models.CharField(max_length=255,null=True)
     representant_poste = models.CharField(max_length=255)
     representant_email = models.EmailField(unique=True)
     representant_telephone = models.CharField(max_length=20)
