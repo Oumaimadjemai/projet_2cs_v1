@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import '../Styles/EnseignantsListe.css';
 import { ReactComponent as SearchIcon } from '../../../Assets/Icons/Search.svg';
 import { ReactComponent as EditIcon } from '../../../Assets/Icons/edit.svg';
 import { ReactComponent as DeleteIcon } from '../../../Assets/Icons/Delete.svg';
 import { ReactComponent as ArrowIcon } from '../../../Assets/Icons/Arrow.svg';
-import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/EmptyState.svg';
+import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/notFound.svg';
 import { AjouterEnseignant } from './AjouterEnseignant';
-
+import { AppContext } from '../../../App';
+import '../../Partials/Components/i18n'
+import { useTranslation } from 'react-i18next';
 
 
 function EnseignantsListe() {
@@ -81,38 +83,49 @@ function EnseignantsListe() {
 
     const cancelAjouter = () => setAjouterEnseignantClicked(false)
 
+    //-----------AppContext-------//
+
+    const { isRtl } = useContext(AppContext);
+
+    const { t } = useTranslation();
+
     return (
         <div className='enseignants-liste-container' id='dynamic-liste' ref={dynamicListRef}>
-            <div className="enseignants-liste-wrapper">
+            <div className="enseignants-liste-wrapper" style={{ paddingRight: isRtl ? "0" : "12px", paddingLeft: isRtl ? "12px" : "0" }}>
                 <div className="btns-container">
                     <div className="ajouter-enseignants-btns">
                         <button>
-                            Exporter En Excel
+                            {t('enseignantsPage.exportBtn')}
                         </button>
                         <button
                             style={{ color: "#fff", backgroundColor: "#925FE2" }}
                             onClick={() => setAjouterEnseignantClicked(true)}
                         >
-                            Ajouter Enseignants
+                            {t('enseignantsPage.addBtn')}
                         </button>
                     </div>
                     <div className="supprimer-btn" style={{ marginRight: "0.5rem" }}>
                         <button>
-                            Désactiver Tous
+                            {t('enseignantsPage.desactivateBtn')}
                         </button>
                     </div>
                 </div>
                 <div className="recherche-enseignants-line">
                     <div className="recherche-enseignants-input">
-                        <button>
-                            Filtre
+                        <button
+                            style={{
+                                borderRight: isRtl ? "none" : "2px solid #D9E1E7",
+                                borderLeft: isRtl ? "2px solid #D9E1E7" : "none",
+                            }}
+                        >
+                            {t('enseignantsPage.filterBtn')}
                             <svg width="0.9rem" height="0.5rem" viewBox="0 0 15 9" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M7.742 6.05489L12.971 0.863892C13.1571 0.678984 13.4087 0.575195 13.671 0.575195C13.9333 0.575195 14.185 0.678984 14.371 0.863892C14.4627 0.954642 14.5354 1.06265 14.585 1.18169C14.6347 1.30072 14.6602 1.42842 14.6602 1.55739C14.6602 1.68636 14.6347 1.81406 14.585 1.93309C14.5354 2.05212 14.4627 2.16014 14.371 2.25089L8.44293 8.13589C8.25689 8.32079 8.00529 8.42458 7.74298 8.42458C7.48068 8.42458 7.22908 8.32079 7.04303 8.13589L1.11493 2.25089C1.02329 2.16014 0.950587 2.05212 0.90094 1.93309C0.851293 1.81406 0.825745 1.68636 0.825745 1.55739C0.825745 1.42842 0.851293 1.30072 0.90094 1.18169C0.950587 1.06265 1.02329 0.954642 1.11493 0.863892C1.3011 0.679226 1.55278 0.575607 1.815 0.575607C2.07723 0.575607 2.32878 0.679226 2.51495 0.863892L7.742 6.05489Z" fill="#925FE2" />
                             </svg>
                         </button>
                         <div className="input-line">
                             <SearchIcon />
-                            <input type="text" placeholder='Rechercher un enseignant par nom ou e-mail' />
+                            <input type="text" placeholder={t('enseignantsPage.searchPlaceholder')} />
                         </div>
                     </div>
                 </div>
@@ -121,11 +134,39 @@ function EnseignantsListe() {
                     <table>
                         <thead>
                             <tr>
-                                <th style={{ borderTopLeftRadius: "8px", borderBottomLeftRadius: "8px", borderLeft: "1px solid #E4E4E4", width: "16%", paddingLeft: "1rem" }}>Nom & Prénom</th>
-                                <th>Matricule</th>
-                                <th style={{ width: "25%" }}>Adresse Email</th>
-                                <th>Grade</th>
-                                <th style={{ width: "100%", borderTopRightRadius: "8px", borderBottomRightRadius: "8px", borderRight: "1px solid #E4E4E4" }}>Nombre De Sujets Encadrés</th>
+                                <th
+                                    style={{
+                                        borderTopLeftRadius: isRtl ? "0" : "8px",
+                                        borderTopRightRadius: isRtl ? "8px" : "0",
+                                        borderBottomLeftRadius: isRtl ? "0" : "8px",
+                                        borderBottomRightRadius: isRtl ? "8px" : "0",
+                                        borderLeft: isRtl ? undefined : "1px solid #E4E4E4",
+                                        borderRight: isRtl ? "1px solid #E4E4E4" : undefined,
+                                        width: "16%",
+                                        paddingLeft: isRtl ? undefined : "1rem",
+                                        paddingRight: isRtl ? "0.5rem" : undefined,
+                                        textAlign: isRtl ? "right" : "left"
+                                    }}
+                                >
+                                    {t('enseignantsPage.tableNom')}
+                                </th>
+                                <th>{t('enseignantsPage.tableMat')}</th>
+                                <th style={{ width: "25%" }}>{t('enseignantsPage.tableEmail')}</th>
+                                <th>{t('enseignantsPage.tableGrade')}</th>
+                                <th
+                                    style={{
+                                        width: "100%",
+                                        borderTopRightRadius: isRtl ? "0" : "8px",
+                                        borderTopLeftRadius: isRtl ? "8px" : "0",
+                                        borderBottomRightRadius: isRtl ? "0" : "8px",
+                                        borderBottomLeftRadius: isRtl ? "8px" : "0",
+                                        borderRight: isRtl ? "none" : "1px solid #E4E4E4",
+                                        borderLeft: isRtl ? "1px solid #E4E4E4" : "none",
+                                        textAlign: isRtl ? "right" : "left"
+                                    }}
+                                >
+                                    {t('enseignantsPage.tableSujets')}
+                                </th>
                             </tr>
                         </thead>
                         {
@@ -136,12 +177,15 @@ function EnseignantsListe() {
                                             <tr>
                                                 <td
                                                     style={{
-                                                        borderTopLeftRadius: "8px",
-                                                        borderBottomLeftRadius: "8px",
-                                                        borderLeft: "1px solid #E4E4E4",
+                                                        borderTopLeftRadius: isRtl ? "0" : "8px",
+                                                        borderTopRightRadius: isRtl ? "8px" : "0",
+                                                        borderBottomLeftRadius: isRtl ? "0" : "8px",
+                                                        borderBottomRightRadius: isRtl ? "8px" : "0",
+                                                        borderLeft: isRtl ? undefined : "1px solid #E4E4E4",
+                                                        borderRight: isRtl ? "1px solid #E4E4E4" : undefined,
                                                         width: "16%",
                                                         paddingLeft: "1rem",
-                                                        textAlign: "left",
+                                                        textAlign: isRtl ? "right" : "left",
                                                         textIndent: "1rem",
                                                         whiteSpace: "nowrap",
                                                         overflow: "hidden",
@@ -167,16 +211,32 @@ function EnseignantsListe() {
                                                         {enseignant.grade}
                                                     </span>
                                                 </td>
-                                                <td className='last-td' style={{ borderTopRightRadius: "8px", borderBottomRightRadius: "8px", borderRight: "1px solid #E4E4E4" }}>
+                                                <td
+                                                    className='last-td'
+                                                    style={{
+                                                        borderTopRightRadius: isRtl ? "0" : "8px",
+                                                        borderTopLeftRadius: isRtl ? "8px" : "0",
+                                                        borderBottomRightRadius: isRtl ? "0" : "8px",
+                                                        borderBottomLeftRadius: isRtl ? "8px" : "0",
+                                                        borderRight: isRtl ? "none" : "1px solid #E4E4E4",
+                                                        borderLeft: isRtl ? "1px solid #E4E4E4" : "none",
+                                                    }}
+                                                >
                                                     <span className="number">{enseignant.sujetsEncadres}</span>
-                                                    <div className="line-btns">
+                                                    <div
+                                                        className="line-btns"
+                                                        style={{
+                                                            marginLeft: isRtl ? "1rem" : "auto",
+                                                            marginRight: isRtl ? "auto" : "1rem"
+                                                        }}
+                                                    >
                                                         <button>
                                                             <EditIcon />
-                                                            Modifier
+                                                            {t('enseignantsPage.modifieBtn')}
                                                         </button>
                                                         <button>
                                                             <DeleteIcon />
-                                                            Supprimer
+                                                            {t('enseignantsPage.deleteBtn')}
                                                         </button>
                                                     </div>
                                                 </td>
@@ -193,10 +253,10 @@ function EnseignantsListe() {
                                 <EmptyIcon className='empty-icon' />
                                 <div className="lines-box">
                                     <h1 style={{ fontSize: "1.45rem", fontWeight: "650" }}>
-                                        Aucun Enseignant pour le moment.
+                                        {t('enseignantsPage.noEnseignants')}
                                     </h1>
                                     <span style={{ width: "600px", textAlign: "center", color: "#4F4F4F", fontWeight: "500" }}>
-                                        Commencez à ajouter des enseignants en cliquant sur le bouton ci-dessous. Ajoutez leurs informations pour les gérer plus facilement dans votre système.
+                                        {t('enseignantsPage.startAdd')}
                                     </span>
                                 </div>
                             </div>
@@ -211,7 +271,8 @@ function EnseignantsListe() {
                             style={{
                                 position: "fixed",
                                 bottom: "20px",
-                                right: "20px",
+                                right: isRtl ? undefined : "20px",
+                                left: isRtl ? "20px" : undefined,
                                 backgroundColor: "#925FE2",
                                 color: "white",
                                 cursor: "pointer",

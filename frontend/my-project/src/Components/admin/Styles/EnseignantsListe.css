@@ -26,7 +26,6 @@
 .enseignants-liste-container {
     width: 100%;
     height: 100%;
-    position: relative;
 }
 
 .enseignants-liste-wrapper {
@@ -174,25 +173,20 @@
 .enseignants-table .last-td {
     display: flex;
     align-items: center;
-    /* Align elements vertically */
     padding: 1rem;
     text-align: center;
 }
 
 .last-td .number {
     flex-grow: 1;
-    /* Takes up remaining space */
     text-align: center;
-    /* Ensures text stays centered */
 }
 
 .last-td .line-btns {
     display: flex;
     gap: 5px;
     margin-left: auto;
-    /* Pushes buttons to the right */
     margin-right: 1rem;
-    /* Adds space from the right edge */
 }
 
 .last-td .line-btns button {
@@ -257,6 +251,7 @@
     transform: translate(-50%, -50%);
     width: 900px;
     height: 510px;
+    max-height: 510px;
     z-index: 20;
 }
 
@@ -505,7 +500,7 @@
 
 @media screen and (min-height: 700px) {
     .ajouter-enseignant-container {
-        height: 600px;
+        max-height: 510px;
     }
 
     #ajouterFormEnseignant .drop-file-container{

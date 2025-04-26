@@ -18,6 +18,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth import get_user_model
+import traceback
 
 
 
@@ -29,26 +30,28 @@ class EtudiantListCreateView(generics.ListCreateAPIView):
     serializer_class = EtudiantSerializer
 
     def perform_create(self, serializer):
-      user = serializer.save()
-      generated_password = getattr(user, "generated_password", "Erreur de récupération")  # Récupère le mot de passe
+        user = serializer.save()
+        generated_password = getattr(user, "generated_password", "Erreur de récupération")
 
-      subject = "Votre compte a été créé"
-      message = f"""
-     Bonjour {user.prenom} {user.nom},
+        subject = "Votre compte a été créé"
+        message = f"""
+        Bonjour {user.prenom} {user.nom},
 
-     Votre compte a été créé avec succès.
+        Votre compte a été créé avec succès.
 
-    🔹 Email : {user.email}
-    🔹 Mot de passe : {generated_password}
+        🔹 Email : {user.email}
+        🔹 Mot de passe : {generated_password}
 
-    📌 Veuillez vous connecter et changer votre mot de passe dès que possible.
+        📌 Veuillez vous connecter et changer votre mot de passe dès que possible.
 
-    Cordialement,  
-    L'équipe de gestion
-    """
-      send_mail(subject, message, 'your-email@gmail.com', [user.email], fail_silently=False)
+        Cordialement,  
+        L'équipe de gestion
+        """
+        send_mail(subject, message, 'your-email@gmail.com', [user.email], fail_silently=False)
 
-
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        return Response(response.data, status=status.HTTP_201_CREATED)
 
 class EtudiantRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Etudiant.objects.all()
@@ -118,58 +121,108 @@ class AdminRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminSerializer
 
 #parametres
-class DepartementListCreateView(generics.ListCreateAPIView):
-    queryset = Departement.objects.all()
-    serializer_class = DepartementSerializer
-    def create(self, request, *args, **kwargs):
-        is_many = isinstance(request.data, list)
-        serializer = self.get_serializer(data=request.data, many=is_many)
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
+from .models import Departement
+from .serializers import DepartementSerializer
+
+class DepartementListCreateView(APIView):
+    def get(self, request, *args, **kwargs):
+        # Retrieve all departments
+        departements = Departement.objects.all()
+        serializer = DepartementSerializer(departements, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        # If it's a list of departments, allow bulk creation
+        if isinstance(request.data, list):
+            serializer = DepartementSerializer(data=request.data, many=True)
+        else:
+            serializer = DepartementSerializer(data=request.data)
+
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 class DepartementRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Departement.objects.all()
     serializer_class = DepartementSerializer
 
-class AnneeListCreateView(generics.ListCreateAPIView):
-    queryset = Annee.objects.all()
-    serializer_class = AnneeSerializer
-    def create(self, request, *args, **kwargs):
-        is_many = isinstance(request.data, list)
-        serializer = self.get_serializer(data=request.data, many=is_many)
+class DepartementBulkCreateView(APIView):
+    def post(self, request, *args, **kwargs):
+        if isinstance(request.data, list):
+            serializer = DepartementSerializer(data=request.data, many=True)
+        else:
+            serializer = DepartementSerializer(data=request.data)
+
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class AnneeListCreateView(APIView):
+    def get(self, request, *args, **kwargs):
+        annees = Annee.objects.all()
+        serializer = AnneeSerializer(annees, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        if isinstance(request.data, list):
+            serializer = AnneeSerializer(data=request.data, many=True)
+        else:
+            serializer = AnneeSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class AnneeRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Annee.objects.all()
     serializer_class = AnneeSerializer
     
 
-class SpecialiteListCreateView(generics.ListCreateAPIView):
-    queryset = Specialite.objects.all()
-    serializer_class = SpecialiteSerializer
-    def create(self, request, *args, **kwargs):
-        is_many = isinstance(request.data, list)
-        serializer = self.get_serializer(data=request.data, many=is_many)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+class SpecialiteListCreateView(APIView):
+    def get(self, request, *args, **kwargs):
+        specialites = Specialite.objects.all()
+        serializer = SpecialiteSerializer(specialites, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        if isinstance(request.data, list):
+            serializer = SpecialiteSerializer(data=request.data, many=True)
+        else:
+            serializer = SpecialiteSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SpecialiteRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Specialite.objects.all()
     serializer_class = SpecialiteSerializer
 
-class SalleListCreateView(generics.ListCreateAPIView):
-    queryset = Salle.objects.all()
-    serializer_class = SalleSerializer
-    def create(self, request, *args, **kwargs):
-        is_many = isinstance(request.data, list)
-        serializer = self.get_serializer(data=request.data, many=is_many)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+class SalleListCreateView(APIView):
+    def get(self, request, *args, **kwargs):
+        salles = Salle.objects.all()
+        serializer = SalleSerializer(salles, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        if isinstance(request.data, list):
+            serializer = SalleSerializer(data=request.data, many=True)
+        else:
+            serializer = SalleSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SalleRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Salle.objects.all()
@@ -368,41 +421,35 @@ class CreateEntrepriseAndUserView(APIView):
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def import_users(request, user_type):
-    """
-    Importe des utilisateurs (étudiants, enseignants ou admins) depuis un fichier.
-    user_type: 'etudiant', 'enseignant' ou 'admin'
-    """
     file = request.FILES.get('file')
 
     if not file:
         return JsonResponse({'error': 'No file provided'}, status=400)
 
     try:
+        # Determine file type
         if file.name.endswith('xlsx'):
             df = pd.read_excel(file)
-        elif file.name.endswith('txt') or file.name.endswith('csv'):
+        elif file.name.endswith('csv') or file.name.endswith('txt'):
             df = pd.read_csv(file, delimiter=",")
         else:
-            return JsonResponse({'error': 'Invalid file format. Use .xlsx or .txt/.csv'}, status=400)
+            return JsonResponse({'error': 'Invalid file format. Use .xlsx or .csv/.txt'}, status=400)
 
-        user_model = None
-        if user_type == 'etudiant':
-            user_model = Etudiant
-        elif user_type == 'enseignant':
-            user_model = Enseignant
-        elif user_type == 'admin':
-            user_model = Admin
-        else:
+        # Select correct model
+        user_model = {
+            'etudiant': Etudiant,
+            'enseignant': Enseignant,
+            'admin': Admin
+        }.get(user_type)
+
+        if not user_model:
             return JsonResponse({'error': 'Invalid user type'}, status=400)
 
-        users = []
-        email_messages = []
+        created_count = 0
 
         for _, row in df.iterrows():
             try:
                 generated_password = secrets.token_urlsafe(8)
-
-                # Convertir le matricule en string s'il est en notation scientifique
                 matricule = str(row.get('matricule', '')).split('.')[0]
 
                 user = user_model(
@@ -413,13 +460,19 @@ def import_users(request, user_type):
                 )
 
                 if user_type == 'etudiant':
-                    user.annee_etude = row.get('annee_etude', None)
-                    user.moyenne_etudiant = row.get('moyenne_etudiant', None)
-                    user.matricule = matricule
+                   annee_id = row.get('annee_etude', None)
+                   if annee_id:
+                        try:
+                            user.annee_etude = Annee.objects.get(id=annee_id)
+                        except Annee.DoesNotExist:
+                            return JsonResponse({'error': f"Annee with id {annee_id} does not exist."}, status=400)
 
-                user.save()  # Enregistrement un par un
+                   user.moyenne_etudiant = row.get('moyenne_etudiant')
+                   user.matricule = matricule
 
-                # Préparer l'email de confirmation
+                user.save()
+                created_count += 1
+
                 subject = "Votre compte a été créé"
                 message = f"""
                 Bonjour {row['prenom']} {row['nom']},
@@ -431,19 +484,25 @@ def import_users(request, user_type):
 
                 📌 Veuillez vous connecter et changer votre mot de passe dès que possible.
 
-                Cordialement,  
+                Cordialement,
                 L'équipe de gestion
                 """
+
                 send_mail(subject, message, 'your-email@gmail.com', [row['email']], fail_silently=False)
 
-            except KeyError:
-                return JsonResponse({'error': 'Invalid file structure'}, status=400)
+            except KeyError as e:
+                return JsonResponse({'error': f'Missing column: {str(e)}'}, status=400)
+            except Exception as e:
+                traceback.print_exc()
+                return JsonResponse({'error': f'Failed to process user: {str(e)}'}, status=500)
 
-        return JsonResponse({'message': f'{len(users)} {user_type}s importés avec succès, emails envoyés !'})
+        return JsonResponse({
+            'message': f'{created_count} {user_type}(s) importés avec succès, emails envoyés !'
+        })
 
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
+        traceback.print_exc()
+        return JsonResponse({'error': f'Unexpected server error: {str(e)}'}, status=500)
 
 
 

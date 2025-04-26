@@ -1,4 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import axiosInstance from '../../axios';
+import logoImg from '../../Assets/Images/logo-login.jpg';
+import '../Partials/Components/i18n'
+import { useTranslation, Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../axios';  
 import reactconnet from '../../Assets/Images/logo.jpg';
@@ -16,7 +21,7 @@ function Login() {
    const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-         const response = await axiosInstance.post('login/', {  
+         const response = await axiosInstance.post('login/', {
             email: formData.email,
             password: formData.password,
          });
@@ -33,8 +38,8 @@ function Login() {
          localStorage.setItem('user_prenom', user_info.prenom);
          localStorage.setItem('user_grade', user_info.grade || '');
 
-         
-         axiosInstance.defaults.headers['Authorization'] ='JWT ' + localStorage.getItem('access_token');
+
+         axiosInstance.defaults.headers['Authorization'] = 'JWT ' + localStorage.getItem('access_token');
 
 
          console.log('Connexion réussie:', response.data);
@@ -58,20 +63,22 @@ function Login() {
       }
    };
 
+   const { t } = useTranslation();
+
    return (
       <div className="h-[100vh] w-screen flex items-center justify-center bg-gray-100">
          <div className="w-screen h-screen flex shadow-lg rounded-lg overflow-hidden bg-white border border-gray-200">
             {/* Left Side */}
             <div className="w-1/2 h-full">
-               <img className="w-full h-full object-cover" src={reactconnet} alt="Login" />
+               <img className="w-full h-full object-cover" src={logoImg} alt="Login" />
             </div>
             {/* Right Side */}
             <div className="w-1/2 flex flex-col justify-center items-center px-12 bg-white rounded-lg">
-               <h2 className="text-2xl font-bold text-mypurple text-center mb-6">Bienvenue à NomSite</h2>
+               <h2 className="text-2xl font-bold text-mypurple text-center mb-6">{t('login.loginTitle')}</h2>
                <div className='w-[80%]'>
                   <form className="space-y-6" >
                      <div>
-                        <label htmlFor="email" className="block text-sm font-semibold font-[Poppins] text-gray-700 text-left">E-mail</label>
+                        <label htmlFor="email" className="block text-sm font-semibold font-[Poppins] text-gray-700 text-left">{t('login.emailInput')}</label>
                         <input
                            id="email"
                            name="email"
@@ -83,7 +90,7 @@ function Login() {
                         />
                      </div>
                      <div>
-                        <label htmlFor="password" className="block text-sm font-semibold font-[Poppins] text-gray-700 text-left">Mot de Passe</label>
+                        <label htmlFor="password" className="block text-sm font-semibold font-[Poppins] text-gray-700 text-left">{t('login.PwdInput')}</label>
                         <div className="relative">
                            <input
                               id="password"
@@ -98,12 +105,18 @@ function Login() {
                      </div>
                      {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
                      <div className="text-sm text-mypurple text-right">
+                        <a href="#" className="hover:underline">{t('login.pwdLost')}</a>
                      <NavLink to="/mot-de-passe-oublie" className="hover:underline">
                     Mot de passe oublié ?
                     </NavLink>
                      </div>
                      <div className="flex items-center w-full my-2">
                         <hr className="flex-grow border-gray-300" />
+                        <p className="mx-2 text-gray-600 text-sm">
+                           <Trans i18nKey={'login.entreprise'}>
+                              Entreprise ? <Link to={'/login/entreprise'} className="text-mypurple hover:underline">Inscrivez-vous !</Link>
+                           </Trans>
+                        </p>
                         <p className="mx-2 text-gray-600 text-sm">
                                        Entreprise ?{" "}
                         <NavLink to="/inscription" className="text-mypurple hover:underline">
@@ -118,7 +131,7 @@ function Login() {
                         onClick={handleSubmit}
                         className="w-full mt-4 py-3 font-nunito text-white bg-gradient-to-r from-mypurple to-purple-400 rounded-full font-semibold text-lg shadow-md hover:opacity-90"
                      >
-                        Se Connecter
+                        {t('login.connecter')}
                      </button>
                   </form>
                </div>

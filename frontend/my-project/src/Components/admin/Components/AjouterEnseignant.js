@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { ReactComponent as DraftIcon } from '../../../Assets/Icons/draft.svg';
 import { ReactComponent as CloudIcon } from '../../../Assets/Icons/cloud.svg';
 import { ReactComponent as CloseIcon } from '../../../Assets/Icons/close.svg';
+import '../../Partials/Components/i18n'
+import { useTranslation } from 'react-i18next';
 
 export const AjouterEnseignant = ({ annulerAjouter }) => {
 
@@ -45,11 +47,13 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
         }
     };
 
+    const { t } = useTranslation();
+
     return (
         <div className='ajouter-enseignant-container'>
             <div className="ajouter-enseignant-wrapper">
                 <div className="title-line">
-                    <h1>Ajouter Enseignants</h1>
+                    <h1>{t('enseignantsPage.addTitle')}</h1>
                     <svg width="36" height="36" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ cursor: "pointer" }} onClick={() => annulerAjouter()}>
                         <path d="M25 27.9168L14.7917 38.1252C14.4098 38.5071 13.9237 38.6981 13.3334 38.6981C12.7431 38.6981 12.257 38.5071 11.875 38.1252C11.4931 37.7432 11.3021 37.2571 11.3021 36.6668C11.3021 36.0766 11.4931 35.5904 11.875 35.2085L22.0834 25.0002L11.875 14.7918C11.4931 14.4099 11.3021 13.9238 11.3021 13.3335C11.3021 12.7432 11.4931 12.2571 11.875 11.8752C12.257 11.4932 12.7431 11.3022 13.3334 11.3022C13.9237 11.3022 14.4098 11.4932 14.7917 11.8752L25 22.0835L35.2084 11.8752C35.5903 11.4932 36.0764 11.3022 36.6667 11.3022C37.257 11.3022 37.7431 11.4932 38.125 11.8752C38.507 12.2571 38.698 12.7432 38.698 13.3335C38.698 13.9238 38.507 14.4099 38.125 14.7918L27.9167 25.0002L38.125 35.2085C38.507 35.5904 38.698 36.0766 38.698 36.6668C38.698 37.2571 38.507 37.7432 38.125 38.1252C37.7431 38.5071 37.257 38.6981 36.6667 38.6981C36.0764 38.6981 35.5903 38.5071 35.2084 38.1252L25 27.9168Z" fill="#000000" fill-opacity="0.8" />
                     </svg>
@@ -60,12 +64,12 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                         <span
                             className={`${methodeAjouter === 0 ? "current" : ""}`}
                             onClick={() => setMethodeAjouter(0)}
-                        >Manuel</span>
+                        >{t('enseignantsPage.manuel')}</span>
                         <span
                             className={`${methodeAjouter === 1 ? "current" : ""}`}
                             onClick={() => setMethodeAjouter(1)}
                         >
-                            Importer Excel
+                            {t('enseignantsPage.import')}
                         </span>
                     </div>
                     {
@@ -73,24 +77,24 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                             <>
                                 <div className="ajouter-input-line">
                                     <div className="input-flex">
-                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Nom</label>
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.nameInput')}</label>
                                         <input type="text" name="nom" id="nom" />
                                     </div>
                                     <div className="input-flex">
-                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Prénom</label>
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.prenomInput')}</label>
                                         <input type="text" name="prenom" id="prenom" />
                                     </div>
                                 </div>
                                 <div className="ajouter-input-line select-line">
                                     <div className="input-flex">
-                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Adresse Email</label>
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.emailInput')}</label>
                                         <input type="text" name="adresse" id="adresse" />
                                     </div>
                                     <div className="select-flex">
                                         <div className="select-flex-line">
                                             <div style={{ position: "relative", display: "inline-block" }}>
                                                 <select className="custom-select">
-                                                    <option>Grade</option>
+                                                    <option>{t('enseignantsPage.gradeSelect')}</option>
                                                     <option>Professeur</option>
                                                     <option>Chercheur</option>
                                                     <option>MCF</option>
@@ -115,7 +119,7 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                                             </div>
                                             <div style={{ position: "relative", display: "inline-block" }}>
                                                 <select className="custom-select">
-                                                    <option>Sex</option>
+                                                    <option>{t('enseignantsPage.sexSelect')}</option>
                                                     <option>Male</option>
                                                     <option>Female</option>
                                                 </select>
@@ -142,11 +146,11 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                                 </div>
                                 <div className="ajouter-input-line">
                                     <div className="input-flex">
-                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Nom</label>
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.MatInput')}</label>
                                         <input type="text" name="nom" id="nom" />
                                     </div>
                                     <div className="input-flex">
-                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Prénom</label>
+                                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.PwdInput')}</label>
                                         <input type="text" name="prenom" id="prenom" />
                                     </div>
                                 </div>
@@ -159,10 +163,10 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                                         {!file ? (
                                             <>
                                                 <h2 style={{ color: "#292D32", fontSize: "1.25rem", fontWeight: "500" }}>
-                                                    Sélectionnez un fichier ou faites-le glisser ici
+                                                    {t('enseignantsPage.dropTitle')}
                                                 </h2>
                                                 <span style={{ color: "#A9ACB4" }}>
-                                                    Formats Excel et CSV, jusqu'à 50 Mo
+                                                    {t('enseignantsPage.dropRemark')}
                                                 </span>
                                                 <input
                                                     type="file"
@@ -177,7 +181,7 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
                                                         document.getElementById("fileUpload").click();
                                                     }}
                                                 >
-                                                    Parcourir un Fichier
+                                                    {t('enseignantsPage.browseBtn')}
                                                 </button>
                                                 {error && <p style={{ color: "red" }}>{error}</p>}
                                             </>
@@ -196,13 +200,24 @@ export const AjouterEnseignant = ({ annulerAjouter }) => {
 
                 </form>
                 <div className="btns-form-line">
-                    <button className='brouillon-btn' style={{ backgroundColor: "#E2E4E5", color: "#060606" }}>
-                        <DraftIcon />
-                        Mettre En Brouillon
-                    </button>
-                    <button type='submit' className='ajout-btn' form='ajouterFormEnseignant'>
-                        Ajouter Enseignant
-                    </button>
+                    {
+                        methodeAjouter === 0 ?
+                            <>
+                                <button className='brouillon-btn' style={{ backgroundColor: "#E2E4E5", color: "#060606" }}>
+                                    <DraftIcon />
+                                    {t('enseignantsPage.brouillonBtn')}
+                                </button>
+                                <button type='submit' className='ajout-btn' form='ajouterFormEnseignant'>
+                                    {t('enseignantsPage.addBtn')}
+                                </button>
+                            </> :
+                            <>
+                                <button type='submit' className='ajout-btn' form='ajouterFormEnseignant'>
+                                    {t('enseignantsPage.addEnseignants')}
+                                </button>
+                            </>
+                    }
+
                 </div>
             </div>
         </div>

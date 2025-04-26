@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import './InscriptionEntreprise.css'
+import '../Partials/Components/i18n'
+import { useTranslation } from 'react-i18next';
 
 const InscriptionRepresentant = ({ onValidationChange }) => {
   const [formData, setFormData] = useState({
@@ -37,30 +40,34 @@ const InscriptionRepresentant = ({ onValidationChange }) => {
     setErrors({ ...errors, [name]: errorMsg });
   };
 
+  const {t} = useTranslation();
+
   return (
     <form>
       <div style={styles.formGroup}>
         <div style={styles.inputContainer}>
-          <label style={styles.label}>Nom</label>
+          <label style={styles.label}>{t('login.nomInput')}</label>
           <input
             type="text"
             name="nom"
             value={formData.nom}
             onChange={handleChange}
-            placeholder="Entrez votre nom"
+            placeholder={t('login.nomRep')}
             style={styles.input}
+            className="input-inscription"
           />
           {errors.nom && <span style={styles.error}>{errors.nom}</span>}
         </div>
         <div style={styles.inputContainer}>
-          <label style={styles.label}>Prénom</label>
+          <label style={styles.label}>{t('login.prenomInput')}</label>
           <input
             type="text"
             name="prenom"
             value={formData.prenom}
             onChange={handleChange}
-            placeholder="Entrez votre prénom"
+            placeholder={t('login.prenomRep')}
             style={styles.input}
+            className="input-inscription"
           />
           {errors.prenom && <span style={styles.error}>{errors.prenom}</span>}
         </div>
@@ -68,14 +75,15 @@ const InscriptionRepresentant = ({ onValidationChange }) => {
 
       <div style={styles.formGroup}>
         <div style={styles.inputContainer}>
-          <label style={styles.label}>Poste occupé</label>
+          <label style={styles.label}>{t('login.posteInput')}</label>
           <select
             name="poste"
             value={formData.poste}
             onChange={handleChange}
             style={styles.input}
+            className="input-inscription"
           >
-            <option value="" disabled hidden>Poste occupé</option>
+            <option value="" disabled hidden>{t('login.posteInput')}</option>
             <option value="Manager">Manager</option>
             <option value="Développeur">Développeur</option>
             <option value="Designer">Designer</option>
@@ -87,7 +95,7 @@ const InscriptionRepresentant = ({ onValidationChange }) => {
       </div>
 
       <div style={{ ...styles.inputContainer, ...styles.fullWidth }}>
-        <label style={styles.label}>Email Professionnel</label>
+        <label style={styles.label}>{t('login.emailRep')}</label>
         <input
           type="email"
           name="email"
@@ -95,12 +103,13 @@ const InscriptionRepresentant = ({ onValidationChange }) => {
           onChange={handleChange}
           placeholder="exemple@domaine.com"
           style={styles.input}
+          className="input-inscription"
         />
         {errors.email && <span style={styles.error}>{errors.email}</span>}
       </div>
 
       <div style={{ ...styles.inputContainer, ...styles.fullWidth }}>
-        <label style={styles.label}>N° Téléphone</label>
+        <label style={styles.label}>{t('login.telInput')}</label>
         <input
           type="tel"
           name="telephone"
@@ -108,6 +117,7 @@ const InscriptionRepresentant = ({ onValidationChange }) => {
           onChange={handleChange}
           placeholder="0601020304"
           style={styles.input}
+          className="input-inscription"
         />
         {errors.telephone && <span style={styles.error}>{errors.telephone}</span>}
       </div>
@@ -120,8 +130,8 @@ export default InscriptionRepresentant;
 const styles = {
   formGroup: { display: "flex", gap: "20px", marginBottom: "10px" },
   inputContainer: { flex: 1, display: "flex", flexDirection: "column", marginBottom: "5px" },
-  label: { fontSize: "14px", fontWeight: "bold", marginBottom: "5px", color: "#333" },
-  input: { padding: "10px", border: "2px solid #925FE2", borderRadius: "25px", fontSize: "14px", color: "#925FE2", outline: "none", background: "white" },
+  label: { fontSize: "1.05rem", fontWeight: "500", marginBottom: "5px", color: "#4D4D4D" },
+  input: { padding: "10px", border: "1.5px solid #A67EF2", borderRadius: "25px", fontSize: "14px", color: "#925FE2", outline: "none", background: "white" },
   fullWidth: { width: "100%" },
   error: { color: "red", fontSize: "12px", marginTop: "5px" },
 };

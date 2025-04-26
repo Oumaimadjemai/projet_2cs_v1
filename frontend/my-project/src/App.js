@@ -1,9 +1,7 @@
-
+import React, { useState, useEffect, createContext } from "react";
 import { Route, Routes } from "react-router";
-import React, { useState } from 'react';
-
 import './App.css';
-import Enseignanteinterface from './Components/enseignante/Components/enseignanteinterface';
+// import Enseignanteinterface from './Components/enseignante/Components/enseignanteinterface';
 import Entrepriseinterface from './Components/entreprise/Components/entrepriseinterface';
 import Login from './Components/Login/Login';
 import Pagedacceuille from './Components/Login/Pagedacceuille';
@@ -21,64 +19,105 @@ import Invitations from "./Components/Etudiant/pages/Invitation";
 import Themeselectionform from "./Components/Etudiant/pages/ThemeSelectionForm";
 import { EtudiantLayout } from "./Layouts/EtudiantLayout";
 import Theme from "./Components/Etudiant/pages/Theme";
+import { AdminLayout } from "./Layouts/AdminLayout";
+import Dashboard from "./Components/admin/Components/Dashboard";
+import EnseignantsListe from "./Components/admin/Components/EnseignantsListe";
+import EtudiantsListe from "./Components/admin/Components/EtudiantsListe";
+import ParametresScolarite, { ScolariteLayout } from "./Components/admin/Components/ParametresScolarite";
+import cookies from 'js-cookie';
+import i18n from "./Components/Partials/Components/i18n";
+import { Annees, Departements, Salles, Specialites } from "./Components/admin/Components/Parametres";
+import InscriptionEntreprise from "./Components/inscriEntreprise/inscriEntreprise";
+// import TextToSpeech from "./Components/admin/Components/TextToSpeech";
+import { EnseignantLayout } from "./Layouts/EnseignantLayout";
+import Themes from "./Components/admin/Components/Themes";
+import Notifications from "./Components/admin/Components/Notifications";
+// import IntroPage from "./Components/Login/IntroPage";
+import DemandeEntreprise from './Components/entreprise/Pages/listdemande'
+import EntrepriseList, { EntrepriseListLayout } from "./Components/entreprise/Pages/ListEntreprise";
+import AjouterEntreprisePage from './Components/entreprise/Components/AjouterEntreprise';
+import ThemesEnseignant from "./Components/enseignante/Components/ThemesEnseignant";
+import Groupes, { GroupeLayout } from "./Components/enseignante/Components/Groupes";
+import PrioriteSpecialite from "./Components/entreprise/Components/ExampleSelect";
+import GroupeDetail from "./Components/enseignante/Components/GroupeDetail";
+
+export const AppContext = createContext();
+
 function App() {
+
+  const [lang, setLang] = useState(cookies.get('i18next') || 'ar');
+
+  useEffect(() => {
+    window.document.dir = i18n.dir();
+  }, [lang])
+
+  const [isRtl, setIsRtl] = useState(false);
+
+  useEffect(() => {
+    setIsRtl(document.documentElement.dir === "rtl");
+  }, []);
+
+  // const [showIntro, setShowIntro] = useState(true);
+
+  // const handleIntroTimeout = () => {
+  //   setShowIntro(false); // Hide the intro screen
+  // };
+
   const [cards, setCards] = useState([]);
 
   const handleAddEntreprise = (newCompany) => {
     setCards((prev) => [...prev, newCompany]);
   };
+
   return (
-    <div className='App'>
-      <Routes>
-        {/* pour la racine */}
-        <Route path="/" element={<Pagedacceuille />} />
-        <Route path="/admin" element={<AdminLayout />} >
-          <Route index element={<Dashboard />} />
-          <Route path="enseignants" element={<EnseignantsListe />} />
-          <Route path="etudiants" element={<h1>etudiants</h1>} />
-          <Route path="entreprises" element={<h1>entreprises</h1>} />
-          <Route path="admins" element={<h1>admins</h1>} />
-          <Route path="scolarite" element={<h1>scolarite</h1>} />
-          <Route path="themes" element={<h1>Themes</h1>} />
-          <Route path="groupes" element={<h1>groupes</h1>} />
-          <Route path="soutenances" element={<h1>soutenances</h1>} />
-          <Route path="profile" element={<h1>profile</h1>} />
-          <Route path="settings" element={<h1>settings</h1>} />
-          <Route path="notifications" element={<h1>notifications</h1>} />
-        </Route>
+    <AppContext.Provider value={{ isRtl, setIsRtl, setLang, lang }}>
+      {/* {showIntro ? (
+        <IntroPage onTimeout={handleIntroTimeout} />
+      ) : ( */}
+      <div className='App'>
+        <Routes>
+          {/* pour la racine */}
+          <Route index element={<Pagedacceuille />} />
+          <Route path="/admin" element={<AdminLayout />} >
+            <Route index element={<Dashboard />} />
+            <Route path="enseignants" element={<EnseignantsListe />} />
+            <Route path="etudiants" element={<EtudiantsListe />} />
+            <Route path="entreprises" element={<EntrepriseListLayout />} >
+              <Route index element={<EntrepriseList />} />
+              <Route path="demandes" element={<DemandeEntreprise />} />
+            </Route>
+            <Route path="admins" element={<h1>admins</h1>} />
+            <Route path="scolarite" element={<ScolariteLayout />} >
+              <Route index element={<ParametresScolarite />} />
+              <Route path="departements" element={<Departements />} />
+              <Route path="salles" element={<Salles />} />
+              <Route path="specialites" element={<Specialites />} />
+              <Route path="annees" element={<Annees />} />
+            </Route>
+            <Route path="themes" element={<Themes />} />
+            <Route path="groupes" element={<h1>groupes</h1>} />
+            <Route path="soutenances" element={<h1>soutenances</h1>} />
+            <Route path="profile" element={<h1>profile</h1>} />
+            <Route path="notifications" element={<Notifications />} />
+          </Route>
 
-        <Route path="/enseignant" element={<Enseignanteinterface />} ></Route>
-        <Route path="/etudiant" element={<EtudiantLayout />} >
-        <Route index element={<Dashboard />} />
+          <Route path="/enseignant" element={<Enseignanteinterface />} ></Route>
+          <Route path="/etudiant" element={<EtudiantLayout />} >
+            <Route index element={<Dashboard />} />
 
-        {/* <Route path="dashboard" element={<Themeselectionform  />} /> */}
-        <Route path="groupes" element={<Groupes />} />
-        <Route path="invitations" element={<Invitations />} />
-        <Route path="themes" element={<Themeselectionform />} />
+            {/* <Route path="dashboard" element={<Themeselectionform  />} /> */}
+            <Route path="groupes" element={<Groupes />} />
+            <Route path="invitations" element={<Invitations />} />
+            <Route path="themes" element={<Themeselectionform />} />
 
-        </Route>
+          </Route>
 
-        <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
-        <Route><Route path="/login" element={<Login />} /></Route>
-        <Route><Route path="/inscription" element={< InscriptionEntreprise/>} /></Route>
-
-  {/* pour la racine */}
-  <Route path="/" element={<Pagedacceuille />} ></Route>
- {/* pour admin */}
- {/* <Route path="/admin" element={<Admininterface/>} ></Route> */}
-  {/* pour enseignant */}
-  <Route path="/enseignant" element={<Enseignanteinterface />} ></Route>
- {/* pour enseignant */}
- <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
-{/* pour login */}
-<Route><Route path="/login" element={<Login/>} /></Route>
-
-<Route path="/listEntreprise"element={<EntreprisesPage cards={cards} setCards={setCards} />}/>
- <Route path="/ajouterEntreprise" element={<AjouterEntreprisePage onAddEntreprise={handleAddEntreprise} />}/>
- <Route path="/demandeEntreprise" element={<DemandeEntreprise />} />
-</Routes>
-
-   </div> 
+          <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
+          <Route><Route path="/login" element={<Login />} /></Route>
+          <Route><Route path="/inscription" element={< InscriptionEntreprise />} /></Route>
+        </Routes>
+      </div>
+    </AppContext.Provider>
   );
 }
 

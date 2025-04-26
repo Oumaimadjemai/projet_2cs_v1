@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import wilayas from '../inscriEntreprise/Willaya';  
+import wilayas from '../../inscriEntreprise/Willaya';  
 const styles = {
   container: {
     width: '70%',

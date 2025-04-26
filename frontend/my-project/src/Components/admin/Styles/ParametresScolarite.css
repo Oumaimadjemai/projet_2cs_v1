@@ -1,0 +1,124 @@
+.parametres-scolarite-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.parametres-scolarite-container .parametres-scolarite-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding-right: 12px;
+    font-family: "Poppins", sans-serif;
+    margin-top: 1rem;
+}
+
+#dynamic-liste {
+    height: calc(100vh - 65px);
+    overflow-y: auto;
+}
+
+#dynamic-liste::-webkit-scrollbar {
+    display: none;
+}
+
+.parametres-scolarite-wrapper .parametres-container {
+    width: 100%;
+    height: 100%;
+    padding-left: 2rem;
+    padding-right: 12px;
+}
+
+.parametres-container .parametres-cards-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.parametres-cards-container .parametres-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 300px);
+    grid-template-rows: repeat(2, 140px);
+    gap: 15px;
+}
+
+.parametres-cards .parametre-card{
+    background-color: #9C6FE445;
+    border-radius: 24px;
+    border: 3px solid #9C6FE4;
+    display: flex;
+    padding: 1rem 1rem;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.parametre-card .flex-column{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: flex-start;
+}
+
+.parametre-card .flex-column button{
+    color: #fff;
+    background-color: #925FE2;
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 20px;
+}
+
+.parametre-card .parametre-icon{
+    height: 80px;
+    width: 80px;
+}
+
+.parametre-card .calender-icon{
+    height: 60px;
+}
+
+.parametre-card .cap-icon{
+    height: 70px;
+}
+
+.parametres-cards-container .parametres-infos{
+    width: 250px;
+    height: 450px;
+    background-color: #fff;
+    box-shadow: 2px 8px 30px rgba(0, 0, 0, 0.18);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 1rem ;
+    gap: 0.8rem;
+    overflow-y: auto;
+}
+
+.parametres-infos::-webkit-scrollbar{
+    display: none;
+}
+
+.parametres-infos .info-element{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.info-element .gerer-link{
+    display: flex;
+    gap: 10px;
+    color: #925FE2;
+    font-weight: 500;
+    align-items: center;
+}
+
+@media screen and (min-height: 700px){
+    .parametres-cards-container .parametres-cards {
+        grid-template-rows: repeat(2, 160px);
+    }
+}
