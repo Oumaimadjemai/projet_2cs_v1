@@ -4,6 +4,10 @@ import axiosInstance from '../../axios';
 import logoImg from '../../Assets/Images/logo-login.jpg';
 import '../Partials/Components/i18n'
 import { useTranslation, Trans } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../../axios';  
+import reactconnet from '../../Assets/Images/logo.jpg';
+import { NavLink } from "react-router-dom";
 
 function Login() {
    const [formData, updateFormData] = useState({ email: '', password: '' });
@@ -47,6 +51,9 @@ function Login() {
             navigate('/enseignant');
          } else if (user_info.type === "entreprise") {
             navigate('/entreprise');
+         }
+         else if (user_info.type === "etudiant") {
+            navigate('/etudiant');
          } else {
             console.error("Type d'utilisateur inconnu");
          }
@@ -99,6 +106,9 @@ function Login() {
                      {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
                      <div className="text-sm text-mypurple text-right">
                         <a href="#" className="hover:underline">{t('login.pwdLost')}</a>
+                     <NavLink to="/mot-de-passe-oublie" className="hover:underline">
+                    Mot de passe oublié ?
+                    </NavLink>
                      </div>
                      <div className="flex items-center w-full my-2">
                         <hr className="flex-grow border-gray-300" />
@@ -107,6 +117,13 @@ function Login() {
                               Entreprise ? <Link to={'/login/entreprise'} className="text-mypurple hover:underline">Inscrivez-vous !</Link>
                            </Trans>
                         </p>
+                        <p className="mx-2 text-gray-600 text-sm">
+                                       Entreprise ?{" "}
+                        <NavLink to="/inscription" className="text-mypurple hover:underline">
+                           Inscrivez-vous !
+                        </NavLink>
+                        </p>
+                        {/* <p className="mx-2 text-gray-600 text-sm">Entreprise ? <a href="#" className="text-mypurple hover:underline">Inscrivez-vous !</a></p> */}
                         <hr className="flex-grow border-gray-300" />
                      </div>
                      <button

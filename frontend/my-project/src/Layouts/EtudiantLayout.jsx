@@ -2,27 +2,37 @@ import React from "react"
 import { Outlet } from 'react-router-dom'
 import NavBar from "../Components/Partials/Components/NavBar"
 import TopBar from "../Components/Partials/Components/TopBar";
+import { ReactComponent as DashboardIcon } from '../Assets/Icons/dashboard.svg';
+import { ReactComponent as ParametersIcon } from '../Assets/Icons/University.svg';
 import { ReactComponent as ThemesIcon } from '../Assets/Icons/Lightbulb.svg';
 import { ReactComponent as GroupesIcon } from '../Assets/Icons/People.svg';
 import { ReactComponent as SoutenancesIcon } from '../Assets/Icons/Mortarboard.svg';
-import { useTranslation } from 'react-i18next';
 
-function EtudiantLayout() {
-    const { t } = useTranslation();
+export const EtudiantLayout = () => {
 
-    const adminMenu = [
+    const etudiatMenu = [
         {
-          name: t("navElements.themes"),
+          name: "Tableau de Bord",
+          icon: <DashboardIcon />,
+          path: "/etudiant",
+        },
+        {
+          name: "Thèmes Projet",
           icon: <ThemesIcon />,
           path: "/etudiant/themes",
         },
         {
-          name: t("navElements.groupes"),
+          name: "Groupes de Projet",
           icon: <GroupesIcon />,
           path: "/etudiant/groupes",
         },
         {
-          name: t("navElements.soutenances"),
+            name: "Invitations",
+            icon: <GroupesIcon />,
+            path: "/etudiant/invitations",
+          },
+        {
+          name: "Soutenances",
           icon: <SoutenancesIcon />,
           path: "/etudiant/soutenances",
         },
@@ -30,7 +40,7 @@ function EtudiantLayout() {
 
     return (
         <div className="admin-grid">
-            <NavBar menuItems={adminMenu} racinePath={"/etudiant"} />
+            <NavBar menuItems={etudiatMenu} racinePath={"/etudiant"} />
             <TopBar />
             <div className="main-container">
                 <Outlet />
@@ -38,5 +48,3 @@ function EtudiantLayout() {
         </div>
     )
 }
-
-export default EtudiantLayout

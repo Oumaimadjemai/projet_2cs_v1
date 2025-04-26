@@ -5,6 +5,20 @@ import './App.css';
 import Entrepriseinterface from './Components/entreprise/Components/entrepriseinterface';
 import Login from './Components/Login/Login';
 import Pagedacceuille from './Components/Login/Pagedacceuille';
+import DemandeEntreprise from './Components/entreprise/listdemande'
+import EntreprisesPage from './Components/entreprise/ListEntreprise';
+import AjouterEntreprisePage from './Components/entreprise/AjouterEntreprise';
+import InscriptionEntreprise from "./Components/inscriEntreprise/inscriEntreprise";
+import { AdminLayout } from "./Layouts/AdminLayout";
+import Dashboard from "./Components/admin/Components/Dashboard";
+import EnseignantsListe from "./Components/admin/Components/EnseignantsListe";
+import Etudiantinterface from "./Components/Etudiant/Components/etudiantinterface";
+
+import Groupes from "./Components/Etudiant/pages/Groupes";
+import Invitations from "./Components/Etudiant/pages/Invitation";
+import Themeselectionform from "./Components/Etudiant/pages/ThemeSelectionForm";
+import { EtudiantLayout } from "./Layouts/EtudiantLayout";
+import Theme from "./Components/Etudiant/pages/Theme";
 import { AdminLayout } from "./Layouts/AdminLayout";
 import Dashboard from "./Components/admin/Components/Dashboard";
 import EnseignantsListe from "./Components/admin/Components/EnseignantsListe";
@@ -87,23 +101,22 @@ function App() {
             <Route path="notifications" element={<Notifications />} />
           </Route>
 
-          <Route path="/enseignant" element={<EnseignantLayout />} >
-            <Route index element={<ThemesEnseignant />} />
-            <Route path="groupes" element={<GroupeLayout />} >
-              <Route index  element={<Groupes />}  />
-              <Route path="detail" element= {<GroupeDetail />} />
-            </Route>
-            <Route path="example" element={<PrioriteSpecialite />} />
+          <Route path="/enseignant" element={<Enseignanteinterface />} ></Route>
+          <Route path="/etudiant" element={<EtudiantLayout />} >
+            <Route index element={<Dashboard />} />
+
+            {/* <Route path="dashboard" element={<Themeselectionform  />} /> */}
+            <Route path="groupes" element={<Groupes />} />
+            <Route path="invitations" element={<Invitations />} />
+            <Route path="themes" element={<Theme />} />
+
           </Route>
+
           <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
-          <Route path="/login">
-            <Route index element={<Login />} />
-            <Route path="entreprise" element={<InscriptionEntreprise />} />
-          </Route>
-          <Route path="/ajouterEntreprise" element={<AjouterEntreprisePage onAddEntreprise={handleAddEntreprise} />} />
+          <Route><Route path="/login" element={<Login />} /></Route>
+          <Route><Route path="/inscription" element={< InscriptionEntreprise />} /></Route>
         </Routes>
       </div>
-      {/* )} */}
     </AppContext.Provider>
   );
 }

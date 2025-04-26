@@ -18,6 +18,7 @@ class Annee(models.Model):
         return f"{self.title} {self.departement.title}"
     
 class Specialite(models.Model):
+    #annee = models.ForeignKey(Annee,on_delete=models.CASCADE,null=True)
     title = models.CharField(max_length=50)
 
     def __str__(self):
@@ -115,7 +116,10 @@ class Admin(User):
 
 # Modèle Enseignant
 class Enseignant(User):
-    pass
+    matricule=models.CharField(max_length=20,unique=True,null=True)
+    grade = models.CharField(max_length=20,null=True)
+    def __str__(self):
+        return f"{self.nom} {self.prenom} - {self.matricule}"
 
 # Modèle Étudiant
 class Etudiant(User):
