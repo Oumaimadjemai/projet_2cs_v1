@@ -5,41 +5,31 @@ import './App.css';
 import Entrepriseinterface from './Components/entreprise/Components/entrepriseinterface';
 import Login from './Components/Login/Login';
 import Pagedacceuille from './Components/Login/Pagedacceuille';
-import DemandeEntreprise from './Components/entreprise/listdemande'
-import EntreprisesPage from './Components/entreprise/ListEntreprise';
-import AjouterEntreprisePage from './Components/entreprise/AjouterEntreprise';
+import DemandeEntreprise from './Components/entreprise/Pages/listdemande'
 import InscriptionEntreprise from "./Components/inscriEntreprise/inscriEntreprise";
 import { AdminLayout } from "./Layouts/AdminLayout";
 import Dashboard from "./Components/admin/Components/Dashboard";
 import EnseignantsListe from "./Components/admin/Components/EnseignantsListe";
-import Etudiantinterface from "./Components/Etudiant/Components/etudiantinterface";
 
 import Groupes from "./Components/Etudiant/pages/Groupes";
 import Invitations from "./Components/Etudiant/pages/Invitation";
 import Themeselectionform from "./Components/Etudiant/pages/ThemeSelectionForm";
 import { EtudiantLayout } from "./Layouts/EtudiantLayout";
 import Theme from "./Components/Etudiant/pages/Theme";
-import { AdminLayout } from "./Layouts/AdminLayout";
-import Dashboard from "./Components/admin/Components/Dashboard";
-import EnseignantsListe from "./Components/admin/Components/EnseignantsListe";
 import EtudiantsListe from "./Components/admin/Components/EtudiantsListe";
 import ParametresScolarite, { ScolariteLayout } from "./Components/admin/Components/ParametresScolarite";
 import cookies from 'js-cookie';
 import i18n from "./Components/Partials/Components/i18n";
 import { Annees, Departements, Salles, Specialites } from "./Components/admin/Components/Parametres";
-import InscriptionEntreprise from "./Components/inscriEntreprise/inscriEntreprise";
 // import TextToSpeech from "./Components/admin/Components/TextToSpeech";
 import { EnseignantLayout } from "./Layouts/EnseignantLayout";
 import Themes from "./Components/admin/Components/Themes";
 import Notifications from "./Components/admin/Components/Notifications";
 // import IntroPage from "./Components/Login/IntroPage";
-import DemandeEntreprise from './Components/entreprise/Pages/listdemande'
 import EntrepriseList, { EntrepriseListLayout } from "./Components/entreprise/Pages/ListEntreprise";
-import AjouterEntreprisePage from './Components/entreprise/Components/AjouterEntreprise';
 import ThemesEnseignant from "./Components/enseignante/Components/ThemesEnseignant";
-import Groupes, { GroupeLayout } from "./Components/enseignante/Components/Groupes";
-import PrioriteSpecialite from "./Components/entreprise/Components/ExampleSelect";
 import GroupeDetail from "./Components/enseignante/Components/GroupeDetail";
+import GroupesEnseignant from "./Components/enseignante/Components/Groupes";
 
 export const AppContext = createContext();
 
@@ -101,20 +91,21 @@ function App() {
             <Route path="notifications" element={<Notifications />} />
           </Route>
 
-          <Route path="/enseignant" element={<Enseignanteinterface />} ></Route>
+          <Route path="/enseignant" element={<EnseignantLayout />} >
+            <Route index element={<ThemesEnseignant />} />
+            <Route path="groupes" element={<GroupesEnseignant />} />
+            <Route path="groupes/:id" element={<GroupeDetail />} />
+          </Route>
           <Route path="/etudiant" element={<EtudiantLayout />} >
             <Route index element={<Dashboard />} />
-
-            {/* <Route path="dashboard" element={<Themeselectionform  />} /> */}
             <Route path="groupes" element={<Groupes />} />
             <Route path="invitations" element={<Invitations />} />
             <Route path="themes" element={<Theme />} />
-
           </Route>
 
           <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
           <Route><Route path="/login" element={<Login />} /></Route>
-          <Route><Route path="/inscription" element={< InscriptionEntreprise />} /></Route>
+          <Route><Route path="/login/entreprise" element={< InscriptionEntreprise />} /></Route>
         </Routes>
       </div>
     </AppContext.Provider>

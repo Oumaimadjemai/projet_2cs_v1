@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
-import wilayas from '../../inscriEntreprise/Willaya';  
+import React, { useState, useEffect, useContext } from "react";
+import wilayas from '../../inscriEntreprise/Willaya';
+import axios from "axios";
+import { EntrepriseContext } from "../Pages/ListEntreprise";
 const styles = {
   container: {
     width: '70%',
@@ -90,7 +92,7 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
   const [step, setStep] = useState(1);
   const [isEntrepriseValid, setIsEntrepriseValid] = useState(false);
   const [isRepresentantValid, setIsRepresentantValid] = useState(false);
-  
+
 
   const [entrepriseData, setEntrepriseData] = useState({
     nom: "",
@@ -98,16 +100,21 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
     wilaya: "",
     ville: "",
     adresse: "",
-    siteWeb: ""
+    siteWeb: "",
+    representant_nom: "",
+    representant_prenom: "",
+    representant_poste: "",
+    representant_email: "",
+    representant_telephone: "",
   });
-  
+
 
   const [representantData, setRepresentantData] = useState({
-    nom: "",    prenom: "",   poste: "",       email: "",       telephone: ""
+    nom: "", prenom: "", poste: "", email: "", telephone: ""
   });
-  
+
   const [errors, setErrors] = useState({
-    entreprise: {},  representant: {}
+    entreprise: {}, representant: {}
   });
 
   const validateText = (value) => {
@@ -120,13 +127,13 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
   const handleEntrepriseChange = (e) => {
     const { name, value } = e.target;
     setEntrepriseData(prev => ({ ...prev, [name]: value }));
-    
+
     let errorMsg = "";
-    
+
     if (value.trim() === "") {
       errorMsg = "";
     } else {
-      switch(name) {
+      switch (name) {
         case "nom":
           if (!validateText(value)) {
             errorMsg = "Le nom ne doit contenir que des lettres";
@@ -139,15 +146,15 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
           break;
         case "siteWeb":
           if (!validateWebsite(value)) {
-            errorMsg = "Format de site web invalide (ex: www.example.com)";
+            errorMsg = "Format de site web invalide (doit commencer par http:// ou https://)";
           }
           break;
       }
     }
-    
-    setErrors(prev => ({ 
-      ...prev, 
-      entreprise: { ...prev.entreprise, [name]: errorMsg } 
+
+    setErrors(prev => ({
+      ...prev,
+      entreprise: { ...prev.entreprise, [name]: errorMsg }
     }));
   };
 
@@ -155,13 +162,13 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
   const handleRepresentantChange = (e) => {
     const { name, value } = e.target;
     setRepresentantData(prev => ({ ...prev, [name]: value }));
-    
+
     let errorMsg = "";
-    
+
     if (value.trim() === "") {
       errorMsg = "";
     } else {
-      switch(name) {
+      switch (name) {
         case "nom":
         case "prenom":
           if (!validateText(value)) {
@@ -180,10 +187,10 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
           break;
       }
     }
-    
-    setErrors(prev => ({ 
-      ...prev, 
-      representant: { ...prev.representant, [name]: errorMsg } 
+
+    setErrors(prev => ({
+      ...prev,
+      representant: { ...prev.representant, [name]: errorMsg }
     }));
   };
 
@@ -194,8 +201,8 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
       entrepriseData.wilaya !== "" &&
       entrepriseData.ville !== "" &&
       entrepriseData.adresse.trim() !== "" &&
-      entrepriseData.siteWeb.trim() !== "" && !errors.entreprise.siteWeb;
-    
+      (entrepriseData.siteWeb.trim() === "" || !errors.entreprise.siteWeb);
+
     setIsEntrepriseValid(isValid);
   }, [entrepriseData, errors.entreprise]);
 
@@ -206,69 +213,80 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
       representantData.poste !== "" &&
       representantData.email.trim() !== "" && !errors.representant.email &&
       representantData.telephone.trim() !== "" && !errors.representant.telephone;
-    
+
     setIsRepresentantValid(isValid);
   }, [representantData, errors.representant]);
 
   const handleNext = () => {
-    const requiredFields = ['nom', 'secteur', 'wilaya', 'ville', 'adresse', 'siteWeb'];
+    const requiredFields = ['nom', 'secteur', 'wilaya', 'ville', 'adresse'];
     const newErrors = {};
     let hasErrors = false;
-    
+
     requiredFields.forEach(field => {
       if (entrepriseData[field].trim() === "") {
         newErrors[field] = "Ce champ est obligatoire";
         hasErrors = true;
       }
     });
-    
-    setErrors(prev => ({ 
-      ...prev, 
-      entreprise: { ...prev.entreprise, ...newErrors } 
+
+    setErrors(prev => ({
+      ...prev,
+      entreprise: { ...prev.entreprise, ...newErrors }
     }));
-    
+
     if (!hasErrors && isEntrepriseValid) {
       setStep(2);
     }
   };
 
+  const { setEntreprises } = useContext(EntrepriseContext);
+
   const handleValider = () => {
     const requiredFields = ['nom', 'prenom', 'poste', 'email', 'telephone'];
     const newErrors = {};
     let hasErrors = false;
-    
+
     requiredFields.forEach(field => {
       if (representantData[field].trim() === "") {
         newErrors[field] = "Ce champ est obligatoire";
         hasErrors = true;
       }
     });
-    
-    setErrors(prev => ({ 
-      ...prev, 
-      representant: { ...prev.representant, ...newErrors } 
+
+    setErrors(prev => ({
+      ...prev,
+      representant: { ...prev.representant, ...newErrors }
     }));
-    
-    //pour ajouter entreprise card si valider
+
     if (!hasErrors && isRepresentantValid) {
       const newEntreprise = {
-        nomEntreprise: entrepriseData.nom,
-        secteurActivite: entrepriseData.secteur,
+        nom: entrepriseData.nom,
+        secteur_activite: entrepriseData.secteur,
         wilaya: entrepriseData.wilaya,
         ville: entrepriseData.ville,
         adresse: entrepriseData.adresse,
-        siteWeb: entrepriseData.siteWeb,
-        nomRepresentant: representantData.nom,
-        prenomRepresentant: representantData.prenom,
-        poste: representantData.poste,
-        emailRepresentant: representantData.email,
-        telephoneRepresentant: representantData.telephone
+        site_web: entrepriseData.siteWeb,
+        representant_nom: representantData.nom,
+        representant_prenom: representantData.prenom,
+        representant_poste: representantData.poste,
+        representant_email: representantData.email,
+        representant_telephone: representantData.telephone
       };
-      
       onAdd(newEntreprise);
-      onClose();
+
+      axios.post('http://127.0.0.1:8000/entreprises/create-manual/', newEntreprise)
+        .then((res) => {
+          const data = Array.isArray(res.data) ? res.data : [res.data];
+          setEntreprises(prev => [...prev, ...data]);
+          onClose();
+        })
+        .catch(error => {
+          console.error('Erreur lors de l\'ajout de l\'entreprise:', error);
+          alert('Erreur lors de l\'ajout de l\'entreprise');
+        });
     }
   };
+
 
   return (
     <div style={styles.modalOverlay}>
@@ -277,20 +295,20 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
         <h2 style={{ textAlign: 'center', marginBottom: '10px' }}>Ajouter Entreprise</h2>
 
         <div style={styles.tabs}>
-          <div 
+          <div
             style={{
               ...styles.tab('entreprise', step === 1 ? 'entreprise' : 'representant'),
               ...(!isEntrepriseValid && step === 2 ? styles.disabledTab : {})
-            }} 
+            }}
             onClick={() => isEntrepriseValid && setStep(1)}
           >
             Entreprise
           </div>
-          <div 
+          <div
             style={{
               ...styles.tab('representant', step === 2 ? 'representant' : 'entreprise'),
               ...(!isEntrepriseValid ? styles.disabledTab : {})
-            }} 
+            }}
             onClick={() => isEntrepriseValid && setStep(2)}
           >
             Représentant
@@ -301,32 +319,32 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
           <form>
             <div style={styles.inputRow}>
               <div style={{ flex: 1 }}>
-                <input   type="text"    name="nom" value={entrepriseData.nom} onChange={handleEntrepriseChange} 
+                <input type="text" name="nom" value={entrepriseData.nom} onChange={handleEntrepriseChange}
                   onBlur={(e) => {
                     if (e.target.value.trim() === "") {
-                      setErrors(prev => ({ 
-                        ...prev, 
-                        entreprise: { ...prev.entreprise, nom: "Ce champ est obligatoire" } 
+                      setErrors(prev => ({
+                        ...prev,
+                        entreprise: { ...prev.entreprise, nom: "Ce champ est obligatoire" }
                       }));
                     }
                   }}
-                  style={styles.input} 
-                  placeholder="Nom de l'entreprise" 
+                  style={styles.input}
+                  placeholder="Nom de l'entreprise"
                 />
                 {errors.entreprise.nom && <span style={styles.error}>{errors.entreprise.nom}</span>}
               </div>
               <div style={{ flex: 1 }}>
-                <input  type="text" name="secteur" value={entrepriseData.secteur}  onChange={handleEntrepriseChange} 
+                <input type="text" name="secteur" value={entrepriseData.secteur} onChange={handleEntrepriseChange}
                   onBlur={(e) => {
                     if (e.target.value.trim() === "") {
-                      setErrors(prev => ({ 
-                        ...prev, 
-                        entreprise: { ...prev.entreprise, secteur: "Ce champ est obligatoire" } 
+                      setErrors(prev => ({
+                        ...prev,
+                        entreprise: { ...prev.entreprise, secteur: "Ce champ est obligatoire" }
                       }));
                     }
                   }}
-                  style={styles.input} 
-                  placeholder="Secteur d'activité" 
+                  style={styles.input}
+                  placeholder="Secteur d'activité"
                 />
                 {errors.entreprise.secteur && <span style={styles.error}>{errors.entreprise.secteur}</span>}
               </div>
@@ -334,18 +352,18 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
 
             <div style={styles.inputRow}>
               <div style={{ flex: 1 }}>
-                <select 
+                <select
                   name="wilaya"
-                  value={entrepriseData.wilaya} 
+                  value={entrepriseData.wilaya}
                   onChange={(e) => {
                     handleEntrepriseChange(e);
                     setEntrepriseData(prev => ({ ...prev, ville: "" }));
                   }}
                   onBlur={(e) => {
                     if (e.target.value === "") {
-                      setErrors(prev => ({ 
-                        ...prev, 
-                        entreprise: { ...prev.entreprise, wilaya: "Ce champ est obligatoire" } 
+                      setErrors(prev => ({
+                        ...prev,
+                        entreprise: { ...prev.entreprise, wilaya: "Ce champ est obligatoire" }
                       }));
                     }
                   }}
@@ -359,15 +377,15 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
                 {errors.entreprise.wilaya && <span style={styles.error}>{errors.entreprise.wilaya}</span>}
               </div>
               <div style={{ flex: 1 }}>
-                <select 
+                <select
                   name="ville"
-                  value={entrepriseData.ville} 
-                  onChange={handleEntrepriseChange} 
+                  value={entrepriseData.ville}
+                  onChange={handleEntrepriseChange}
                   onBlur={(e) => {
                     if (e.target.value === "") {
-                      setErrors(prev => ({ 
-                        ...prev, 
-                        entreprise: { ...prev.entreprise, ville: "Ce champ est obligatoire" } 
+                      setErrors(prev => ({
+                        ...prev,
+                        entreprise: { ...prev.entreprise, ville: "Ce champ est obligatoire" }
                       }));
                     }
                   }}
@@ -385,39 +403,31 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
 
             <div style={{ ...styles.inputRow, flexDirection: 'column' }}>
               <div>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="adresse"
-                  value={entrepriseData.adresse} 
-                  onChange={handleEntrepriseChange} 
+                  value={entrepriseData.adresse}
+                  onChange={handleEntrepriseChange}
                   onBlur={(e) => {
                     if (e.target.value.trim() === "") {
-                      setErrors(prev => ({ 
-                        ...prev, 
-                        entreprise: { ...prev.entreprise, adresse: "Ce champ est obligatoire" } 
+                      setErrors(prev => ({
+                        ...prev,
+                        entreprise: { ...prev.entreprise, adresse: "Ce champ est obligatoire" }
                       }));
                     }
                   }}
-                  style={{ ...styles.input, flex: 2, width: '720px' }} 
-                  placeholder="Rue Didouche Mourad..." 
+                  style={{ ...styles.input, flex: 2, width: '720px' }}
+                  placeholder="Rue Didouche Mourad..."
                 />
                 {errors.entreprise.adresse && <span style={styles.error}>{errors.entreprise.adresse}</span>}
               </div>
               <div>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="siteWeb"
-                  value={entrepriseData.siteWeb} 
-                  onChange={handleEntrepriseChange} 
-                  onBlur={(e) => {
-                    if (e.target.value.trim() === "") {
-                      setErrors(prev => ({ 
-                        ...prev, 
-                        entreprise: { ...prev.entreprise, siteWeb: "Ce champ est obligatoire" } 
-                      }));
-                    }
-                  }}
-                  style={{ ...styles.input, flex: 2, width: '720px' }}                   placeholder="www.techinnovdz.com" 
+                  value={entrepriseData.siteWeb}
+                  onChange={handleEntrepriseChange}
+                  style={{ ...styles.input, flex: 2, width: '720px' }} placeholder="www.techinnovdz.com"
                 />
                 {errors.entreprise.siteWeb && <span style={styles.error}>{errors.entreprise.siteWeb}</span>}
               </div>
@@ -429,40 +439,40 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
           <form>
             <div style={styles.inputRow}>
               <div style={{ flex: 1 }}>
-                <input 
-                  type="text" 
-                  name="nom" 
-                  value={representantData.nom} 
-                  onChange={handleRepresentantChange} 
+                <input
+                  type="text"
+                  name="nom"
+                  value={representantData.nom}
+                  onChange={handleRepresentantChange}
                   onBlur={(e) => {
                     if (e.target.value.trim() === "") {
-                      setErrors(prev => ({ 
-                        ...prev, 
-                        representant: { ...prev.representant, nom: "Ce champ est obligatoire" } 
+                      setErrors(prev => ({
+                        ...prev,
+                        representant: { ...prev.representant, nom: "Ce champ est obligatoire" }
                       }));
                     }
                   }}
-                  style={styles.input} 
-                  placeholder="Nom" 
+                  style={styles.input}
+                  placeholder="Nom"
                 />
                 {errors.representant.nom && <span style={styles.error}>{errors.representant.nom}</span>}
               </div>
               <div style={{ flex: 1 }}>
-                <input 
-                  type="text" 
-                  name="prenom" 
-                  value={representantData.prenom} 
-                  onChange={handleRepresentantChange} 
+                <input
+                  type="text"
+                  name="prenom"
+                  value={representantData.prenom}
+                  onChange={handleRepresentantChange}
                   onBlur={(e) => {
                     if (e.target.value.trim() === "") {
-                      setErrors(prev => ({ 
-                        ...prev, 
-                        representant: { ...prev.representant, prenom: "Ce champ est obligatoire" } 
+                      setErrors(prev => ({
+                        ...prev,
+                        representant: { ...prev.representant, prenom: "Ce champ est obligatoire" }
                       }));
                     }
                   }}
-                  style={styles.input} 
-                  placeholder="Prénom" 
+                  style={styles.input}
+                  placeholder="Prénom"
                 />
                 {errors.representant.prenom && <span style={styles.error}>{errors.representant.prenom}</span>}
               </div>
@@ -470,19 +480,19 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
 
             <div style={styles.inputRow}>
               <div style={{ flex: 1 }}>
-                <select 
-                  name="poste" 
-                  value={representantData.poste} 
-                  onChange={handleRepresentantChange} 
+                <select
+                  name="poste"
+                  value={representantData.poste}
+                  onChange={handleRepresentantChange}
                   onBlur={(e) => {
                     if (e.target.value === "") {
-                      setErrors(prev => ({ 
-                        ...prev, 
-                        representant: { ...prev.representant, poste: "Ce champ est obligatoire" } 
+                      setErrors(prev => ({
+                        ...prev,
+                        representant: { ...prev.representant, poste: "Ce champ est obligatoire" }
                       }));
                     }
                   }}
-                  style={{ ...styles.input,  width: '720px' }} 
+                  style={{ ...styles.input, width: '720px' }}
                 >
                   <option value="" disabled hidden>Poste occupé</option>
                   <option value="Manager">Manager</option>
@@ -497,40 +507,40 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
 
             <div style={{ ...styles.inputRow, flexDirection: 'column' }}>
               <div>
-                <input 
-                  type="email" 
-                  name="email" 
-                  value={representantData.email} 
-                  onChange={handleRepresentantChange} 
+                <input
+                  type="email"
+                  name="email"
+                  value={representantData.email}
+                  onChange={handleRepresentantChange}
                   onBlur={(e) => {
                     if (e.target.value.trim() === "") {
-                      setErrors(prev => ({ 
-                        ...prev, 
-                        representant: { ...prev.representant, email: "Ce champ est obligatoire" } 
+                      setErrors(prev => ({
+                        ...prev,
+                        representant: { ...prev.representant, email: "Ce champ est obligatoire" }
                       }));
                     }
                   }}
-                  style={{ ...styles.input, width: '720px' }} 
-                  placeholder="email@exemple.com" 
+                  style={{ ...styles.input, width: '720px' }}
+                  placeholder="email@exemple.com"
                 />
                 {errors.representant.email && <span style={styles.error}>{errors.representant.email}</span>}
               </div>
               <div>
-                <input 
-                  type="tel" 
-                  name="telephone" 
-                  value={representantData.telephone} 
-                  onChange={handleRepresentantChange} 
+                <input
+                  type="tel"
+                  name="telephone"
+                  value={representantData.telephone}
+                  onChange={handleRepresentantChange}
                   onBlur={(e) => {
                     if (e.target.value.trim() === "") {
-                      setErrors(prev => ({ 
-                        ...prev, 
-                        representant: { ...prev.representant, telephone: "Ce champ est obligatoire" } 
+                      setErrors(prev => ({
+                        ...prev,
+                        representant: { ...prev.representant, telephone: "Ce champ est obligatoire" }
                       }));
                     }
                   }}
-                  style={{ ...styles.input,  width: '720px' }} 
-                  placeholder="0601020304" 
+                  style={{ ...styles.input, width: '720px' }}
+                  placeholder="0601020304"
                 />
                 {errors.representant.telephone && <span style={styles.error}>{errors.representant.telephone}</span>}
               </div>
@@ -542,8 +552,8 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
           {step === 1 && (
             <button
               onClick={handleNext}
-              style={{ 
-                ...styles.button, 
+              style={{
+                ...styles.button,
                 background: isEntrepriseValid ? '#925FE2' : '#ccc',
                 color: 'white'
               }}
@@ -556,8 +566,8 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
             <>
               <button
                 onClick={() => setStep(1)}
-                style={{ 
-                  ...styles.button, 
+                style={{
+                  ...styles.button,
                   background: '#ccc',
                   color: 'white',
                   marginRight: '10px'
@@ -568,8 +578,8 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
               <button
                 onClick={handleValider}
                 disabled={!isRepresentantValid}
-                style={{ 
-                  ...styles.button, 
+                style={{
+                  ...styles.button,
                   background: isRepresentantValid ? '#925FE2' : '#ccc',
                   color: 'white'
                 }}

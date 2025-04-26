@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import wilayas from "./Willaya"; 
 import './InscriptionEntreprise.css'
 import '../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
+import { InscriContext } from "./inscriEntreprise";
 
 const Entreprise = ({ onValidationChange }) => {
   const [nom, setNom] = useState("");
@@ -19,13 +20,14 @@ const Entreprise = ({ onValidationChange }) => {
 
   const {t} = useTranslation();
 
+  const { entreprise, setEntreprise } = useContext(InscriContext);
   return (
     <form>
       <div style={styles.formGroup}>
         <div style={styles.inputContainer}>
           <label style={styles.label}>{t('login.nomInput')}</label>
           <input type="text" placeholder={t('login.nomPlaceholder')} className="input-inscription" required style={styles.input} 
-            value={nom} onChange={(e) => setNom(e.target.value)} />
+            value={nom} onChange={(e) => setEntreprise(e.target.value)} />
         </div>
         <div style={styles.inputContainer}>
           <label style={styles.label}>{t('login.secteurInput')}</label>

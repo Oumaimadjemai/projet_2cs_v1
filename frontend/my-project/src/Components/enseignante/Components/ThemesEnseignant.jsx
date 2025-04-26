@@ -8,6 +8,7 @@ import pdfImage from '../../../Assets/Images/projet-pdf-example.png'
 import { AjouterTheme } from './AjouterTheme';
 import { AppContext } from '../../../App';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 
 function ThemesEnseignant() {
 
@@ -15,57 +16,39 @@ function ThemesEnseignant() {
 
     const { t } = useTranslation();
 
-    const themes = [
-        {
-            title: "Développement d'une application de gestion des stocks",
-            teacher: "M. Bensalem",
-            annee: "2ème",
-            specialite: null,
-            etat: "accept"
-        },
-        {
-            title: "Application mobile de santé intelligente",
-            teacher: "Mme. Kheira",
-            annee: "4ème",
-            specialite: "SIW",
-            etat: "refuse"
-        },
-        {
-            title: "Détection d’intrusions dans les réseaux",
-            teacher: "M. Lyes",
-            annee: "5ème",
-            specialite: "IASD",
-            etat: "attente"
-        },
-        {
-            title: "Système de recommandation pour une plateforme e-learning",
-            teacher: "Mme. Samira",
-            annee: "4ème",
-            specialite: "ISI",
-            etat: "accept"
-        },
-        {
-            title: "Conception d'une base de données pour une bibliothèque",
-            teacher: "M. Nacer",
-            annee: "3ème",
-            specialite: null,
-            etat: "accept"
-        },
-        {
-            title: "Analyse des sentiments sur les réseaux sociaux",
-            teacher: "Mme. Amel",
-            annee: "5ème",
-            specialite: "SIW",
-            etat: "attente"
-        },
-        {
-            title: "Automatisation de la gestion des candidatures",
-            teacher: "M. Mourad",
-            annee: "4ème",
-            specialite: "ISI",
-            etat: "attente"
-        }
-    ];
+    const [themes, setThemes] = useState([]);
+
+    useEffect(() => {
+        axios.get(`http://127.0.0.1:8001/themes/enseignant/${localStorage.getItem('user_id')}/`)
+            .then(async (res) => {
+                const themesData = res.data;
+
+                // Pour chaque thème, récupérer l'année et ajouter un champ annee_titre
+                const themesWithAnneeTitre = await Promise.all(
+                    themesData.map(async (theme) => {
+                        try {
+                            const anneeResponse = await axios.get(`http://127.0.0.1:8000/annees/${theme.annee_id}/`);
+
+                            return {
+                                ...theme,
+                                annee_titre: anneeResponse.data.title,
+                            };
+                        } catch (error) {
+                            console.error(`Erreur récupération année pour le thème ${theme.id}`, error);
+                            return {
+                                ...theme,
+                                annee_titre: null, 
+                            };
+                        }
+                    })
+                );
+
+                setThemes(themesWithAnneeTitre);
+            })
+            .catch((err) => console.error(err));
+    }, []);
+
+
 
     const [filterSelected, setFilterSelected] = useState("none")
 
@@ -113,10 +96,10 @@ function ThemesEnseignant() {
                             Tous les Thèmes  <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>9</span>
                         </h1>
                     </div>
-                    <div className="themes-btns">     
-                            <button onClick={() => setAjouterThemeClicked(true)}>
-                                Ajouter Thème
-                            </button>
+                    <div className="themes-btns">
+                        <button onClick={() => setAjouterThemeClicked(true)}>
+                            Ajouter Thème
+                        </button>
                     </div>
                 </div>
                 <div className="recherche-themes-line">
@@ -192,7 +175,7 @@ function ThemesEnseignant() {
                 <div className="themes-cards-container">
                     {
                         filteredThemes.map((theme) => (
-                            <ThemeCard title={theme.title} annee={theme.annee} specialite={theme.specialite} etat={theme.etat} />
+                            <ThemeCard title={theme.titre} annee={theme.annee_titre} specialite={theme.specialite} valide={theme.valide} refus={theme.reserve} />
                         ))
                     }
                 </div>
@@ -223,7 +206,7 @@ function ThemesEnseignant() {
 
 export default ThemesEnseignant
 
-const ThemeCard = ({ title, annee, specialite, etat }) => {
+const ThemeCard = ({ title, annee, specialite, valide, refus}) => {
 
     const [dropClicked, setDropClicked] = useState(false)
     const dropRef = useRef('')
@@ -260,7 +243,7 @@ const ThemeCard = ({ title, annee, specialite, etat }) => {
                 </span>
                 {
 
-                    etat === "accept" ?
+                    valide ?
                         <div className='accpeted-div'>
                             <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M1.6665 10.5744L6.0415 14.741L8.229 12.241M6.6665 10.5744L11.0415 14.741L18.3332 6.40771M13.3332 6.40771L10.4165 9.74105" stroke="#5F5F5F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -268,7 +251,7 @@ const ThemeCard = ({ title, annee, specialite, etat }) => {
 
                             Accepté
                         </div>
-                        : etat === "refuse" ?
+                        : refus ?
                             <div className='refused-div'>
                                 <CloseIcon style={{ marginRight: "5px" }} />
                                 Refusé

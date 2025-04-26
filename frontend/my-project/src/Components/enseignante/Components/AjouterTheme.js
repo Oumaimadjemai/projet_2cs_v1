@@ -3,12 +3,28 @@ import { ReactComponent as DraftIcon } from '../../../Assets/Icons/draft.svg';
 import Select from "react-select";
 import '../../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 
 export const AjouterTheme = ({ annulerAjouter }) => {
 
     const { t } = useTranslation();
 
-    const options = [
+    const [annees, setAnnees] = useState([])
+    const [specialites, setSpecialities] = useState([])
+
+    useEffect(() => {
+
+        axios.get('http://127.0.0.1:8000/annees/')
+            .then((res) => setAnnees(res.data))
+            .catch((err) => console.error(err))
+
+        axios.get('http://127.0.0.1:8000/specialites/')
+            .then((res) => setSpecialities(res.data))
+            .catch((err) => console.error(err))
+
+    }, [])
+
+    const languages = [
         { value: "html", label: "HTML" },
         { value: "css", label: "CSS" },
         { value: "javascript", label: "JavaScript" },
@@ -29,11 +45,18 @@ export const AjouterTheme = ({ annulerAjouter }) => {
         { value: "typescript", label: "TypeScript" }
     ];
 
-    const [selectedOptions, setSelectedOptions] = useState([]);
-
-    const handleChange = (selected) => {
-        setSelectedOptions(selected);
-    };
+    const livrables = [
+        { value: "rapport-final", label: "Rapport final" },
+        { value: "code-source", label: "Code source" },
+        { value: "demo", label: "Démo du projet" },
+        { value: "documentation-technique", label: "Documentation technique" },
+        { value: "modele-entrainé", label: "Modèle pré-entraîné" },
+        { value: "rapport-performance", label: "Rapport de performance du modèle" },
+        { value: "environnement-dev", label: "Environnement de développement" },
+        { value: "interface-utilisateur", label: "Interface utilisateur (UI/UX)" },
+        { value: "analyse-donnees", label: "Analyse des données" },
+        { value: "script-automatisation", label: "Script d'automatisation" }
+    ];
 
     const [selectedYear, setSelectedYear] = useState(null);
     const [showYearOptions, setShowYearOptions] = useState(false);
@@ -44,25 +67,30 @@ export const AjouterTheme = ({ annulerAjouter }) => {
     });
     const [showPriorityMenu, setShowPriorityMenu] = useState(null);
 
-    const specialites = ['SIW', 'ISI', 'IASD'];
+    const handleYearSelect = (yearTitle) => {
+        const selected = annees.find(a => a.title.includes(yearTitle));
 
-    const handleYearSelect = (year) => {
-        setSelectedYear(year);
+        if (!selected) {
+            console.error('No year found for title:', yearTitle);
+            return;
+        }
+
+        setSelectedYear(selected.title); // ou setSelectedYear(selected.id) selon ce que tu veux
         setShowYearOptions(false);
         setShowSubOptions(null);
     };
 
-    const handlePrioritySelect = (year, priority, specialite) => {
+    const handlePrioritySelect = (year, priority, specialiteId) => {
         const newPriorities = { ...priorities };
 
-        // Check if this specialité is already selected in another priority
+        // Check if this id is already selected for another priority
         for (const [key, value] of Object.entries(newPriorities[year])) {
-            if (value === specialite && key !== priority) {
+            if (value === specialiteId && key !== priority) {
                 newPriorities[year][key] = null;
             }
         }
 
-        newPriorities[year][priority] = specialite;
+        newPriorities[year][priority] = specialiteId;
         setPriorities(newPriorities);
         setShowPriorityMenu(null);
     };
@@ -70,8 +98,53 @@ export const AjouterTheme = ({ annulerAjouter }) => {
     const getAvailableSpecialites = (year, currentPriority) => {
         const selected = priorities[year];
         const used = Object.values(selected).filter(Boolean);
-        return specialites.filter(s => !used.includes(s) || selected[currentPriority] === s);
+
+        return specialites.filter(specialite =>
+            !used.includes(specialite.id) || selected[currentPriority] === specialite.id
+        );
     };
+
+    /*------------The Final Post----------- */
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        const yearKey = selectedYear || showSubOptions;
+
+        let finalPriorities = [];
+
+        if (yearKey === '4ème' || yearKey === '5ème') {
+            const selectedPriorities = priorities[yearKey];
+
+            if (!selectedPriorities) {
+                console.error('Priorities not found for year:', yearKey);
+                return; // ⛔ Stop here if undefined
+            }
+
+            finalPriorities = Object.entries(selectedPriorities).map(([key, specialiteId], index) => ({
+                priorite: index + 1,
+                specialite_id: specialiteId
+            }));
+        }
+
+        const finalTheme = {
+            ...newTheme,
+            priorities: finalPriorities, // (peut être vide si pas 4ème/5ème)
+        };
+
+        console.log(finalTheme);
+
+
+        axios.post('http://127.0.0.1:8001/themes/', finalTheme, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(() => alert('add with success'))
+            .catch((err) => console.error(err))
+    };
+
 
     const anneeRef = useRef('')
 
@@ -110,6 +183,52 @@ export const AjouterTheme = ({ annulerAjouter }) => {
         }
     }
 
+    const [newTheme, setNewTheme] = useState({
+        titre: "",
+        resume: "",
+        outils_et_language: "",
+        plan_travail: "",
+        livrable: "",
+        annee_id: null,
+        priorities: [],
+        numberOfGrp: 0
+    })
+
+    const handleChangeLanguages = (selectedOptions) => {
+        const languagesString = selectedOptions.map(option => option.value).join(', ');
+
+        setNewTheme({
+            ...newTheme,
+            outils_et_language: languagesString,
+        });
+    };
+
+    const handleChangeLivrables = (selectedOptions) => {
+        const livrablesString = selectedOptions.map(option => option.value).join(', ');
+
+        setNewTheme({
+            ...newTheme,
+            livrable: livrablesString,
+        });
+    };
+
+    const handleNewYearSelect = (yearTitlePart) => {
+        const selectedYear = annees.find(annee => annee.title.includes(yearTitlePart));
+
+        if (selectedYear) {
+            setNewTheme(prev => ({
+                ...prev,
+                annee_id: selectedYear.id,
+            }));
+        } else {
+            console.error("No year found matching:", yearTitlePart);
+        }
+    };
+
+    useEffect(() => {
+        console.log(priorities)
+    }, [priorities])
+
     return (
         <div className='ajouter-theme-container'>
             <div className="ajouter-theme-wrapper">
@@ -124,7 +243,13 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                     <div className="ajouter-input-line select-line">
                         <div className="input-flex">
                             <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Titre</label>
-                            <input type="text" name="nom" id="nom" />
+                            <input
+                                type="text"
+                                name="nom"
+                                id="nom"
+                                value={newTheme.titre}
+                                onChange={(e) => setNewTheme({ ...newTheme, titre: e.target.value })}
+                            />
                         </div>
                         <div className="select-flex">
                             <div className="select-flex-line">
@@ -132,10 +257,12 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                     <Select
                                         className="multi-custom-select"
                                         isMulti
-                                        options={options}
-                                        value={selectedOptions}
-                                        onChange={handleChange}
-                                        placeholder="Outils & langauge"
+                                        options={languages}
+                                        value={languages.filter(option =>
+                                            newTheme.outils_et_language.split(', ').includes(option.value)
+                                        )}
+                                        onChange={handleChangeLanguages}
+                                        placeholder="Outils & Langages"
                                     />
                                 </div>
 
@@ -143,9 +270,17 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                         </div>
                     </div>
                     <div className="ajouter-input-line select-line">
-                        <div className="input-flex">
-                            <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Nombre de Groups</label>
-                            <input type="number" name="nombreGroupe" id="nombreGroupe" />
+                        <div style={{ position: "relative", display: "inline-block", width: "300px" }}>
+                            <Select
+                                className="multi-custom-select"
+                                isMulti
+                                options={livrables}
+                                value={livrables.filter(option =>
+                                    newTheme.livrable.split(', ').includes(option.value)
+                                )}
+                                onChange={handleChangeLivrables}
+                                placeholder="Livrables"
+                            />
                         </div>
                         <div className="select-flex">
                             <div className="annee-field" onClick={() => setShowYearOptions(!showYearOptions)}>
@@ -171,19 +306,21 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                     <ul className="annee-options" ref={anneeRef}>
                                         <li
                                             style={{ borderBottom: "1px solid #D6D6D6" }}
-                                            onClick={() => handleYearSelect('2ème')}
+                                            onClick={() => { handleYearSelect('2'); handleNewYearSelect("2") }}
                                         >2ème
                                         </li>
                                         <li
                                             style={{ borderBottom: "1px solid #D6D6D6" }}
-                                            onClick={() => handleYearSelect('3ème')}
+                                            onClick={() => { handleYearSelect('3'); handleNewYearSelect("3") }}
                                         >3ème
                                         </li>
                                         <li
                                             style={{ borderBottom: "1px solid #D6D6D6", position: "relative" }}
                                             onClick={(e) => {
                                                 e.stopPropagation();
+                                                setSelectedYear("4ème");
                                                 setShowSubOptions(showSubOptions === '4ème' ? null : '4ème');
+                                                handleNewYearSelect("4")
                                             }}
                                         >
                                             4ème
@@ -237,18 +374,18 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                             <ul className="priorite-menu">
                                                                 {getAvailableSpecialites('4ème', 'priority1').map(specialite => (
                                                                     <li
-                                                                        key={specialite}
+                                                                        key={specialite.id}
                                                                         style={{ cursor: 'pointer' }}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            handlePrioritySelect('4ème', 'priority1', specialite);
+                                                                            handlePrioritySelect('4ème', 'priority1', specialite.id);
                                                                         }}
                                                                     >
-                                                                        {specialite}
+                                                                        {specialite.title}
                                                                     </li>
                                                                 ))}
                                                                 <li
-                                                                    className='annuler-li'
+                                                                    className="annuler-li"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         handlePrioritySelect('4ème', 'priority1', null);
@@ -257,6 +394,7 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                                     Annuler
                                                                 </li>
                                                             </ul>
+
                                                         }
                                                     </li>
                                                     <li
@@ -290,18 +428,18 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                             <ul className="priorite-menu">
                                                                 {getAvailableSpecialites('4ème', 'priority2').map(specialite => (
                                                                     <li
-                                                                        key={specialite}
-                                                                        style={{ padding: '8px 10px', cursor: 'pointer' }}
+                                                                        key={specialite.id}
+                                                                        style={{ cursor: 'pointer' }}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            handlePrioritySelect('4ème', 'priority2', specialite);
+                                                                            handlePrioritySelect('4ème', 'priority2', specialite.id);
                                                                         }}
                                                                     >
-                                                                        {specialite}
+                                                                        {specialite.title}
                                                                     </li>
                                                                 ))}
                                                                 <li
-                                                                    className='annuler-li'
+                                                                    className="annuler-li"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         handlePrioritySelect('4ème', 'priority2', null);
@@ -310,6 +448,7 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                                     Annuler
                                                                 </li>
                                                             </ul>
+
                                                         }
                                                     </li>
                                                     <li style={{ position: "relative" }}>
@@ -343,18 +482,18 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                             <ul className="priorite-menu">
                                                                 {getAvailableSpecialites('4ème', 'priority3').map(specialite => (
                                                                     <li
-                                                                        key={specialite}
-                                                                        style={{ padding: '8px 10px', cursor: 'pointer' }}
+                                                                        key={specialite.id}
+                                                                        style={{ cursor: 'pointer' }}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            handlePrioritySelect('4ème', 'priority3', specialite);
+                                                                            handlePrioritySelect('4ème', 'priority3', specialite.id);
                                                                         }}
                                                                     >
-                                                                        {specialite}
+                                                                        {specialite.title}
                                                                     </li>
                                                                 ))}
                                                                 <li
-                                                                    className='annuler-li'
+                                                                    className="annuler-li"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         handlePrioritySelect('4ème', 'priority3', null);
@@ -363,6 +502,7 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                                     Annuler
                                                                 </li>
                                                             </ul>
+
                                                         }
                                                     </li>
                                                 </ul>
@@ -372,7 +512,9 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                             style={{ position: "relative" }}
                                             onClick={(e) => {
                                                 e.stopPropagation();
+                                                setSelectedYear("5ème");
                                                 setShowSubOptions(showSubOptions === '5ème' ? null : '5ème');
+                                                handleNewYearSelect("5")
                                             }}
                                         >
                                             5ème
@@ -426,18 +568,18 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                             <ul className="priorite-menu">
                                                                 {getAvailableSpecialites('5ème', 'priority1').map(specialite => (
                                                                     <li
-                                                                        key={specialite}
-                                                                        style={{ padding: '8px 10px', cursor: 'pointer' }}
+                                                                        key={specialite.id}
+                                                                        style={{ cursor: 'pointer' }}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            handlePrioritySelect('5ème', 'priority1', specialite);
+                                                                            handlePrioritySelect('5ème', 'priority1', specialite.id);
                                                                         }}
                                                                     >
-                                                                        {specialite}
+                                                                        {specialite.title}
                                                                     </li>
                                                                 ))}
                                                                 <li
-                                                                    className='annuler-li'
+                                                                    className="annuler-li"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         handlePrioritySelect('5ème', 'priority1', null);
@@ -446,6 +588,7 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                                     Annuler
                                                                 </li>
                                                             </ul>
+
                                                         }
                                                     </li>
                                                     <li
@@ -479,18 +622,18 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                             <ul className="priorite-menu">
                                                                 {getAvailableSpecialites('5ème', 'priority2').map(specialite => (
                                                                     <li
-                                                                        key={specialite}
-                                                                        style={{ padding: '8px 10px', cursor: 'pointer' }}
+                                                                        key={specialite.id}
+                                                                        style={{ cursor: 'pointer' }}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            handlePrioritySelect('5ème', 'priority2', specialite);
+                                                                            handlePrioritySelect('5ème', 'priority2', specialite.id);
                                                                         }}
                                                                     >
-                                                                        {specialite}
+                                                                        {specialite.title}
                                                                     </li>
                                                                 ))}
                                                                 <li
-                                                                    className='annuler-li'
+                                                                    className="annuler-li"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         handlePrioritySelect('5ème', 'priority2', null);
@@ -499,6 +642,7 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                                     Annuler
                                                                 </li>
                                                             </ul>
+
                                                         }
                                                     </li>
                                                     <li style={{ position: "relative" }}>
@@ -532,18 +676,18 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                             <ul className="priorite-menu">
                                                                 {getAvailableSpecialites('5ème', 'priority3').map(specialite => (
                                                                     <li
-                                                                        key={specialite}
-                                                                        style={{ padding: '8px 10px', cursor: 'pointer' }}
+                                                                        key={specialite.id}
+                                                                        style={{ cursor: 'pointer' }}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            handlePrioritySelect('5ème', 'priority3', specialite);
+                                                                            handlePrioritySelect('5ème', 'priority3', specialite.id);
                                                                         }}
                                                                     >
-                                                                        {specialite}
+                                                                        {specialite.title}
                                                                     </li>
                                                                 ))}
                                                                 <li
-                                                                    className='annuler-li'
+                                                                    className="annuler-li"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         handlePrioritySelect('5ème', 'priority3', null);
@@ -552,6 +696,7 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                                     Annuler
                                                                 </li>
                                                             </ul>
+
                                                         }
                                                     </li>
                                                 </ul>
@@ -560,6 +705,17 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                     </ul>
                                 }
                             </div>
+                            <input
+                                type="number"
+                                min={0}
+                                style={{
+                                    width: "49%"
+                                }}
+                                placeholder='Nombre Groupes'
+                                value={newTheme.numberOfGrp}
+                                onChange={(e) => setNewTheme({ ...newTheme, numberOfGrp: e.target.value })}
+                                required
+                            />
                         </div>
                     </div>
                     <div className="ajouter-input-line">
@@ -568,15 +724,17 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                             <textarea
                                 type="text"
                                 ref={planRef}
-                                onChange={handlePlanText}
+                                value={newTheme.plan_travail}
+                                onChange={(e) => { handlePlanText(); setNewTheme({ ...newTheme, plan_travail: e.target.value }) }}
                             />
                         </div>
                         <div className="input-flex">
-                        <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Résumé</label>
+                            <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Résumé</label>
                             <textarea
                                 type="text"
                                 ref={resumeRef}
-                                onChange={handleResumeText}
+                                value={newTheme.resume}
+                                onChange={(e) => { handleResumeText(); setNewTheme({ ...newTheme, resume: e.target.value }) }}
                             />
                         </div>
                     </div>
@@ -587,7 +745,7 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                         <DraftIcon />
                         {t('enseignantsPage.brouillonBtn')}
                     </button>
-                    <button type='submit' className='ajout-btn' form='ajouterFormEnseignant'>
+                    <button type='submit' className='ajout-btn' form='ajouterFormEnseignant' onClick={(e) => handleSubmit(e)}>
                         Ajouter Thème
                     </button>
 

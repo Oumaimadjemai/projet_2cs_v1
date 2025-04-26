@@ -216,7 +216,7 @@
 
 /*------------No enseignants---------------*/
 
-.enseignants-liste-wrapper .no-enseignants-available{
+.enseignants-liste-wrapper .no-enseignants-available {
     width: 100%;
     height: calc(100vh - 280px);
     background-color: #F9F9F9;
@@ -230,12 +230,12 @@
     font-family: "Kumbh Sans", sans-serif;
 }
 
-.no-enseignants-available .empty-icon{
+.no-enseignants-available .empty-icon {
     width: 200px;
     height: 170px;
 }
 
-.no-enseignants-available .lines-box{
+.no-enseignants-available .lines-box {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
@@ -268,14 +268,14 @@
     font-family: "Poppins", sans-serif;
 }
 
-.ajouter-enseignant-wrapper .title-line{
+.ajouter-enseignant-wrapper .title-line {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.ajouter-enseignant-wrapper .title-line .close-title-icon{
+.ajouter-enseignant-wrapper .title-line .close-title-icon {
     min-width: 36px;
     min-height: 36px;
     fill: #4F4F4F !important;
@@ -418,7 +418,7 @@
     align-items: center;
 }
 
-#ajouterFormEnseignant .drop-file-wrapper{
+#ajouterFormEnseignant .drop-file-wrapper {
     width: 650px;
     height: 100%;
     background-color: #fff;
@@ -430,7 +430,7 @@
     align-items: center;
 }
 
-#ajouterFormEnseignant .structures-box{
+#ajouterFormEnseignant .structures-box {
     width: 90%;
     display: flex;
     flex-direction: column;
@@ -438,7 +438,7 @@
     gap: 0.45rem;
 }
 
-#ajouterFormEnseignant .structures-box button{
+#ajouterFormEnseignant .structures-box button {
     font-family: "Kumbh Sans", sans-serif;
     font-size: 1.1rem;
     font-weight: 500;
@@ -483,11 +483,65 @@
     padding: 0;
 }
 
-#ajouterFormEnseignant .delete-file svg{
-    min-width: 22px; 
+#ajouterFormEnseignant .delete-file svg {
+    min-width: 22px;
     min-height: 22px;
     flex-shrink: 0;
 }
+
+.enseignants-liste-container .saved-success {
+    position: absolute;
+    width: 260px;
+    height: 70px;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #FCFAFA;
+    box-shadow: 2px 8px 30px rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    justify-content: space-around;
+}
+
+.saved-success.animated {
+    animation: fadeInOutBounce 3s ease-in-out;
+}
+
+@keyframes fadeInOutBounce {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+        /* start below */
+    }
+
+    10% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    20% {
+        transform: translate(-50%, -5px);
+    }
+
+    30% {
+        transform: translate(-50%, 0);
+    }
+
+    90% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+}
+
+
+
 
 
 @media screen and (min-width: 1700px) {
@@ -503,7 +557,7 @@
         max-height: 510px;
     }
 
-    #ajouterFormEnseignant .drop-file-container{
+    #ajouterFormEnseignant .drop-file-container {
         height: 300px;
     }
 }
