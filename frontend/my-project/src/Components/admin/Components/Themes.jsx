@@ -5,59 +5,74 @@ import { ReactComponent as CloseIcon } from '../../../Assets/Icons/close-rounded
 import { ReactComponent as CheckIcon } from '../../../Assets/Icons/check-rounded.svg';
 import { ReactComponent as ArrowIcon } from '../../../Assets/Icons/Arrow.svg';
 import pdfImage from '../../../Assets/Images/projet-pdf-example.png'
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Themes() {
 
-    const themes = [
-        {
-            title: "Développement d'une application de gestion des stocks",
-            teacher: "M. Bensalem",
-            annee: "2ème",
-            specialite: null
-        },
-        {
-            title: "Application mobile de santé intelligente",
-            teacher: "Mme. Kheira",
-            annee: "4ème",
-            specialite: "SIW"
-        },
-        {
-            title: "Détection d’intrusions dans les réseaux",
-            teacher: "M. Lyes",
-            annee: "5ème",
-            specialite: "IASD"
-        },
-        {
-            title: "Système de recommandation pour une plateforme e-learning",
-            teacher: "Mme. Samira",
-            annee: "4ème",
-            specialite: "ISI"
-        },
-        {
-            title: "Conception d'une base de données pour une bibliothèque",
-            teacher: "M. Nacer",
-            annee: "3ème",
-            specialite: null
-        },
-        {
-            title: "Analyse des sentiments sur les réseaux sociaux",
-            teacher: "Mme. Amel",
-            annee: "5ème",
-            specialite: "SIW"
-        },
-        {
-            title: "Automatisation de la gestion des candidatures",
-            teacher: "M. Mourad",
-            annee: "4ème",
-            specialite: "ISI"
-        },
-        {
-            title: "Simulation de réseaux informatiques",
-            teacher: "Mme. Hana",
-            annee: "3ème",
-            specialite: null
-        }
-    ];
+
+    const [themes, setThemes] = useState([]);
+    const [annees, setAnnees] = useState([])
+    const [specialites, setSpecialites] = useState([])
+
+    useEffect(() => {
+
+        axios.get('http://127.0.0.1:8000/annees/')
+            .then((res) => setAnnees(res.data))
+            .catch((err) => console.error("Erreur Axios :", err))
+
+        axios.get('http://127.0.0.1:8000/specialites/')
+            .then((res) => setSpecialites(res.data))
+            .catch((err) => console.error("Erreur Axios :", err))
+
+    }, [])
+
+    useEffect(() => {
+        axios.get(`http://127.0.0.1:8001/themes/`)
+            .then(async (res) => {
+                const themesData = res.data;
+
+                const themesWithAdditionalInfo = await Promise.all(
+                    themesData.map(async (theme) => {
+                        try {
+
+                            const anneeResponse = await axios.get(`http://127.0.0.1:8000/annees/${theme.annee_id}/`);
+
+                            let enseignantInfo = null;
+                            if (theme.enseignant_id) {
+
+                                const enseignantResponse = await axios.get(`http://127.0.0.1:8000/enseignants/${theme.enseignant_id}`);
+                                enseignantInfo = `${enseignantResponse.data.prenom} ${enseignantResponse.data.nom}`;
+
+                            } else if (theme.entreprise_id) {
+
+                                const representantResponse = await axios.get(`http://127.0.0.1:8000/entreprises/${theme.entreprise_id}`);
+                                enseignantInfo = representantResponse.data.nom;
+                            }
+
+                            return {
+                                ...theme,
+                                annee_titre: `${anneeResponse.data.title} ${anneeResponse.data.departement_title.toLowerCase() === "préparatoire" ? "CPI" : "CS"}`,
+                                enseignant_nom: enseignantInfo,
+                            };
+                        } catch (error) {
+                            console.error(`Erreur récupération des informations pour le thème ${theme.id}`, error);
+                            return {
+                                ...theme,
+                                annee_titre: null,
+                                enseignant_nom: null,
+                            };
+                        }
+                    })
+                );
+
+                setThemes(themesWithAdditionalInfo);
+            })
+            .catch((err) => console.error(err));
+    }, []);
+
+
+
 
     const [filterSelected, setFilterSelected] = useState("none")
 
@@ -82,14 +97,50 @@ function Themes() {
         setFilterSelected(filterSelected === filter ? "clicked" : filter)
     }
 
-    const [selectedAnnee, setSelectedAnnee] = useState(null);
-    const [selectedSpecialite, setSelectedSpecialite] = useState(null);
-
-    const filteredThemes = themes.filter(theme => {
-        return (!selectedAnnee || theme.annee === selectedAnnee) &&
-            (!selectedSpecialite || theme.specialite === selectedSpecialite)
+    const [selectedAnnee, setSelectedAnnee] = useState({
+        id: null,
+        title: "",
+        has_specialite: false
     });
+    const [selectedSpecialite, setSelectedSpecialite] = useState(null);
+    const [selectedEtat, setSelectedEtat] = useState(null)
+    const [filteredThemes, setFilteredThemes] = useState([]);
 
+    useEffect(() => {
+        const result = themes.filter(theme => {
+            // Si aucun filtre n'est sélectionné, retourner tous les thèmes
+            if (filterSelected === "none") return true;
+
+            // Filtre par année
+            const isAnneeMatch = !selectedAnnee.id || theme.annee_id === selectedAnnee.id;
+
+            // Filtre par spécialité
+            const isSpecialiteMatch = !selectedSpecialite || (
+                theme.priorities && theme.priorities.some(priority =>
+                    priority.specialite_id === selectedSpecialite && priority.priorite === 1
+                )
+            );
+
+            let isEtatMatch = true;
+            if (selectedEtat === "accepted") {
+                isEtatMatch = theme.valide === true;
+            } else if (selectedEtat === "refused") {
+                isEtatMatch = theme.motif !== null && theme.motif !== "";
+            } else if (selectedEtat === "reserved") {
+                isEtatMatch = theme.reserve === true;
+            }
+
+            return isAnneeMatch && isSpecialiteMatch && isEtatMatch;
+        });
+
+        setFilteredThemes(result);
+    }, [themes, selectedAnnee, selectedSpecialite, selectedEtat, filterSelected]);
+
+    useEffect(() => {
+        if (filterSelected === 'none') {
+            setFilteredThemes([...themes]);
+        }
+    }, [filterSelected, themes]);
 
     return (
         <div className='themes-container' id='dynamic-liste'>
@@ -97,7 +148,7 @@ function Themes() {
                 <div className="btns-title-container">
                     <div className="link">
                         <h1 style={{ fontSize: "1.6rem", fontWeight: "600", color: "#4F4F4F" }}>
-                            Tous les Thèmes  <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>9</span>
+                            Tous les Thèmes  <span style={{ color: "#A7A7A7", marginLeft: "5px" }}> {themes.length} </span>
                         </h1>
                     </div>
                     <div className="themes-btns">
@@ -117,25 +168,26 @@ function Themes() {
                                         {
                                             filterSelected === "annee" &&
                                             <ul className='sub-filter-ul'>
-                                                <li onClick={() => setSelectedAnnee("2ème")}>2 ème</li>
-                                                <li onClick={() => setSelectedAnnee("3ème")}>3 ème</li>
-                                                <li onClick={() => setSelectedAnnee("4ème")}>4 ème</li>
-                                                <li onClick={() => setSelectedAnnee("5ème")}>5 ème</li>
+                                                {annees.map((annee) => (
+                                                    <li style={{ minWidth: "250px !important" }} onClick={() => setSelectedAnnee({ ...selectedAnnee, id: annee.id, title: annee.title, has_specialite: annee.has_specialite })}>
+                                                        {annee.title} {annee.departement_title.toLowerCase() === "préparatoire" ? "CPI" : "CS"}
+                                                    </li>
+                                                ))}
                                             </ul>
                                         }
                                     </li>
                                     <li
-                                        id={!["4ème", "5ème"].includes(selectedAnnee) ? 'disabled-filter' : ''}
+                                        id={!selectedAnnee.has_specialite ? 'disabled-filter' : ''}
                                         onClick={() => toggleFilter("specialite")}
                                     >
                                         Spécialité
                                         <ArrowIcon />
                                         {
-                                            filterSelected === "specialite" && ["4ème", "5ème"].includes(selectedAnnee) &&
+                                            filterSelected === "specialite" && (selectedAnnee.has_specialite) &&
                                             <ul className='sub-filter-ul'>
-                                                <li onClick={() => setSelectedSpecialite("SIW")}>SIW</li>
-                                                <li onClick={() => setSelectedSpecialite("ISI")}>ISI</li>
-                                                <li onClick={() => setSelectedSpecialite("IASD")}>IASD</li>
+                                                {specialites.map((specialite) => (
+                                                    <li onClick={() => setSelectedSpecialite(specialite.id)}>{specialite.title}</li>
+                                                ))}
                                             </ul>
                                         }
                                     </li>
@@ -145,9 +197,9 @@ function Themes() {
                                         {
                                             filterSelected === "etat" &&
                                             <ul className='sub-filter-ul'>
-                                                <li>Accepté</li>
-                                                <li>Refusé</li>
-                                                <li>Réservé</li>
+                                                <li onClick={() => setSelectedEtat('accepted')}>Accepté</li>
+                                                <li onClick={() => setSelectedEtat('refused')}>Refusé</li>
+                                                <li onClick={() => setSelectedEtat('reserved')}>Réservé</li>
                                             </ul>
                                         }
                                     </li>
@@ -164,7 +216,14 @@ function Themes() {
                 <div className="themes-cards-container">
                     {
                         filteredThemes.map((theme) => (
-                            <ThemeCard title={theme.title} teacher={theme.teacher} annee={theme.annee} specialite={theme.specialite} />
+                            <ThemeCard
+                                id={theme.id}
+                                title={theme.titre}
+                                teacher={theme.enseignant_nom}
+                                annee={theme.annee_titre}
+                                valid={theme.valide}
+                                motif={theme.motif}
+                            />
                         ))
                     }
                 </div>
@@ -174,8 +233,13 @@ function Themes() {
                         <button
                             className="clear-btn"
                             onClick={() => {
-                                setSelectedAnnee(null);
+                                setSelectedAnnee({
+                                    id: null,
+                                    title: "",
+                                    has_specialite: false
+                                });
                                 setSelectedSpecialite(null);
+                                setSelectedEtat(null);
                                 setFilterSelected('none');
                             }}
                         >
@@ -184,47 +248,51 @@ function Themes() {
                     </div>
                 )}
             </div>
-        </div>
+            
+        </div >
     )
 }
 
 export default Themes
 
-const ThemeCard = ({ title, teacher, annee, specialite }) => {
+const ThemeCard = ({ title, teacher, annee, valid, motif, id }) => {
 
-    const [accepted, setAccepted] = useState("wait")
+    const navigate = useNavigate();
 
     return (
-        <div className="theme-card">
+        <div className="theme-card" onClick={() => navigate(`/admin/themes/${id}`)}>
             <img src={pdfImage} alt="theme pdf" />
-            <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: "800", fontSize: "1.3rem", marginTop: "0.5rem", width: "90%", textAlign: "center" }}>
+            <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: "800", fontSize: "1.1rem", marginTop: "0.5rem", width: "90%", textAlign: "center" }}>
                 {title}
                 <span style={{ fontSize: "1rem", fontWeight: "600", color: "#C79F3A" }}>
-                    {specialite ? ` (${annee} ${specialite})` : ` (${annee})`}
+                    ({annee})
                 </span>
+                {/* <span style={{ fontSize: "1rem", fontWeight: "600", color: "#C79F3A" }}>
+                    {specialite ? ` (${annee} ${specialite})` : ` (${annee})`}
+                </span> */}
             </h2>
-            <span style={{ fontFamily: 'Nunito, sans-serif', color: "#A7A7A7", fontWeight: "600", marginBottom: "1rem" }}>
+            <span style={{ fontFamily: 'Nunito, sans-serif', color: "#A7A7A7", fontWeight: "600", marginBottom: "1rem", fontSize: "0.9rem" }}>
                 {teacher}
             </span>
             <div className="btns-card-line">
                 {
-                    accepted === "wait" ?
+                    !(valid) && !(motif) ?
                         <>
-                            <button className='supprimer-btn' onClick={() => setAccepted("refused")}>
+                            <button className='supprimer-btn'>
                                 <CloseIcon style={{ marginRight: "5px" }} />
                                 <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: "1.1rem", fontWeight: "650" }}>
                                     Refuser
                                 </span>
                             </button>
                             <div style={{ height: "100%", width: "2px", backgroundColor: "#E4E4E4" }} />
-                            <button className='accept-btn' onClick={() => setAccepted("accepted")}>
+                            <button className='accept-btn'>
                                 <CheckIcon style={{ marginRight: "5px" }} />
                                 <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: "1.1rem", fontWeight: "650" }}>
                                     Accepter
                                 </span>
                             </button>
                         </>
-                        : accepted === "accepted" ?
+                        : valid ?
                             <div className='accpeted-div'>
                                 <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M1.6665 10.5744L6.0415 14.741L8.229 12.241M6.6665 10.5744L11.0415 14.741L18.3332 6.40771M13.3332 6.40771L10.4165 9.74105" stroke="#5F5F5F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -232,11 +300,12 @@ const ThemeCard = ({ title, teacher, annee, specialite }) => {
 
                                 Accepté
                             </div>
-                            :
-                            <div className='refused-div'>
-                                <CloseIcon style={{ marginRight: "5px" }} />
-                                Refusé
-                            </div>
+                            : motif ?
+                                <div className='refused-div'>
+                                    <CloseIcon style={{ marginRight: "5px" }} />
+                                    Refusé
+                                </div>
+                                : null
                 }
             </div>
         </div>

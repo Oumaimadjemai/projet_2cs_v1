@@ -14,9 +14,12 @@ class DepartementSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AnneeSerializer(serializers.ModelSerializer):
+    # Add the departement's title to the serialized data
+    departement_title = serializers.CharField(source='departement.title', read_only=True)
+
     class Meta:
         model = Annee
-        fields = '__all__'
+        fields = '__all__'  # You can keep '__all__' or explicitly list the fields if needed
 
 class SpecialiteSerializer(serializers.ModelSerializer):
     class Meta:

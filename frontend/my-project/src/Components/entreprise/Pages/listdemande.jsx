@@ -11,61 +11,13 @@ import { ReactComponent as CloseIcon } from '../../../Assets/Icons/close-rounded
 import { ReactComponent as CheckIcon } from '../../../Assets/Icons/check-rounded.svg';
 import { ReactComponent as CircleArrowIcon } from '../../../Assets/Icons/circle-left-arrow.svg';
 import defaultAccountPicture from '../../../Assets/Images/default_picture.jpeg';
+import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/EmptyState.svg';
 import axios from 'axios';
 
 const DemandeEntreprise = () => {
   const navigate = useNavigate();
   const [openMenu, setOpenMenu] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-  const [demandes, setDemandes] = useState([
-    {
-      id: 1,
-      name: 'TechInnov DZ',
-      secteur: 'Énergie',
-      secteurColor: 'red',
-      representant: 'Amine Bensalem',
-      image: 'https://i.pravatar.cc/80?img=20',
-      status: 'pending',
-    },
-    {
-      id: 2,
-      name: 'NextCode',
-      secteur: 'Informatique',
-      secteurColor: '#2997FF',
-      representant: 'Sofia Bouzid',
-      image: 'https://i.pravatar.cc/80?img=21',
-      status: 'pending',
-    },
-    {
-      id: 3,
-      name: 'GreenTech',
-      secteur: 'Énergie',
-      secteurColor: 'red',
-      representant: 'Karim Meziane',
-      image: 'https://i.pravatar.cc/80?img=22',
-      status: 'pending',
-    },
-    {
-      id: 4,
-      name: 'SmartCom',
-      secteur: 'Communication',
-      secteurColor: '#F5A623',
-      representant: 'Lina Aït Yahia',
-      image: 'https://i.pravatar.cc/80?img=23',
-      status: 'pending',
-    },
-  ])
-
-  const handleAction = (id, action) => {
-    setDemandes(demandes.map(demande =>
-      demande.id === id ? { ...demande, status: action } : demande
-    ));
-  };
-
-  const handleDelete = (id) => {
-    setDemandes(demandes.filter(demande => demande.id !== id));
-    setConfirmDeleteId(null);
-  };
 
   const [showAddModal, setShowAddModal] = useState(false);
   const handleAddEntreprise = newEntreprise => setCards([...cards, {
@@ -114,6 +66,46 @@ const DemandeEntreprise = () => {
 
   const filterdEntreprises = entreprises.filter((e) => e.statut === "pending")
 
+  const [acceptClicked, setAcceptClicked] = useState(false)
+  const [deleteClicked, setDeleteClicked] = useState(false)
+
+  const [acceptEntreprise, setAcceptEntreprise] = useState(null);
+  const [deleteEntreprise, setDeleteEntreprise] = useState(null)
+
+  const handleAccepter = (e) => {
+    e.preventDefault();
+
+    axios.patch(`http://localhost:8000/entreprises/${acceptEntreprise}/valider`, {
+      action: "approve"
+    })
+      .then(() => {
+        setEntreprises(prevEntreprises =>
+          prevEntreprises.filter(e => e.id !== acceptEntreprise)
+        )
+        setAcceptEntreprise(null)
+      })
+      .catch((err) => console.error(err))
+
+    setAcceptClicked(false)
+  }
+
+  const handleRefuse = (e) => {
+    e.preventDefault();
+
+    axios.patch(`http://localhost:8000/entreprises/${deleteEntreprise}/delete`, {
+      action: "refuse"
+    })
+      .then(() => {
+        setEntreprises(prevEntreprises =>
+          prevEntreprises.filter(e => e.id !== deleteEntreprise)
+        )
+        setAcceptEntreprise(null)
+      })
+      .catch((err) => console.error(err))
+
+    setDeleteClicked(false)
+  }
+
   return (
     <div style={styles.page}>
       <div style={styles.header}>
@@ -137,7 +129,7 @@ const DemandeEntreprise = () => {
         </div>
       </div>
 
-      <div className="recherche-entreprises-line">
+      <div className="recherche-entreprises-line" style={{minHeight: "43px"}}>
         <div className="recherche-entreprises-input">
           <button
             style={{
@@ -203,14 +195,14 @@ const DemandeEntreprise = () => {
 
               {d.statut === 'pending' ? (
                 <div className='btns-card-line' style={styles.actionButtons}>
-                  <button className='supprimer-btn'>
+                  <button className='supprimer-btn' onClick={() => {setDeleteClicked(true); setDeleteEntreprise(d.id)}}>
                     <CloseIcon style={{ marginRight: "5px" }} />
                     <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: "1.1rem", fontWeight: "650" }}>
                       Refuser
                     </span>
                   </button>
                   <div style={{ height: "100%", width: "2px", backgroundColor: "#E4E4E4" }} />
-                  <button className='accept-btn'>
+                  <button className='accept-btn' onClick={() => { setAcceptClicked(true); setAcceptEntreprise(d.id) }}>
                     <CheckIcon style={{ marginRight: "5px" }} />
                     <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: "1.1rem", fontWeight: "650" }}>
                       Accepter
@@ -248,7 +240,7 @@ const DemandeEntreprise = () => {
               </button>
               <button
                 style={styles.deleteBtn}
-                onClick={() => handleDelete(confirmDeleteId)}
+                onClick={(e) => handleRefuse(e)}
               >
                 Supprimer
               </button>
@@ -256,6 +248,82 @@ const DemandeEntreprise = () => {
           </div>
         </div>
       )}
+
+      {
+        acceptClicked && (
+          <div style={styles.confirmOverlay}>
+            <div className="add-departement-success">
+              <div className="img-container" style={{ height: "90px", width: "150px" }}>
+                <EmptyIcon style={{ height: "100%", width: "100%" }} />
+              </div>
+              <span style={{ width: "95%", fontFamily: "Kumbh Sans, sans-serif", textAlign: "center", fontSize: "1.1rem", fontWeight: "500" }}>
+                Êtes-vous certain(e) de vouloir accepter cette entreprise ?
+              </span>
+              <div
+                className="btns-line"
+              >
+                <button
+                  style={{
+                    color: "#000",
+                    background: "#E2E4E5"
+                  }}
+                  onClick={() => { setAcceptClicked(false) }}
+                >
+                  Annuler
+                </button>
+                <button
+                  style={{
+
+                  }}
+                  onClick={(e) => { handleAccepter(e); }}
+                >
+                  Confirmer
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        deleteClicked &&
+        <div style={styles.confirmOverlay}>
+          <div className="add-departement-success">
+            <div className="img-container" style={{ height: "90px", width: "150px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="30" cy="30" r="30" fill="#FFD21E" />
+                <path d="M29.5001 15.75V34.0833M29.6147 43.25V43.4792H29.3855V43.25H29.6147Z" stroke="white" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+
+            </div>
+            <span style={{ width: "95%", fontFamily: "Kumbh Sans, sans-serif", textAlign: "center", fontSize: "1.1rem", fontWeight: "500" }}>
+              Êtes-vous sûr(e) de vouloir refuser cette entreprise ? Cette action est irréversible.
+            </span>
+            <div
+              className="btns-line"
+            >
+              <button
+                style={{
+                  color: "#000",
+                  background: "#E2E4E5"
+                }}
+                onClick={(e) => setDeleteClicked(false)}
+              >
+                Annuler
+              </button>
+              <button
+                style={{
+                  background: "#D9534F"
+                }}
+                onClick={(e) => handleRefuse(e)}
+              >
+                Refusé
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
     </div>
   );
 };

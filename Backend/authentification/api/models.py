@@ -14,6 +14,8 @@ class Departement(models.Model):
 class Annee(models.Model):
     departement = models.ForeignKey(Departement,on_delete=models.CASCADE,null=True)
     title = models.CharField(max_length=50)
+    has_specialite = models.BooleanField(default=False)
+    
     def __str__(self):
         return f"{self.title} {self.departement.title}"
     

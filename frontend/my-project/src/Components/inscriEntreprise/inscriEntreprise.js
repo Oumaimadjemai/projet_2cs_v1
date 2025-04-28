@@ -7,6 +7,7 @@ import logoImg from '../../Assets/Images/logo-login.jpg';
 import '../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
 import { AppContext } from "../../App";
+import axios from "axios";
 
 export const InscriContext = createContext();
 
@@ -54,6 +55,32 @@ const InscriptionEntreprise = () => {
     representant_email: "",
     representant_telephone: ""
   })
+
+  const handleNext = (e) => {
+    e.preventDefault();
+  
+    if (!isStepValid) {
+      setErrorMessage("Veuillez remplir tous les champs obligatoires.");
+      return;
+    }
+  
+    if (step === 2) {
+      axios.post('http://127.0.0.1:8000/entreprises/', entreprise)
+        .then((res) => {
+          setCompletedSteps(prev => [...new Set([...prev, step])]);
+          setStep(3);
+          setIsStepValid(false);
+          setErrorMessage("");
+        })
+        .catch((err) => console.error(err));
+    } else {
+      setCompletedSteps(prev => [...new Set([...prev, step])]);
+      setStep(step + 1);
+      setIsStepValid(false);
+      setErrorMessage("");
+    }
+  };
+  
 
   return (
     <InscriContext.Provider value={{entreprise, setEntreprise}}>
@@ -112,7 +139,7 @@ const InscriptionEntreprise = () => {
                   {t('login.revenir')}
                 </button>
               }
-              <button style={styles.nextButton} onClick={nextStep}>
+              <button style={styles.nextButton} onClick={handleNext}>
                 {t('login.suivant')}
                 <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: isRtl ? "scaleX(-1)" : "" }}>
                   <path fill-rule="evenodd" clip-rule="evenodd" d="M10.4393 5.93934C11.0251 5.35355 11.9749 5.35355 12.5607 5.93934L21.5607 14.9393C22.1464 15.5251 22.1464 16.4749 21.5607 17.0607L12.5607 26.0607C11.9749 26.6464 11.0251 26.6464 10.4393 26.0607C9.85355 25.4749 9.85355 24.5251 10.4393 23.9393L18.3787 16L10.4393 8.06066C9.85355 7.47487 9.85355 6.52513 10.4393 5.93934Z" fill="white" />

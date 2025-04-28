@@ -4,17 +4,17 @@
     position: relative;
 }
 
-.recherche-entreprises-line {
+.entreprises-container .recherche-entreprises-line {
     width: 100%;
     padding: 0 0.5rem;
-    min-height: 50px;
+   
     margin: 1rem 0;
     align-items: stretch;
 }
 
-.recherche-entreprises-line .recherche-entreprises-input {
+.entreprises-container .recherche-entreprises-line .recherche-entreprises-input {
     width: 100%;
-    min-height: 50px;
+   
     border-radius: 20px;
     border: 2px solid var(--border-color);
     display: flex;
@@ -93,3 +93,24 @@
     gap: 14px;
     margin-right: 8px;
 }
+
+.add-departement-success .btns-line {
+    display: flex;
+    align-self: flex-end;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.add-departement-success button {
+    padding: 5px 0;
+    background: #A67EF2;
+    width: 110px;
+    border-radius: 20px;
+    color: #fff;
+    font-weight: 500;
+}
+
+.annees-container input[type="checkbox"]:checked {
+    accent-color: #A67EF2;
+}
+
