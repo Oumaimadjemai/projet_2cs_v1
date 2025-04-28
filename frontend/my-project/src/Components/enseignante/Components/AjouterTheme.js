@@ -60,47 +60,61 @@ export const AjouterTheme = ({ annulerAjouter }) => {
 
     const [selectedYear, setSelectedYear] = useState(null);
     const [showYearOptions, setShowYearOptions] = useState(false);
-    const [showSubOptions, setShowSubOptions] = useState(null);
-    const [priorities, setPriorities] = useState({
-        '4ème': { priority1: null, priority2: null, priority3: null },
-        '5ème': { priority1: null, priority2: null, priority3: null }
-    });
+    const [priorities, setPriorities] = useState({});
     const [showPriorityMenu, setShowPriorityMenu] = useState(null);
 
-    const handleYearSelect = (yearTitle) => {
-        const selected = annees.find(a => a.title.includes(yearTitle));
+    // Initialiser les priorités quand les années changent
+    useEffect(() => {
+        const initialPriorities = {};
+        annees.forEach(annee => {
+            if (annee.has_specialite) {
+                initialPriorities[annee.id] = {
+                    priority1: null,
+                    priority2: null,
+                    priority3: null
+                };
+            }
+        });
+        setPriorities(initialPriorities);
+    }, [annees]);
 
-        if (!selected) {
-            console.error('No year found for title:', yearTitle);
-            return;
-        }
-
-        setSelectedYear(selected.title); // ou setSelectedYear(selected.id) selon ce que tu veux
+    const handleYearSelect = (annee) => {
+        setSelectedYear(annee);
         setShowYearOptions(false);
-        setShowSubOptions(null);
     };
 
-    const handlePrioritySelect = (year, priority, specialiteId) => {
-        const newPriorities = { ...priorities };
+    const handleYearWithPrioritySelect = (annee) => {
+        setSelectedYear(annee);
+    }
 
-        // Check if this id is already selected for another priority
-        for (const [key, value] of Object.entries(newPriorities[year])) {
-            if (value === specialiteId && key !== priority) {
-                newPriorities[year][key] = null;
-            }
-        }
+    useEffect(() => {
+        console.log(priorities)
+    }, [priorities])
 
-        newPriorities[year][priority] = specialiteId;
-        setPriorities(newPriorities);
+    const handlePrioritySelect = (anneeId, priority, specialiteId) => {
+        setPriorities(prev => {
+            const newPriorities = { ...prev };
+
+            // Désélectionner si déjà choisi ailleurs
+            Object.keys(newPriorities[anneeId]).forEach(key => {
+                if (newPriorities[anneeId][key] === specialiteId && key !== priority) {
+                    newPriorities[anneeId][key] = null;
+                }
+            });
+
+            newPriorities[anneeId][priority] = specialiteId;
+            return newPriorities;
+        });
         setShowPriorityMenu(null);
     };
 
-    const getAvailableSpecialites = (year, currentPriority) => {
-        const selected = priorities[year];
-        const used = Object.values(selected).filter(Boolean);
+    const getAvailableSpecialites = (anneeId, currentPriority) => {
+        const selected = priorities[anneeId] || {};
+        const usedIds = Object.values(selected).filter(Boolean);
 
-        return specialites.filter(specialite =>
-            !used.includes(specialite.id) || selected[currentPriority] === specialite.id
+        return specialites.filter(spec =>
+            !usedIds.includes(spec.id) ||
+            selected[currentPriority] === spec.id
         );
     };
 
@@ -109,40 +123,32 @@ export const AjouterTheme = ({ annulerAjouter }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const yearKey = selectedYear || showSubOptions;
-
-        let finalPriorities = [];
-
-        if (yearKey === '4ème' || yearKey === '5ème') {
-            const selectedPriorities = priorities[yearKey];
-
-            if (!selectedPriorities) {
-                console.error('Priorities not found for year:', yearKey);
-                return; // ⛔ Stop here if undefined
-            }
-
-            finalPriorities = Object.entries(selectedPriorities).map(([key, specialiteId], index) => ({
-                priorite: index + 1,
-                specialite_id: specialiteId
-            }));
-        }
+        const finalPriorities = selectedYear?.has_specialite
+            ? Object.entries(priorities[selectedYear.id] || {})
+                .filter(([_, id]) => id !== null)
+                .map(([key, id], index) => ({
+                    priorite: index + 1,
+                    specialite_id: id
+                }))
+            : [];
 
         const finalTheme = {
             ...newTheme,
             priorities: finalPriorities, // (peut être vide si pas 4ème/5ème)
+            annee_id: selectedYear.id
         };
 
         console.log(finalTheme);
 
 
-        axios.post('http://127.0.0.1:8001/themes/', finalTheme, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(() => alert('add with success'))
-            .catch((err) => console.error(err))
+        // axios.post('http://127.0.0.1:8001/themes/', finalTheme, {
+        //     headers: {
+        //         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        //         'Content-Type': 'application/json'
+        //     }
+        // })
+        //     .then(() => alert('add with success'))
+        //     .catch((err) => console.error(err))
     };
 
 
@@ -153,7 +159,6 @@ export const AjouterTheme = ({ annulerAjouter }) => {
         const handleSwitchAppearance = (e) => {
             if (anneeRef.current && !anneeRef.current.contains(e.target)) {
                 setShowYearOptions(false);
-                setShowSubOptions(null);
             }
         }
 
@@ -212,22 +217,10 @@ export const AjouterTheme = ({ annulerAjouter }) => {
         });
     };
 
-    const handleNewYearSelect = (yearTitlePart) => {
-        const selectedYear = annees.find(annee => annee.title.includes(yearTitlePart));
-
-        if (selectedYear) {
-            setNewTheme(prev => ({
-                ...prev,
-                annee_id: selectedYear.id,
-            }));
-        } else {
-            console.error("No year found matching:", yearTitlePart);
-        }
-    };
-
-    useEffect(() => {
-        console.log(priorities)
-    }, [priorities])
+    const getSpecialiteName = (id) => {
+        const specialite = specialites.find(s => s.id === id)
+        return specialite ? specialite.title : '';
+    }
 
     return (
         <div className='ajouter-theme-container'>
@@ -283,427 +276,93 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                             />
                         </div>
                         <div className="select-flex">
-                            <div className="annee-field" onClick={() => setShowYearOptions(!showYearOptions)}>
-                                {selectedYear ? selectedYear : "Année"}
-                                <svg
-                                    width="10"
-                                    height="6"
-                                    viewBox="0 0 10 6"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    style={{
-                                        position: "absolute",
-                                        right: "20px",
-                                        top: "50%",
-                                        transform: "translateY(-50%)",
-                                        pointerEvents: "none"
-                                    }}
-                                >
-                                    <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
-                                </svg>
-                                {
-                                    showYearOptions &&
-                                    <ul className="annee-options" ref={anneeRef}>
-                                        <li
-                                            style={{ borderBottom: "1px solid #D6D6D6" }}
-                                            onClick={() => { handleYearSelect('2'); handleNewYearSelect("2") }}
-                                        >2ème
-                                        </li>
-                                        <li
-                                            style={{ borderBottom: "1px solid #D6D6D6" }}
-                                            onClick={() => { handleYearSelect('3'); handleNewYearSelect("3") }}
-                                        >3ème
-                                        </li>
-                                        <li
-                                            style={{ borderBottom: "1px solid #D6D6D6", position: "relative" }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSelectedYear("4ème");
-                                                setShowSubOptions(showSubOptions === '4ème' ? null : '4ème');
-                                                handleNewYearSelect("4")
-                                            }}
-                                        >
-                                            4ème
-                                            <svg
-                                                width="10"
-                                                height="6"
-                                                viewBox="0 0 10 6"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
+                            <div className="annee-field" onClick={() => setShowYearOptions(!showYearOptions)} ref={anneeRef}>
+                                {selectedYear ? selectedYear.title : "Année"}
+                                {/* Icône flèche... */}
+
+                                {showYearOptions && (
+                                    <ul className="annee-options">
+                                        {annees.map(annee => (
+                                            <li
+                                                key={annee.id}
                                                 style={{
-                                                    position: "absolute",
-                                                    right: "10px",
-                                                    top: "50%",
-                                                    transform: "translateY(-50%) rotate(-90deg)",
-                                                    pointerEvents: "none"
+                                                    borderBottom: "1px solid #D6D6D6",
+                                                    position: annee.has_specialite ? "relative" : "static"
+                                                }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (!annee.has_specialite) {
+                                                        handleYearSelect(annee)
+                                                    } else {
+                                                        handleYearWithPrioritySelect(annee)
+                                                    }
                                                 }}
                                             >
-                                                <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
-                                            </svg>
-                                            {
-                                                showSubOptions === '4ème' &&
-                                                <ul className="sub-priorite-options">
-                                                    <li
-                                                        style={{ borderBottom: "1px solid #D6D6D6", position: "relative" }}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setShowPriorityMenu(showPriorityMenu === '4ème-priority1' ? null : '4ème-priority1');
-                                                        }}
-                                                    >
-                                                        <div style={{ width: "100%", display: "flex", alignItems: "center", position: "relative" }}>
-                                                            {priorities['4ème'].priority1 || 'Priorité 1'}
-                                                            <svg
-                                                                width="10"
-                                                                height="6"
-                                                                viewBox="0 0 10 6"
-                                                                fill="none"
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                style={{
-                                                                    position: "absolute",
-                                                                    right: "0",
-                                                                    top: "50%",
-                                                                    transform: "translateY(-50%)",
-                                                                    pointerEvents: "none"
-                                                                }}
-                                                            >
-                                                                <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
-                                                            </svg>
-                                                        </div>
-                                                        {
-                                                            showPriorityMenu === '4ème-priority1' &&
-                                                            <ul className="priorite-menu">
-                                                                {getAvailableSpecialites('4ème', 'priority1').map(specialite => (
-                                                                    <li
-                                                                        key={specialite.id}
-                                                                        style={{ cursor: 'pointer' }}
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handlePrioritySelect('4ème', 'priority1', specialite.id);
-                                                                        }}
-                                                                    >
-                                                                        {specialite.title}
-                                                                    </li>
-                                                                ))}
-                                                                <li
-                                                                    className="annuler-li"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handlePrioritySelect('4ème', 'priority1', null);
-                                                                    }}
-                                                                >
-                                                                    Annuler
-                                                                </li>
-                                                            </ul>
+                                                {annee.title}
 
-                                                        }
-                                                    </li>
-                                                    <li
-                                                        style={{ borderBottom: "1px solid #D6D6D6", position: "relative" }}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setShowPriorityMenu(showPriorityMenu === '4ème-priority2' ? null : '4ème-priority2');
-                                                        }}
-                                                    >
-                                                        <div style={{ width: "100%", display: "flex", alignItems: "center", position: "relative" }}>
-                                                            {priorities['4ème'].priority2 || 'Priorité 2'}
-                                                            <svg
-                                                                width="10"
-                                                                height="6"
-                                                                viewBox="0 0 10 6"
-                                                                fill="none"
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                style={{
-                                                                    position: "absolute",
-                                                                    right: "0",
-                                                                    top: "50%",
-                                                                    transform: "translateY(-50%)",
-                                                                    pointerEvents: "none"
-                                                                }}
-                                                            >
-                                                                <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
-                                                            </svg>
-                                                        </div>
-                                                        {
-                                                            showPriorityMenu === '4ème-priority2' &&
-                                                            <ul className="priorite-menu">
-                                                                {getAvailableSpecialites('4ème', 'priority2').map(specialite => (
-                                                                    <li
-                                                                        key={specialite.id}
-                                                                        style={{ cursor: 'pointer' }}
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handlePrioritySelect('4ème', 'priority2', specialite.id);
-                                                                        }}
-                                                                    >
-                                                                        {specialite.title}
-                                                                    </li>
-                                                                ))}
-                                                                <li
-                                                                    className="annuler-li"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handlePrioritySelect('4ème', 'priority2', null);
-                                                                    }}
-                                                                >
-                                                                    Annuler
-                                                                </li>
-                                                            </ul>
-
-                                                        }
-                                                    </li>
-                                                    <li style={{ position: "relative" }}>
-                                                        <div
-                                                            style={{ width: "100%", display: "flex", alignItems: "center", position: "relative" }}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setShowPriorityMenu(showPriorityMenu === '4ème-priority3' ? null : '4ème-priority3');
+                                                {annee.has_specialite && (
+                                                    <>
+                                                        {/* Icône flèche pour les années avec spécialité */}
+                                                        <svg
+                                                            width="10"
+                                                            height="6"
+                                                            viewBox="0 0 10 6"
+                                                            style={{
+                                                                position: "absolute",
+                                                                right: "10px",
+                                                                top: "50%",
+                                                                transform: "translateY(-50%) rotate(-90deg)",
+                                                                pointerEvents: "none"
                                                             }}
                                                         >
-                                                            {priorities['4ème'].priority3 || 'Priorité 3'}
-                                                            <svg
-                                                                width="10"
-                                                                height="6"
-                                                                viewBox="0 0 10 6"
-                                                                fill="none"
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                style={{
-                                                                    position: "absolute",
-                                                                    right: "0",
-                                                                    top: "50%",
-                                                                    transform: "translateY(-50%)",
-                                                                    pointerEvents: "none"
-                                                                }}
-                                                            >
-                                                                <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
-                                                            </svg>
-                                                        </div>
-                                                        {
-                                                            showPriorityMenu === '4ème-priority3' &&
-                                                            <ul className="priorite-menu">
-                                                                {getAvailableSpecialites('4ème', 'priority3').map(specialite => (
-                                                                    <li
-                                                                        key={specialite.id}
-                                                                        style={{ cursor: 'pointer' }}
-                                                                        onClick={(e) => {
+                                                            <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
+                                                        </svg>
+
+                                                        {/* Menu des priorités */}
+                                                        {selectedYear?.id === annee.id && (
+                                                            <ul className="sub-priorite-options">
+                                                                {[1, 2, 3].map(num => (
+                                                                    <li key={num} style={{ position: "relative" }}>
+                                                                        <div onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            handlePrioritySelect('4ème', 'priority3', specialite.id);
-                                                                        }}
-                                                                    >
-                                                                        {specialite.title}
+                                                                            setShowPriorityMenu(`${annee.id}-priority${num}`);
+                                                                        }}>
+                                                                            {priorities[annee.id]?.[`priority${num}`]
+                                                                                ? `Priorité ${num}: ${getSpecialiteName(priorities[annee.id][`priority${num}`])}`
+                                                                                : `Priorité ${num}`}
+                                                                            {/* Icône flèche... */}
+                                                                        </div>
+
+                                                                        {showPriorityMenu === `${annee.id}-priority${num}` && (
+                                                                            <ul className="priorite-menu">
+                                                                                {getAvailableSpecialites(annee.id, `priority${num}`).map(specialite => (
+                                                                                    <li key={specialite.id} onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        handlePrioritySelect(annee.id, `priority${num}`, specialite.id);
+                                                                                    }}>
+                                                                                        {specialite.title}
+                                                                                    </li>
+                                                                                ))}
+                                                                                <li
+                                                                                    className="annuler-li"
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        handlePrioritySelect(annee.id, `priority${num}`, null);
+                                                                                    }}>
+                                                                                    Annuler
+                                                                                </li>
+                                                                            </ul>
+                                                                        )}
                                                                     </li>
                                                                 ))}
-                                                                <li
-                                                                    className="annuler-li"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handlePrioritySelect('4ème', 'priority3', null);
-                                                                    }}
-                                                                >
-                                                                    Annuler
-                                                                </li>
                                                             </ul>
-
-                                                        }
-                                                    </li>
-                                                </ul>
-                                            }
-                                        </li>
-                                        <li
-                                            style={{ position: "relative" }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSelectedYear("5ème");
-                                                setShowSubOptions(showSubOptions === '5ème' ? null : '5ème');
-                                                handleNewYearSelect("5")
-                                            }}
-                                        >
-                                            5ème
-                                            <svg
-                                                width="10"
-                                                height="6"
-                                                viewBox="0 0 10 6"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                style={{
-                                                    position: "absolute",
-                                                    right: "10px",
-                                                    top: "50%",
-                                                    transform: "translateY(-50%) rotate(-90deg)",
-                                                    pointerEvents: "none"
-                                                }}
-                                            >
-                                                <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
-                                            </svg>
-                                            {
-                                                showSubOptions === '5ème' &&
-                                                <ul className="sub-priorite-options">
-                                                    <li
-                                                        style={{ borderBottom: "1px solid #D6D6D6", position: "relative" }}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setShowPriorityMenu(showPriorityMenu === '5ème-priority1' ? null : '5ème-priority1');
-                                                        }}
-                                                    >
-                                                        <div style={{ width: "100%", display: "flex", alignItems: "center", position: "relative" }}>
-                                                            {priorities['5ème'].priority1 || 'Priorité 1'}
-                                                            <svg
-                                                                width="10"
-                                                                height="6"
-                                                                viewBox="0 0 10 6"
-                                                                fill="none"
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                style={{
-                                                                    position: "absolute",
-                                                                    right: "0",
-                                                                    top: "50%",
-                                                                    transform: "translateY(-50%)",
-                                                                    pointerEvents: "none"
-                                                                }}
-                                                            >
-                                                                <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
-                                                            </svg>
-                                                        </div>
-                                                        {
-                                                            showPriorityMenu === '5ème-priority1' &&
-                                                            <ul className="priorite-menu">
-                                                                {getAvailableSpecialites('5ème', 'priority1').map(specialite => (
-                                                                    <li
-                                                                        key={specialite.id}
-                                                                        style={{ cursor: 'pointer' }}
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handlePrioritySelect('5ème', 'priority1', specialite.id);
-                                                                        }}
-                                                                    >
-                                                                        {specialite.title}
-                                                                    </li>
-                                                                ))}
-                                                                <li
-                                                                    className="annuler-li"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handlePrioritySelect('5ème', 'priority1', null);
-                                                                    }}
-                                                                >
-                                                                    Annuler
-                                                                </li>
-                                                            </ul>
-
-                                                        }
-                                                    </li>
-                                                    <li
-                                                        style={{ borderBottom: "1px solid #D6D6D6", position: "relative" }}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setShowPriorityMenu(showPriorityMenu === '5ème-priority2' ? null : '5ème-priority2');
-                                                        }}
-                                                    >
-                                                        <div style={{ width: "100%", display: "flex", alignItems: "center", position: "relative" }}>
-                                                            {priorities['5ème'].priority2 || 'Priorité 2'}
-                                                            <svg
-                                                                width="10"
-                                                                height="6"
-                                                                viewBox="0 0 10 6"
-                                                                fill="none"
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                style={{
-                                                                    position: "absolute",
-                                                                    right: "0",
-                                                                    top: "50%",
-                                                                    transform: "translateY(-50%)",
-                                                                    pointerEvents: "none"
-                                                                }}
-                                                            >
-                                                                <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
-                                                            </svg>
-                                                        </div>
-                                                        {
-                                                            showPriorityMenu === '5ème-priority2' &&
-                                                            <ul className="priorite-menu">
-                                                                {getAvailableSpecialites('5ème', 'priority2').map(specialite => (
-                                                                    <li
-                                                                        key={specialite.id}
-                                                                        style={{ cursor: 'pointer' }}
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handlePrioritySelect('5ème', 'priority2', specialite.id);
-                                                                        }}
-                                                                    >
-                                                                        {specialite.title}
-                                                                    </li>
-                                                                ))}
-                                                                <li
-                                                                    className="annuler-li"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handlePrioritySelect('5ème', 'priority2', null);
-                                                                    }}
-                                                                >
-                                                                    Annuler
-                                                                </li>
-                                                            </ul>
-
-                                                        }
-                                                    </li>
-                                                    <li style={{ position: "relative" }}>
-                                                        <div
-                                                            style={{ width: "100%", display: "flex", alignItems: "center", position: "relative" }}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setShowPriorityMenu(showPriorityMenu === '5ème-priority3' ? null : '5ème-priority3');
-                                                            }}
-                                                        >
-                                                            {priorities['5ème'].priority3 || 'Priorité 3'}
-                                                            <svg
-                                                                width="10"
-                                                                height="6"
-                                                                viewBox="0 0 10 6"
-                                                                fill="none"
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                style={{
-                                                                    position: "absolute",
-                                                                    right: "0",
-                                                                    top: "50%",
-                                                                    transform: "translateY(-50%)",
-                                                                    pointerEvents: "none"
-                                                                }}
-                                                            >
-                                                                <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
-                                                            </svg>
-                                                        </div>
-                                                        {
-                                                            showPriorityMenu === '5ème-priority3' &&
-                                                            <ul className="priorite-menu">
-                                                                {getAvailableSpecialites('5ème', 'priority3').map(specialite => (
-                                                                    <li
-                                                                        key={specialite.id}
-                                                                        style={{ cursor: 'pointer' }}
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handlePrioritySelect('5ème', 'priority3', specialite.id);
-                                                                        }}
-                                                                    >
-                                                                        {specialite.title}
-                                                                    </li>
-                                                                ))}
-                                                                <li
-                                                                    className="annuler-li"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handlePrioritySelect('5ème', 'priority3', null);
-                                                                    }}
-                                                                >
-                                                                    Annuler
-                                                                </li>
-                                                            </ul>
-
-                                                        }
-                                                    </li>
-                                                </ul>
-                                            }
-                                        </li>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </li>
+                                        ))}
                                     </ul>
-                                }
+                                )}
                             </div>
                             <input
                                 type="number"

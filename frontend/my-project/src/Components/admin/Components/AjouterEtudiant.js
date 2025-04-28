@@ -135,7 +135,7 @@ export const AjouterEtudiant = ({ annulerAjouter, handleDraftSave }) => {
     useEffect(() => {
         const selectedAnnee = annees.find(a => a.id === newStudent.annee_etude);
 
-        const isValid = selectedAnnee?.title?.includes("4") || selectedAnnee?.title?.includes("5");
+        const isValid = selectedAnnee?.has_specialite
         setIsHasSpecialilte(isValid);
         console.log("Selected annee:", selectedAnnee?.title, "| isValid:", isValid);
     }, [newStudent.annee_etude, annees]);

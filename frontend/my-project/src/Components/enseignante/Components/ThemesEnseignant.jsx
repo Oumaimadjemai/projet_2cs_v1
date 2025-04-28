@@ -9,6 +9,7 @@ import { AjouterTheme } from './AjouterTheme';
 import { AppContext } from '../../../App';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function ThemesEnseignant() {
 
@@ -17,6 +18,20 @@ function ThemesEnseignant() {
     const { t } = useTranslation();
 
     const [themes, setThemes] = useState([]);
+    const [annees, setAnnees] = useState([])
+    const [specialites, setSpecialites] = useState([])
+
+    useEffect(() => {
+
+        axios.get('http://127.0.0.1:8000/annees/')
+            .then((res) => setAnnees(res.data))
+            .catch((err) => console.error("Erreur Axios :", err))
+
+        axios.get('http://127.0.0.1:8000/specialites/')
+            .then((res) => setSpecialites(res.data))
+            .catch((err) => console.error("Erreur Axios :", err))
+
+    }, [])
 
     useEffect(() => {
         axios.get(`http://127.0.0.1:8001/themes/enseignant/${localStorage.getItem('user_id')}/`)
@@ -37,7 +52,7 @@ function ThemesEnseignant() {
                             console.error(`Erreur récupération année pour le thème ${theme.id}`, error);
                             return {
                                 ...theme,
-                                annee_titre: null, 
+                                annee_titre: null,
                             };
                         }
                     })
@@ -73,13 +88,27 @@ function ThemesEnseignant() {
         setFilterSelected(filterSelected === filter ? "clicked" : filter)
     }
 
-    const [selectedAnnee, setSelectedAnnee] = useState(null);
+    const [selectedAnnee, setSelectedAnnee] = useState({
+        id: null,
+        title: "",
+        has_specialite: false
+    });
     const [selectedSpecialite, setSelectedSpecialite] = useState(null);
 
     const filteredThemes = themes.filter(theme => {
-        return (!selectedAnnee || theme.annee === selectedAnnee) &&
-            (!selectedSpecialite || theme.specialite === selectedSpecialite)
+        // Filter by selected 'annee_id'
+        const isAnneeMatch = !selectedAnnee.id || theme.annee_id === selectedAnnee.id;
+    
+        // Filter by selected 'specialite_id' considering priority
+        const isSpecialiteMatch = !selectedSpecialite || 
+            theme.priorities.some(priority => 
+                priority.specialite_id === selectedSpecialite && priority.priorite === 1
+            );
+    
+        return isAnneeMatch && isSpecialiteMatch;
     });
+    
+    
 
 
     const [ajouterThemeClicked, setAjouterThemeClicked] = useState(false);
@@ -93,7 +122,7 @@ function ThemesEnseignant() {
                 <div className="btns-title-container">
                     <div className="link">
                         <h1 style={{ fontSize: "1.6rem", fontWeight: "600", color: "#4F4F4F" }}>
-                            Tous les Thèmes  <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>9</span>
+                            Tous les Thèmes  <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>{themes.length}</span>
                         </h1>
                     </div>
                     <div className="themes-btns">
@@ -128,26 +157,25 @@ function ThemesEnseignant() {
                                         {
                                             filterSelected === "annee" &&
                                             <ul className='sub-filter-ul'>
-                                                <li onClick={() => setSelectedAnnee("2ème")}>2 ème</li>
-                                                <li onClick={() => setSelectedAnnee("3ème")}>3 ème</li>
-                                                <li onClick={() => setSelectedAnnee("4ème")}>4 ème</li>
-                                                <li onClick={() => setSelectedAnnee("5ème")}>5 ème</li>
+                                                {annees.map((annee) => (
+                                                    <li style={{minWidth: "250px !important"}} onClick={() => setSelectedAnnee({...selectedAnnee, id:annee.id, title: annee.title, has_specialite: annee.has_specialite})}>{annee.title}</li>
+                                                ))}
                                             </ul>
                                         }
                                     </li>
                                     <li
-                                        id={!["4ème", "5ème"].includes(selectedAnnee) ? 'disabled-filter' : ''}
+                                        id={!(selectedAnnee.title.includes("4") || selectedAnnee.title.includes("5")) ? 'disabled-filter' : ''}
                                         onClick={() => toggleFilter("specialite")}
                                     >
                                         Spécialité
                                         <ArrowIcon />
                                         {
-                                            filterSelected === "specialite" && ["4ème", "5ème"].includes(selectedAnnee) &&
+                                            filterSelected === "specialite" && (selectedAnnee.has_specialite) &&
                                             <ul className='sub-filter-ul'>
-                                                <li onClick={() => setSelectedSpecialite("SIW")}>SIW</li>
-                                                <li onClick={() => setSelectedSpecialite("ISI")}>ISI</li>
-                                                <li onClick={() => setSelectedSpecialite("IASD")}>IASD</li>
-                                            </ul>
+                                            {specialites.map((specialite) => (
+                                                <li onClick={() => setSelectedSpecialite(specialite.id)}>{specialite.title}</li>
+                                            ))}
+                                        </ul>
                                         }
                                     </li>
                                     <li onClick={() => toggleFilter("etat")}>
@@ -175,7 +203,7 @@ function ThemesEnseignant() {
                 <div className="themes-cards-container">
                     {
                         filteredThemes.map((theme) => (
-                            <ThemeCard title={theme.titre} annee={theme.annee_titre} specialite={theme.specialite} valide={theme.valide} refus={theme.reserve} />
+                            <ThemeCard id={theme.id} title={theme.titre} annee={theme.annee_titre} specialite={theme.specialite} valide={theme.valide} refus={theme.reserve} />
                         ))
                     }
                 </div>
@@ -206,10 +234,11 @@ function ThemesEnseignant() {
 
 export default ThemesEnseignant
 
-const ThemeCard = ({ title, annee, specialite, valide, refus}) => {
+const ThemeCard = ({ id, title, annee, specialite, valide, refus }) => {
 
     const [dropClicked, setDropClicked] = useState(false)
     const dropRef = useRef('')
+    const navigate = useNavigate();
 
     useEffect(() => {
 
@@ -227,7 +256,7 @@ const ThemeCard = ({ title, annee, specialite, valide, refus}) => {
     }, [])
 
     return (
-        <div className="theme-card">
+        <div className="theme-card" onClick={navigate(`enseignant/themes/${id}`)}>
             <img src={pdfImage} alt="theme pdf" />
             <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: "800", fontSize: "1.3rem", marginTop: "0.5rem", width: "90%", textAlign: "center" }}>
                 {title}

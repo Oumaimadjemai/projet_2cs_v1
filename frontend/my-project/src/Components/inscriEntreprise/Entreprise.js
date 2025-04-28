@@ -6,51 +6,71 @@ import { useTranslation } from 'react-i18next';
 import { InscriContext } from "./inscriEntreprise";
 
 const Entreprise = ({ onValidationChange }) => {
-  const [nom, setNom] = useState("");
-  const [secteur, setSecteur] = useState("");
-  const [selectedWilaya, setSelectedWilaya] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
-  const [adresse, setAdresse] = useState("");
-  const [siteWeb, setSiteWeb] = useState("");
+  const { entreprise, setEntreprise } = useContext(InscriContext);
+  const { t } = useTranslation();
 
   useEffect(() => {
-    const isValid = nom && secteur && selectedWilaya && selectedCity && adresse && siteWeb;
+    const isValid = entreprise.nom && entreprise.secteur_activite && entreprise.wilaya && entreprise.ville && entreprise.adresse;
     onValidationChange(isValid);
-  }, [nom, secteur, selectedWilaya, selectedCity, adresse, siteWeb, onValidationChange]);
+  }, [entreprise, onValidationChange]);
 
-  const {t} = useTranslation();
-
-  const { entreprise, setEntreprise } = useContext(InscriContext);
   return (
     <form>
       <div style={styles.formGroup}>
         <div style={styles.inputContainer}>
           <label style={styles.label}>{t('login.nomInput')}</label>
-          <input type="text" placeholder={t('login.nomPlaceholder')} className="input-inscription" required style={styles.input} 
-            value={nom} onChange={(e) => setEntreprise(e.target.value)} />
+          <input
+            type="text"
+            placeholder={t('login.nomPlaceholder')}
+            className="input-inscription"
+            required
+            style={styles.input}
+            value={entreprise.nom}
+            onChange={(e) => setEntreprise(prev => ({ ...prev, nom: e.target.value }))}
+          />
         </div>
         <div style={styles.inputContainer}>
           <label style={styles.label}>{t('login.secteurInput')}</label>
-          <input type="text" placeholder={t('login.secteurInput')} className="input-inscription" required style={styles.input} 
-            value={secteur} onChange={(e) => setSecteur(e.target.value)} />
+          <input
+            type="text"
+            placeholder={t('login.secteurInput')}
+            className="input-inscription"
+            required
+            style={styles.input}
+            value={entreprise.secteur_activite}
+            onChange={(e) => setEntreprise(prev => ({ ...prev, secteur_activite: e.target.value }))}
+          />
         </div>
       </div>
 
       <div style={styles.formGroup}>
         <div style={styles.inputContainer}>
           <label style={styles.label}>{t('login.wilayaInput')}</label>
-          <select value={selectedWilaya} onChange={(e) => { setSelectedWilaya(e.target.value); setSelectedCity(""); }} className="input-inscription" required style={styles.input}>
+          <select
+            value={entreprise.wilaya}
+            onChange={(e) => setEntreprise(prev => ({ ...prev, wilaya: e.target.value, ville: "" }))}
+            className="input-inscription"
+            required
+            style={styles.input}
+          >
             <option value="">{t('login.wilayaPlaceholder')}</option>
             {Object.entries(wilayas).map(([code, wilaya]) => (
               <option key={code} value={code}>{wilaya.name}</option>
             ))}
           </select>
         </div>
+
         <div style={styles.inputContainer}>
           <label style={styles.label}>{t('login.villeInput')}</label>
-          <select value={selectedCity} className="input-inscription" onChange={(e) => setSelectedCity(e.target.value)} required style={styles.input}>
+          <select
+            value={entreprise.ville}
+            onChange={(e) => setEntreprise(prev => ({ ...prev, ville: e.target.value }))}
+            className="input-inscription"
+            required
+            style={styles.input}
+          >
             <option value="">{t('login.villePlaceholder')}</option>
-            {selectedWilaya && wilayas[selectedWilaya].cities.map((city, index) => (
+            {entreprise.wilaya && wilayas[entreprise.wilaya]?.cities.map((city, index) => (
               <option key={index} value={city}>{city}</option>
             ))}
           </select>
@@ -59,14 +79,28 @@ const Entreprise = ({ onValidationChange }) => {
 
       <div style={{ ...styles.inputContainer, ...styles.fullWidth }}>
         <label style={styles.label}>{t('login.adresseInput')}</label>
-        <input type="text" placeholder="Rue Didouche Mourad..." className="input-inscription" required style={styles.input} 
-          value={adresse} onChange={(e) => setAdresse(e.target.value)} />
+        <input
+          type="text"
+          placeholder="Rue Didouche Mourad..."
+          className="input-inscription"
+          required
+          style={styles.input}
+          value={entreprise.adresse}
+          onChange={(e) => setEntreprise(prev => ({ ...prev, adresse: e.target.value }))}
+        />
       </div>
 
       <div style={{ ...styles.inputContainer, ...styles.fullWidth }}>
         <label style={styles.label}>{t('login.siteInput')}</label>
-        <input type="text" placeholder="www.techinnovdz.com" className="input-inscription" required style={styles.input} 
-          value={siteWeb} onChange={(e) => setSiteWeb(e.target.value)} />
+        <input
+          type="text"
+          placeholder="www.techinnovdz.com"
+          className="input-inscription"
+          required
+          style={styles.input}
+          value={entreprise.site_web}
+          onChange={(e) => setEntreprise(prev => ({ ...prev, site_web: e.target.value }))}
+        />
       </div>
     </form>
   );

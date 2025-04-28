@@ -13,7 +13,6 @@ import { useTranslation, Trans } from 'react-i18next';
 export const ScolariteLayout = () => {
     return (
         <div className='parametres-scolarite-container' id='dynamic-liste'>
-            <DecoEsi />
             <Outlet />
         </div>
     )

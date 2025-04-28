@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../Styles/Parametres.css'
 import { ReactComponent as EditIcon } from '../../../Assets/Icons/edit.svg';
 import { ReactComponent as DeleteIcon } from '../../../Assets/Icons/Delete.svg';
@@ -166,10 +166,11 @@ export const Departements = () => {
         <div className='departements-container'>
             <div className="departements-wrapper">
                 <div className="title-line">
-                    <h3 style={{ fontSize: "1.05rem", fontWeight: "400", color: "#727272", }}>
+                    <h3 style={{ fontSize: "1.05rem", fontWeight: "400", color: "#727272", userSelect: "none" }}>
                         <Trans i18nKey={"parametresPage.departementLink"}>
-                            Paramètres &gt; Paramètres Scolarité &gt; <span style={{ color: "#925FE2" }}>Départements</span>
+                            Paramètres &gt; <Link to={'/admin/scolarite'} className='return-to-scolarite'> Paramètres Scolarité </Link>
                         </Trans>
+                        <span style={{ color: "#925FE2" }}>{t('parametresPage.departements')}</span>
                     </h3>
                     <button className="precedent-btn" onClick={() => navigate('/admin/scolarite')}>
                         <CircleArrowIcon className={`${isRtl ? "rtl-icon" : ""}`} />
@@ -560,9 +561,10 @@ export const Salles = () => {
             <div className="salles-wrapper">
                 <div className="title-line">
                     <h3 style={{ fontSize: "1.05rem", fontWeight: "400", color: "#727272", }}>
-                        <Trans i18nKey={"parametresPage.sallesLink"}>
-                            Paramètres &gt; Paramètres Scolarité &gt; <span style={{ color: "#925FE2" }}>Salles</span>
+                        <Trans i18nKey={"parametresPage.departementLink"}>
+                            Paramètres &gt; <Link to={'/admin/scolarite'} className='return-to-scolarite'> Paramètres Scolarité </Link>
                         </Trans>
+                        <span style={{ color: "#925FE2" }}>{t('parametresPage.salles')}</span>
                     </h3>
                     <button className="precedent-btn" onClick={() => navigate('/admin/scolarite')}>
                         <CircleArrowIcon className={`${isRtl ? "rtl-icon" : ""}`} />
@@ -1022,9 +1024,10 @@ export const Specialites = () => {
             <div className="specialites-wrapper">
                 <div className="title-line">
                     <h3 style={{ fontSize: "1.05rem", fontWeight: "400", color: "#727272", }}>
-                        <Trans i18nKey={"parametresPage.specialteLink"}>
-                            Paramètres &gt; Paramètres Scolarité &gt; <span style={{ color: "#925FE2" }}>Spécialitiés </span>
+                        <Trans i18nKey={"parametresPage.departementLink"}>
+                            Paramètres &gt; <Link to={'/admin/scolarite'} className='return-to-scolarite'> Paramètres Scolarité </Link>
                         </Trans>
+                        <span style={{ color: "#925FE2" }}>{t('parametresPage.specialites')}</span>
                     </h3>
                     <button className="precedent-btn" onClick={() => navigate('/admin/scolarite')}>
                         <CircleArrowIcon className={`${isRtl ? "rtl-icon" : ""}`} />
@@ -1232,7 +1235,8 @@ export const Annees = () => {
 
     const [newAnne, setNewAnne] = useState({
         title: "",
-        departement: 0
+        departement: 0,
+        has_specialite: false
     });
 
     const AddAnnee = (e) => {
@@ -1241,7 +1245,7 @@ export const Annees = () => {
             alert("Title cannot be empty");
             return;
         }
-        console.log(newAnne.departement)
+        console.log(newAnne.has_specialite)
         setNewAnnees(prev => [...prev, newAnne]);
         console.log(newAnnees)
         setNewAnne({ title: "", departement: 0 });
@@ -1270,7 +1274,8 @@ export const Annees = () => {
         title: "",
         type: "unknown",
         departement: 0,
-        index: 0
+        index: 0,
+        has_specialite: false
     });
 
     const handlemodifie = (e) => {
@@ -1279,7 +1284,8 @@ export const Annees = () => {
             axios.put(`http://127.0.0.1:8000/annees/${modifieddAnnee.id}/`, {
                 id: modifieddAnnee.id,
                 title: modifieddAnnee.title,
-                departement: modifieddAnnee.departement
+                departement: modifieddAnnee.departement,
+                has_specialite: modifieddAnnee.has_specialite
             })
                 .then(() => {
                     setAnnees(prevAnnees =>
@@ -1304,18 +1310,27 @@ export const Annees = () => {
     const [confirmModifie, setConfirmModifie] = useState(false);
 
     const annulerModifier = (e) => {
-        e.preventDefault()
+        e.preventDefault();
         setModifieClicked(false);
+
         setModifyAnnee({
             id: null,
             title: "",
             type: "unknown",
             departement: 0,
-            index: 0
+            index: 0,
+            has_specialite: false
         });
-        setNewAnne({ title: "", departement: 0 })
-        setConfirmModifie(false)
-    }
+
+        setNewAnne({
+            title: "",
+            departement: 0,
+            has_specialite: false
+        });
+
+        setConfirmModifie(false);
+    };
+
 
     const [deletedAnnee, setDeletedAnnee] = useState({
         id: null,
@@ -1362,9 +1377,10 @@ export const Annees = () => {
             <div className="annees-wrapper">
                 <div className="title-line">
                     <h3 style={{ fontSize: "1.05rem", fontWeight: "400", color: "#727272", }}>
-                        <Trans i18nKey={"parametresPage.anneeLink"}>
-                            Paramètres &gt; Paramètres Scolarité &gt; <span style={{ color: "#925FE2" }}>Années</span>
+                        <Trans i18nKey={"parametresPage.departementLink"}>
+                            Paramètres &gt; <Link to={'/admin/scolarite'} className='return-to-scolarite'> Paramètres Scolarité </Link>
                         </Trans>
+                        <span style={{ color: "#925FE2" }}>{t('parametresPage.annees')}</span>
                     </h3>
                     <button className="precedent-btn" onClick={() => navigate('/admin/scolarite')}>
                         <CircleArrowIcon className={`${isRtl ? "rtl-icon" : ""}`} />
@@ -1390,7 +1406,7 @@ export const Annees = () => {
                                 type="text"
                                 className='common-input'
                                 style={{
-                                    flex: "0 0 54%"
+                                    flex: "0 0 29%"
                                 }}
                                 placeholder={t('parametresPage.anneeInputPlaceholder')}
                                 value={modifieddAnnee.id !== null ? modifieddAnnee.title : newAnne.title}
@@ -1443,6 +1459,36 @@ export const Annees = () => {
                                     <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
                                 </svg>
                             </div>
+                            <div
+                                type="text"
+                                className='common-input'
+                                style={{
+                                    flex: "0 0 25%",
+                                    display: "flex",
+                                    alignItems: 'center',
+                                    gap: "9px"
+                                }}
+                            >
+                                <input
+                                    type="checkbox"
+                                    key={modifieddAnnee.id !== null ? modifieddAnnee.has_specialite : newAnne.has_specialite}  // Utiliser `key` pour forcer un rerender
+                                    checked={modifieddAnnee.id !== null ? modifieddAnnee.has_specialite : newAnne.has_specialite}
+                                    onChange={(e) => {
+                                        if (modifieddAnnee?.id !== null) {
+                                            setModifyAnnee({ ...modifieddAnnee, has_specialite: e.target.checked });
+                                        } else {
+                                            setNewAnne({ ...newAnne, has_specialite: e.target.checked });
+                                        }
+                                    }}
+                                    style={{
+                                        width: "20px",
+                                        height: "20px"
+                                    }}
+                                    required
+                                />
+
+                                <label style={{ fontSize: "0.9rem", fontFamily: "Kumbh Sans, sans-serif", color: "#8A8A8A" }}>Année avec spécialités ?</label>
+                            </div>
                             <button
                                 className='annuler-button'
                                 style={{
@@ -1485,19 +1531,24 @@ export const Annees = () => {
                                         className={`annee-line ${selectedAnnee === index ? "selected" : ""}`}
                                         onClick={() => toggleAnnee(index)}
                                     >
-                                        <span style={{ fontSize: "0.9rem", flex: "0 0 45%" }}>
+                                        <span style={{ fontSize: "0.9rem", flex: "0 0 28%" }}>
                                             {annee.title}
                                         </span>
-                                        <span style={{ fontSize: "0.9rem", flex: 1, textIndent: "1.5rem", }}>
+                                        <span style={{ fontSize: "0.9rem", textIndent: "0.5rem", flex: "0 0 20%" }}>
                                             {
                                                 departements.find(dep => dep.id === annee.departement)?.title || "Département inconnu"
+                                            }
+                                        </span>
+                                        <span style={{ fontSize: "0.9rem", flex: 1, textIndent: "0.5rem" }}>
+                                            {
+                                                annee.has_specialite ? "Oui" : "Non"
                                             }
                                         </span>
                                         <div className="line-btns">
                                             <button
                                                 onClick={() => {
                                                     setNewAnne({ title: "", departement: 0 })
-                                                    setModifyAnnee({ ...modifieddAnnee, id: annee.id, title: annee.title, type: "exist", index: index, departement: annee.departement });
+                                                    setModifyAnnee({ ...modifieddAnnee, id: annee.id, title: annee.title, type: "exist", index: index, departement: annee.departement, has_specialite: annee.has_specialite });
                                                     setModifieClicked(true);
                                                 }}
                                             >
@@ -1523,19 +1574,24 @@ export const Annees = () => {
                                         className={`annee-line ${selectedAnnee === index ? "selected" : ""}`}
                                         onClick={() => toggleAnnee(index)}
                                     >
-                                        <span style={{ fontSize: "0.9rem", flex: "0 0 45%" }}>
+                                        <span style={{ fontSize: "0.9rem", flex: "0 0 28%" }}>
                                             {annee.title}
                                         </span>
-                                        <span style={{ fontSize: "0.9rem", flex: 1, textIndent: "1.5rem", }}>
+                                        <span style={{ fontSize: "0.9rem", textIndent: "0.5rem", flex: "0 0 20%" }}>
                                             {
                                                 departements.find(dep => dep.id === annee.departement)?.title || "Département inconnu"
+                                            }
+                                        </span>
+                                        <span style={{ fontSize: "0.9rem", flex: 1, textIndent: "0.5rem" }}>
+                                            {
+                                                annee.has_specialite ? "Oui" : "Non"
                                             }
                                         </span>
                                         <div className="line-btns">
                                             <button
                                                 onClick={() => {
                                                     setNewAnne({ title: "", departement: 0 })
-                                                    setModifyAnnee({ ...modifieddAnnee, id: "modify", title: annee.title, type: "no-exist", index: index, departement: annee.departement });
+                                                    setModifyAnnee({ ...modifieddAnnee, id: "modify", title: annee.title, type: "no-exist", index: index, departement: annee.departement, has_specialite: annee.has_specialite });
                                                     setModifieClicked(true);
                                                 }}
                                             >

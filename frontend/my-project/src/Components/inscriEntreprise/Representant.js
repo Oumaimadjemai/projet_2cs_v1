@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext} from "react";
+import React, { useState, useEffect, useContext } from "react";
 import './InscriptionEntreprise.css'
 import '../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
@@ -7,7 +7,7 @@ import { InscriContext } from "./inscriEntreprise";
 const InscriptionRepresentant = ({ onValidationChange }) => {
 
   const { entreprise, setEntreprise } = useContext(InscriContext);
-  
+
   const [formData, setFormData] = useState({
     nom: "",
     prenom: "",
@@ -16,8 +16,17 @@ const InscriptionRepresentant = ({ onValidationChange }) => {
     telephone: "",
   });
   const [errors, setErrors] = useState({});
-
+  
   useEffect(() => {
+    setEntreprise(prev => ({
+      ...prev,
+      representant_nom: formData.nom,
+      representant_prenom: formData.prenom,
+      representant_poste: formData.poste,
+      representant_email: formData.email,
+      representant_telephone: formData.telephone,
+    }));
+
     const isValid =
       formData.nom.trim() !== "" &&
       formData.prenom.trim() !== "" &&
@@ -26,7 +35,8 @@ const InscriptionRepresentant = ({ onValidationChange }) => {
       /^0[567][0-9]{8}$/.test(formData.telephone);
 
     onValidationChange(isValid);
-  }, [formData, onValidationChange]);
+  }, [formData, onValidationChange, setEntreprise]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
