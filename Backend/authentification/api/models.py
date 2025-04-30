@@ -156,7 +156,7 @@ class Entreprise(models.Model):
 
     # Informations du représentant
     representant_nom = models.CharField(max_length=255)
-    representant_prenom = models.CharField(max_length=255)
+    representant_prenom = models.CharField(max_length=255,null=True)
     representant_poste = models.CharField(max_length=255)
     representant_email = models.EmailField(unique=True)
     representant_telephone = models.CharField(max_length=20)

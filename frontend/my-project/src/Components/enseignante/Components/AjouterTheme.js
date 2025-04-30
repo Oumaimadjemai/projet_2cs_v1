@@ -141,14 +141,14 @@ export const AjouterTheme = ({ annulerAjouter }) => {
         console.log(finalTheme);
 
 
-        // axios.post('http://127.0.0.1:8001/themes/', finalTheme, {
-        //     headers: {
-        //         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        //         'Content-Type': 'application/json'
-        //     }
-        // })
-        //     .then(() => alert('add with success'))
-        //     .catch((err) => console.error(err))
+        axios.post('http://127.0.0.1:8001/themes/', finalTheme, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(() => alert('add with success'))
+            .catch((err) => console.error(err))
     };
 
 
