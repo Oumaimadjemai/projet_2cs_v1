@@ -46,18 +46,16 @@ function App() {
           <Route path="notifications" element={<h1>notifications</h1>} />
         </Route>
 
-          <Route path="/enseignant" element={<EnseignantLayout />} >
-            <Route index element={<ThemesEnseignant />} />
-            <Route path="groupes" element={<GroupesEnseignant />} />
-            <Route path="groupes/:id" element={<GroupeDetail />} />
-            <Route path="themes/:id" element={<ThemeAdmin />} />
-          </Route>
-          <Route path="/etudiant" element={<EtudiantLayout />} >
-            <Route index element={<Dashboard />} />
-            <Route path="groupes" element={<Groupes />} />
-            <Route path="invitations" element={<Invitations />} />
-            <Route path="group/:groupId/select-theme" element={<Themeselectionform  />} />
-          </Route>
+        <Route path="/enseignant" element={<Enseignanteinterface />} ></Route>
+        <Route path="/etudiant" element={<EtudiantLayout />} >
+        <Route index element={<Dashboard />} />
+
+        {/* <Route path="dashboard" element={<Themeselectionform  />} /> */}
+        <Route path="groupes" element={<Groupes />} />
+        <Route path="invitations" element={<Invitations />} />
+        <Route path="group/:groupId/select-theme" element={<Themeselectionform  />} />
+
+        </Route>
 
         <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
         <Route><Route path="/login" element={<Login />} /></Route>
