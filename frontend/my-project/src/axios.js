@@ -32,10 +32,14 @@ const nodeAPI = 'http://localhost:3000/api'; // URL de votre serveur Node
 const axiosInstance = axios.create({
   baseURL: baseURL,
   timeout: 60000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
+  headers:{
+    
+    Authorization:localStorage.getItem('access_token')
+    ? 'JWT ' + localStorage.getItem('access_token')
+    : null,
+    'Content-Type':'application/json',
+     Accept:'application/json'    
+},
 });
 
 // Intercepteur pour les requêtes Django
@@ -82,10 +86,14 @@ axiosInstance.interceptors.response.use(
 export const nodeAxios = axios.create({
   baseURL: nodeAPI,
   timeout: 60000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
+  headers:{
+    
+    Authorization:localStorage.getItem('access_token')
+    ? 'JWT ' + localStorage.getItem('access_token')
+    : null,
+    'Content-Type':'application/json',
+     Accept:'application/json'    
+},
 });
 
 nodeAxios.interceptors.request.use((config) => {

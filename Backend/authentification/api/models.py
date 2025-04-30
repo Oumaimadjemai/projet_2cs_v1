@@ -22,7 +22,7 @@ class Specialite(models.Model):
     title = models.CharField(max_length=50)
 
     def __str__(self):
-        return f"{self.annee.title} {self.title}"
+        return f"{self.title}"
 
 class Salle(models.Model):
     departement = models.ForeignKey(Departement,on_delete=models.CASCADE,null=True)

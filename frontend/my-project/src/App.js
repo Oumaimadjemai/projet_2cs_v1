@@ -54,7 +54,7 @@ function App() {
         {/* <Route path="dashboard" element={<Themeselectionform  />} /> */}
         <Route path="groupes" element={<Groupes />} />
         <Route path="invitations" element={<Invitations />} />
-        <Route path="themes" element={<Theme />} />
+        <Route path="group/:groupId/select-theme" element={<Themeselectionform  />} />
 
         </Route>
 

@@ -298,6 +298,7 @@
 
 // export default Groupes;
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Button,
   Input,
@@ -315,6 +316,8 @@ import photo from '../pages/image.png';
 const { Option } = Select;
 
 const Groupes = () => {
+  const navigate = useNavigate();
+
   const [groups, setGroups] = useState([]);
   const [newGroupName, setNewGroupName] = useState('');
   const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
@@ -328,6 +331,7 @@ const Groupes = () => {
     users: false
   });
   const [userDetails, setUserDetails] = useState({});
+  
 
   useEffect(() => {
     fetchUserGroups();
@@ -361,10 +365,17 @@ const Groupes = () => {
         uniqueIds.map(async (id) => {
           try {
             const response = await nodeAxios.get(`/users/${id}`);
+            console.log("User fetched:", {
+              id: id,
+              photo_profil: response.data.photo_profil
+            });
             details[id] = {
               name: `${response.data.prenom} ${response.data.nom}`,
               email: response.data.email,
-              profileImageUrl: response.data.photo_profil || photo
+              profileImageUrl: (response.data.photo_profil && response.data.photo_profil !== '') 
+    ? response.data.photo_profil 
+    : photo
+           
             };
           } catch (error) {
             console.error(`Error fetching user ${id}:`, error);
@@ -382,6 +393,7 @@ const Groupes = () => {
       console.error('Error fetching user details:', error);
     }
   };
+ 
 
   const fetchAllUsers = async () => {
     setLoading(prev => ({ ...prev, users: true }));
@@ -401,25 +413,32 @@ const Groupes = () => {
       message.warning('Please enter a group name');
       return;
     }
-
+  
     try {
       setLoading(prev => ({ ...prev, creating: true }));
-      const response = await nodeAxios.post('/create-group', {
-        name: newGroupName
+      const response = await nodeAxios.post('/groups/create-group', {
+        name: newGroupName,
       });
-
+  
       setGroups(prev => [response.data.group, ...prev]);
       setNewGroupName('');
       message.success('Group created successfully');
-
       await fetchUserDetails([response.data.group.chef_id]);
     } catch (error) {
-      message.error(error.response?.data?.error || 'Failed to create group');
+      // Specific check for the "already created group" error
+      if (error.response?.status === 400 && error.response?.data?.error === "Vous avez déjà créé un groupe pour cette année académique.") {
+        alert("You have already created a group for this academic year");
+      } else {
+        // Default error message for other errors
+        message.error(error.response?.data?.error || 'Failed to create group');
+      }
+  
+      console.error('Error creating group:', error.response?.data || error.message);
     } finally {
       setLoading(prev => ({ ...prev, creating: false }));
     }
   };
-
+  
   const showInviteModal = (group) => {
     setCurrentGroup(group);
     setIsInviteModalVisible(true);
@@ -487,6 +506,7 @@ const Groupes = () => {
               <List.Item>
                
  <Card
+  onClick={() => navigate(`/etudiant/group/${group._id}/select-theme`)}
   title={
     <div className="flex justify-between items-center">
       <span className="text-lg font-bold text-mypurple">{group.name}</span>
@@ -518,7 +538,9 @@ const Groupes = () => {
         {group.members.length > 0 ? (
           group.members.map(memberId => {
             const user = userDetails[memberId];
-            const profileImage = user?.profileImageUrl || '/default-avatar.png';
+            const profileImage = user?.profileImageUrl || photo;
+
+           
             return (
               <img
                 key={memberId}
