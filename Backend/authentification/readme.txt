@@ -9,5 +9,7 @@ redis-cli ping // to check redis server with powershell
 pip install pandas
  pip install django-cors-headers
  pip install py_eureka_client
+ pip install django-import-export
+pip install openpyxl
 ----
 in service 2

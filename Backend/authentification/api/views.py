@@ -228,6 +228,27 @@ class SalleRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Salle.objects.all()
     serializer_class = SalleSerializer
 
+class PeriodeListCreateView(APIView):
+    def get(self, request, *args, **kwargs):
+        Periodes = Periode.objects.all()
+        serializer = PeriodeSerializer(Periodes, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        if isinstance(request.data, list):
+            serializer = PeriodeSerializer(data=request.data, many=True)
+        else:
+            serializer = PeriodeSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PeriodeRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Periode.objects.all()
+    serializer_class = PeriodeSerializer
 
 
 class EntrepriseListCreateView(generics.ListCreateAPIView):
@@ -850,3 +871,376 @@ class VerifyAdminView(APIView):
 
         is_admin = user_type == "admin"
         return Response({"is_admin": is_admin})
+    
+import pandas as pd
+from django.http import HttpResponse
+from .models import Etudiant
+
+def export_etudiants_excel(request):
+    queryset = Etudiant.objects.all().values('nom', 'prenom', 'email', 'matricule', 'moyenne_etudiant')
+    df = pd.DataFrame(list(queryset))
+
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="etudiants.xlsx"'
+    df.to_excel(response, index=False)
+    return response
+
+import pandas as pd
+from django.http import HttpResponse
+from .models import Admin
+
+def export_admins_excel(request):
+    queryset = Admin.objects.all().values(
+        'email', 'nom', 'prenom'
+    )
+    df = pd.DataFrame(list(queryset))
+
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="admins.xlsx"'
+    df.to_excel(response, index=False)
+    return response
+
+import pandas as pd
+from django.http import HttpResponse
+from .models import Enseignant
+
+def export_enseignants_excel(request):
+    queryset = Enseignant.objects.all().values(
+        'email', 'nom', 'prenom', 'matricule', 'grade'
+    )
+    df = pd.DataFrame(list(queryset))
+
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="enseignants.xlsx"'
+    df.to_excel(response, index=False)
+    return response
+
+
+import pandas as pd
+from django.http import HttpResponse
+from .models import Entreprise
+
+def export_entreprises_excel(request):
+    queryset = Entreprise.objects.all().values(
+        'nom', 'secteur_activite', 'adresse', 'wilaya', 'ville', 'site_web',
+        'representant_nom', 'representant_prenom', 'representant_poste', 
+        'representant_email', 'representant_telephone'
+    )
+    df = pd.DataFrame(list(queryset))
+
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="entreprises.xlsx"'
+    df.to_excel(response, index=False)
+    return response
+
+
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from django.http import HttpResponse
+from .models import Enseignant
+
+def export_enseignants_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="enseignants.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=A4)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Titre
+    titre = Paragraph("La liste des enseignants de l'école supérieure en informatique SBA", styles['Title'])
+    elements.append(titre)
+    elements.append(Spacer(1, 20))
+
+    # Entêtes du tableau
+    data = [['Ordre', 'Nom', 'Prénom', 'Email', 'Matricule', 'Grade']]
+
+    # Récupérer et trier les enseignants par nom puis prénom
+    enseignants = Enseignant.objects.all().order_by('nom', 'prenom')
+
+    # Remplir les lignes du tableau
+    for idx, e in enumerate(enseignants, start=1):
+        data.append([
+            str(idx),
+            e.nom or '',
+            e.prenom or '',
+            e.email or '',
+            e.matricule or '',
+            e.grade or ''
+        ])
+
+    # Création du tableau
+    table = Table(data, colWidths=[40, 80, 80, 150, 80, 80])
+
+    # Style simple avec des bordures
+    style = TableStyle([
+        ('GRID', (0, 0), (-1, -1), 1, 'black'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # En-tête en gras
+    ])
+    table.setStyle(style)
+
+    elements.append(table)
+    doc.build(elements)
+    return response
+
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from django.http import HttpResponse
+from .models import Entreprise
+
+def export_entreprises_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="entreprises.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=landscape(A4))
+    elements = []
+    styles = getSampleStyleSheet()
+    normal_style = styles['Normal']
+
+    # Style compact pour les textes longs
+    wrapped_style = ParagraphStyle(
+        'Wrapped',
+        parent=normal_style,
+        wordWrap='CJK',
+        fontSize=8,
+    )
+
+    # Titre
+    titre = Paragraph("Liste des entreprises partenaires de l'école supérieure en informatique SBA", styles['Title'])
+    elements.append(titre)
+    elements.append(Spacer(1, 20))
+
+    # En-têtes
+    data = [[
+        'Ordre', 'Nom Entreprise', 'Secteur', 'Adresse complète',
+        'Site Web', 'Représentant', 'Poste', 'Email', 'Téléphone'
+    ]]
+
+    entreprises = Entreprise.objects.all().order_by('nom')
+
+    for idx, e in enumerate(entreprises, start=1):
+        nom_complet = f"{e.representant_prenom or ''} {e.representant_nom or ''}".strip()
+        adresse_complete = f"{e.adresse or ''}, {e.ville or ''}, {e.wilaya or ''}".strip(', ')
+
+        data.append([
+            str(idx),
+            Paragraph(e.nom or '', wrapped_style),
+            Paragraph(e.secteur_activite or '', wrapped_style),
+            Paragraph(adresse_complete, wrapped_style),
+            Paragraph(e.site_web or '', wrapped_style),
+            Paragraph(nom_complet, wrapped_style),
+            Paragraph(e.representant_poste or '', wrapped_style),
+            Paragraph(e.representant_email or '', wrapped_style),
+            Paragraph(e.representant_telephone or '', wrapped_style),
+        ])
+
+    # Largeurs de colonnes avec "Adresse complète" réduite comme "Site Web"
+    table = Table(data, colWidths=[
+        30, 100, 80, 100, 100, 100, 70, 130, 70
+    ])
+
+    # Style
+    style = TableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.8, colors.black),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('LEFTPADDING', (0, 0), (-1, -1), 4),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+    ])
+    table.setStyle(style)
+
+    elements.append(table)
+    doc.build(elements)
+    return response
+
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from django.http import HttpResponse
+from .models import Admin
+
+def export_admins_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="admins.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=A4)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Titre
+    titre = Paragraph("Liste des administrateurs de l'école supérieure en informatique SBA", styles['Title'])
+    elements.append(titre)
+    elements.append(Spacer(1, 20))
+
+    # Entêtes du tableau
+    data = [['Ordre', 'Nom', 'Prénom', 'Email', 'Date d\'inscription', 'Statut']]
+
+    # Récupérer et trier les admins par nom puis prénom
+    admins = Admin.objects.all().order_by('nom', 'prenom')
+
+    # Remplir les lignes du tableau
+    for idx, admin in enumerate(admins, start=1):
+        data.append([
+            str(idx),
+            admin.nom or '',
+            admin.prenom or '',
+            admin.email or '',
+            admin.date_joined or '',
+            'Actif' if admin.is_active else 'Inactif'
+        ])
+
+    # Création du tableau
+    table = Table(data, colWidths=[40, 100, 100, 150, 100, 70])
+
+    # Style simple avec des bordures
+    style = TableStyle([
+        ('GRID', (0, 0), (-1, -1), 1, 'black'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # En-tête en gras
+    ])
+    table.setStyle(style)
+
+    elements.append(table)
+    doc.build(elements)
+    return response
+
+# from reportlab.lib.pagesizes import A4
+# from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+# from reportlab.lib.styles import getSampleStyleSheet
+# from django.http import HttpResponse
+# from .models import Etudiant
+
+# def export_etudiants_pdf(request):
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = 'attachment; filename="etudiants.pdf"'
+
+#     doc = SimpleDocTemplate(response, pagesize=A4)
+#     elements = []
+#     styles = getSampleStyleSheet()
+
+#     # Titre
+#     titre = Paragraph("Liste des étudiants de l'école supérieure en informatique SBA", styles['Title'])
+#     elements.append(titre)
+#     elements.append(Spacer(1, 20))
+
+#     # Entêtes du tableau
+#     data = [['Ordre', 'Nom', 'Prénom', 'Email', 'Matricule', 'Année d\'étude', 'Moyenne', 'Chef d\'équipe']]
+
+#     # Récupérer et trier les étudiants par nom puis prénom
+#     etudiants = Etudiant.objects.all().order_by('nom', 'prenom')
+
+#     # Remplir les lignes du tableau
+#     for idx, etudiant in enumerate(etudiants, start=1):
+#         # Concatenate the year, department, and specialty as "Année d'étude"
+#         annee_etude = ""
+#         if etudiant.annee_etude:
+#             departement = etudiant.annee_etude.departement.title if etudiant.annee_etude.departement else ""
+#             annee_etude = f"{etudiant.annee_etude.title} - {departement} - {etudiant.specialite.title if etudiant.specialite else ''}"
+
+#         data.append([
+#             str(idx),
+#             etudiant.nom or '',
+#             etudiant.prenom or '',
+#             etudiant.email or '',
+#             etudiant.matricule or '',
+#             annee_etude or '',  # Concatenated "Année d'étude"
+#             etudiant.moyenne_etudiant or '',
+#             'Oui' if etudiant.chef_equipe else 'Non'
+#         ])
+
+#     # Création du tableau
+#     table = Table(data, colWidths=[40, 100, 100, 150, 80, 180, 80, 80])
+
+#     # Style simple avec des bordures
+#     style = TableStyle([
+#         ('GRID', (0, 0), (-1, -1), 1, 'black'),
+#         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+#         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # En-tête en gras
+#     ])
+#     table.setStyle(style)
+
+#     elements.append(table)
+#     doc.build(elements)
+#     return response
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from django.http import HttpResponse
+from .models import Etudiant
+
+def export_etudiants_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="etudiants.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=A4)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Titre
+    titre = Paragraph("Liste des étudiants de l'école supérieure en informatique SBA", styles['Title'])
+    elements.append(titre)
+    elements.append(Spacer(1, 20))
+
+    # Custom ParagraphStyle for text wrapping
+    wrap_style = ParagraphStyle(
+        'WrapStyle',
+        parent=styles['Normal'],
+        wordWrap='CJK',  # Enable text wrapping
+        maxWidth=1000,  # Maximum width before wrapping occurs
+    )
+
+    # Entêtes du tableau
+    data = [['Ordre', 'Nom', 'Prénom', 'Email', 'Matricule', 'Année d\'étude', 'Moyenne', 'Chef d\'équipe']]
+
+    # Récupérer et trier les étudiants par nom puis prénom
+    etudiants = Etudiant.objects.all().order_by('nom', 'prenom')
+
+    # Remplir les lignes du tableau
+    for idx, etudiant in enumerate(etudiants, start=1):
+        # Concatenate the year, department, and specialty as "Année d'étude"
+        annee_etude = ""
+        if etudiant.annee_etude:
+            departement = etudiant.annee_etude.departement.title if etudiant.annee_etude.departement else ""
+            annee_etude = f"{etudiant.annee_etude.title} - {departement} - {etudiant.specialite.title if etudiant.specialite else ''}"
+
+        data.append([
+            str(idx),
+            etudiant.nom or '',
+            etudiant.prenom or '',
+            Paragraph(etudiant.email or '', wrap_style),  # Wrap long email text
+            etudiant.matricule or '',
+            Paragraph(annee_etude or '', wrap_style),  # Wrap long year description
+            etudiant.moyenne_etudiant or '',
+            'Oui' if etudiant.chef_equipe else 'Non'
+        ])
+
+    # Fixed column widths (minimized sizes for columns)
+    col_widths = [30, 80, 80, 150, 100, 180, 80, 80]  # Reduced column widths for compact table
+
+    # Création du tableau avec les largeurs de colonnes fixes
+    table = Table(data, colWidths=col_widths)
+
+    # Style with borders and padding
+    style = TableStyle([
+        ('GRID', (0, 0), (-1, -1), 1, 'black'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # En-tête en gras
+        ('PADDING', (0, 0), (-1, -1), 6),  # Padding for all cells (top, bottom, left, right)
+        ('LEFTPADDING', (0, 0), (-1, -1), 10),  # Padding left
+        ('RIGHTPADDING', (0, 0), (-1, -1), 10),  # Padding right
+        ('TOPPADDING', (0, 0), (-1, -1), 6),  # Padding top
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),  # Padding bottom
+    ])
+    table.setStyle(style)
+
+    elements.append(table)
+    doc.build(elements)
+    return response

@@ -31,6 +31,11 @@ class SalleSerializer(serializers.ModelSerializer):
         model = Salle
         fields = '__all__'  
 
+class PeriodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Periode
+        fields='__all__'
+
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):

@@ -15,6 +15,8 @@ class Annee(models.Model):
     departement = models.ForeignKey(Departement,on_delete=models.CASCADE,null=True)
     title = models.CharField(max_length=50)
     has_specialite = models.BooleanField(default=False)
+    nbr_personne_min=models.IntegerField(null=True)
+    nbr_personne_max=models.IntegerField(null=True)
     
     def __str__(self):
         return f"{self.title} {self.departement.title}"
@@ -22,6 +24,7 @@ class Annee(models.Model):
 class Specialite(models.Model):
     #annee = models.ForeignKey(Annee,on_delete=models.CASCADE,null=True)
     title = models.CharField(max_length=50)
+    abv=models.CharField(max_length=50,null=True)
 
     def __str__(self):
         return f"{self.title}"
@@ -35,6 +38,23 @@ class Salle(models.Model):
 
     def __str__(self):
         return f"Salle {self.num} {self.type}"
+
+class Periode(models.Model):
+    TYPE_CHOICES = [
+        ('depot_theme', 'Dépôt des Thèmes'),
+        ('soutenance', 'Soutenance'),
+    ]
+
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    date_debut = models.DateField()
+    date_fin = models.DateField()
+
+    def __str__(self):
+        return f"{self.get_type_display()} : {self.date_debut} au {self.date_fin}"
+
+    class Meta:
+        verbose_name = "Période"
+        verbose_name_plural = "Périodes"
 
 
 class CustomUserManager(BaseUserManager):

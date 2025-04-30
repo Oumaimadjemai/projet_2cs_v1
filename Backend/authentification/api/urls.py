@@ -67,7 +67,19 @@ urlpatterns = [
     # path('specialites/annee/<int:annee_id>/departement/<int:departement_id>/', SpecialiteByAnneeAndDepartementView.as_view(), name='specialites_by_annee_and_departement'),
     path('salles/departement/<int:departement_id>/', SalleByDepartementView.as_view(), name='salles_by_departement'),
     path("verify-admin/", VerifyAdminView.as_view(), name="verify-admin"),
+
+    path('export/etudiants/excel/', export_etudiants_excel, name='export_etudiants_excel'),
+    path('export/entreprises/excel/', export_entreprises_excel, name='export_entreprises_excel'),
+    path('export/enseignants/excel', export_enseignants_excel, name='export_enseignants_excel'),
+    path('export/admins/excel', export_admins_excel, name='export_admins_excel'),
+
+
+    path('export/enseignants/pdf/', export_enseignants_pdf, name='export_enseignants_pdf'),
+    path('export/entreprises/pdf',export_entreprises_pdf,name='export_entreprises_pdf'),
+    path('export/etudiants/pdf',export_etudiants_pdf,name='export_etudiants_pdf'),
+    path('export/admins/pdf',export_admins_pdf,name='export_admins_pdf'),
 ]
+
 
 
 
