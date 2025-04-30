@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { nodeAxios } from '../../../axios';
-import { useNavigate } from 'react-router-dom';
-
+import { useNavigate, useParams } from 'react-router-dom';
 const ThemeSelectionForm = () => {
   const [themes, setThemes] = useState([]);
   const [selections, setSelections] = useState({
@@ -13,15 +12,41 @@ const ThemeSelectionForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { groupId } = useParams();
 
   // Fetch data
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const [themesRes, selectionsRes] = await Promise.all([
+  //         nodeAxios.get('/theme-selection/available-themes'),
+  //         nodeAxios.get('/theme-selection/my-choices?groupId=${groupId}')
+  //       ]);
+
+  //       setThemes(themesRes.data);
+        
+  //       if (selectionsRes.data.status !== 'not_started') {
+  //         setSelections(selectionsRes.data.choices);
+  //         setStatus(selectionsRes.data.status);
+  //       }
+  //     } catch (err) {
+  //       setError(err.response?.data?.error || 'Failed to load data');
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, []);
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const [themesRes, selectionsRes] = await Promise.all([
-          nodeAxios.get('/theme-selection/available-themes'),
-          nodeAxios.get('/theme-selection/my-choices')
+          nodeAxios.get('/themes/available-themes'),
+          nodeAxios.get(`/themes/my-choices?groupId=${groupId}`) // ✅ Correct
         ]);
 
         setThemes(themesRes.data);
@@ -38,7 +63,7 @@ const ThemeSelectionForm = () => {
     };
 
     fetchData();
-  }, []);
+  }, [groupId]);
 
   const handleSelectChange = (priority, value) => {
     setSelections(prev => ({
@@ -47,65 +72,74 @@ const ThemeSelectionForm = () => {
     }));
   };
 
-//   const handleSubmit = async () => {
-//     // Check for duplicate selections
-//     const selectedValues = Object.values(selections).filter(Boolean);
-//     if (new Set(selectedValues).size !== selectedValues.length) {
-//       setError('You cannot select the same theme for multiple priorities');
-//       return;
-//     }
 
-//     // Check all priorities are selected
-//     if (selectedValues.length !== 3) {
-//       setError('Please select themes for all three priorities');
-//       return;
-//     }
 
+// const handleSubmit = async () => {
 //     try {
 //       setLoading(true);
-//       await nodeAxios.post('/theme-selection/submit', selections);
+      
+//       // Prepare the request data
+//       const submissionData = {
+//         p1: selections.p1,
+//         p2: selections.p2,
+//         p3: selections.p3
+//       };
+  
+//       const response = await nodeAxios.post(
+//         '/theme-selection/submit',
+//         submissionData,  // Send the selections in request body
+//         {
+//           headers: {
+//             'Content-Type': 'application/json',
+//             Authorization: `Bearer ${localStorage.getItem('token')}`
+//           }
+//         }
+//       );
+  
 //       setStatus('submitted');
 //       alert('Selections submitted successfully!');
 //       navigate('/confirmation');
 //     } catch (err) {
+//       console.error('Submission error:', err);
 //       setError(err.response?.data?.error || 'Submission failed');
 //     } finally {
 //       setLoading(false);
 //     }
-//   };
-
+//   };  
 const handleSubmit = async () => {
-    try {
-      setLoading(true);
-      
-      // Prepare the request data
-      const submissionData = {
-        p1: selections.p1,
-        p2: selections.p2,
-        p3: selections.p3
-      };
+  try {
+    setLoading(true);
+    
+    // Ajout du groupId aux données de la soumission
+    const submissionData = {
+      p1: selections.p1,
+      p2: selections.p2,
+      p3: selections.p3,
+      groupId: groupId // Ajout du groupId ici
+    };
   
-      const response = await nodeAxios.post(
-        '/theme-selection/submit',
-        submissionData,  // Send the selections in request body
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
+    const response = await nodeAxios.post(
+      '/themes/submit',
+      submissionData,  // Ajout du groupId dans les données
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
         }
-      );
+      }
+    );
   
-      setStatus('submitted');
-      alert('Selections submitted successfully!');
-      navigate('/confirmation');
-    } catch (err) {
-      console.error('Submission error:', err);
-      setError(err.response?.data?.error || 'Submission failed');
-    } finally {
-      setLoading(false);
-    }
-  };  
+    setStatus('submitted');
+    alert('Selections submitted successfully!');
+    navigate('/confirmation');
+  } catch (err) {
+    console.error('Submission error:', err);
+    setError(err.response?.data?.error || 'Submission failed');
+  } finally {
+    setLoading(false);
+  }
+};
+
 const getThemeById = (id) => themes.find(theme => theme.id === id);
 
   if (loading) return <div className="text-center py-8">Loading...</div>;
@@ -189,3 +223,4 @@ const getThemeById = (id) => themes.find(theme => theme.id === id);
 };
 
 export default ThemeSelectionForm;
+
