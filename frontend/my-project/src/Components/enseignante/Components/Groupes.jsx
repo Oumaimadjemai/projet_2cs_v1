@@ -227,7 +227,6 @@ function GroupesEnseignant() {
                                                             <svg width="7" height="12" viewBox="0 0 5 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                 <path d="M0 8.825L3.09042 5L0 1.175L0.951417 0L5 5L0.951417 10L0 8.825Z" fill="#884DFF" fill-opacity="0.8" />
                                                             </svg>
-
                                                         </span>
                                                     </div>
                                                 </td>

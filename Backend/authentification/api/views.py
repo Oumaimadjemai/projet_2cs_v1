@@ -308,7 +308,9 @@ class CreateEntrepriseAndUserView(APIView):
         """
         send_mail(subject, message, 'your-email@gmail.com', [user.email], fail_silently=False)
 
-        return Response({"message": "Entreprise et compte utilisateur créés avec succès."}, status=status.HTTP_201_CREATED)
+        serialized = EntrepriseSerializer(entreprise)
+
+        return Response(serialized.data, status=status.HTTP_201_CREATED)
 
 
 

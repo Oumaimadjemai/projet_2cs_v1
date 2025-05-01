@@ -32,7 +32,6 @@
 
 .theme-pdf-container .pdf-form {
     width: 750px;
-    min-height: 820px;
     display: flex;
     flex-direction: column;
     border: 1px solid #000;
@@ -73,14 +72,14 @@
 }
 
 .pdf-table .pdf-line span{
-    padding: 10px 0;
+    padding: 12px 0;
 }
 
 .pdf-form .pdf-footer{
     margin: 1rem 0;
     width: 100%;
     padding: 0 2rem;
-    margin-top: auto;
+    margin-top: 2rem;
 }
 
 .pdf-form .pdf-footer .pdf-footer-content{
@@ -98,4 +97,313 @@
 .pdf-form .pdf-footer-content .infos-footer{
     display: flex;
     gap: 2rem;
+}
+
+.themes-display-table {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.themes-display-table table {
+    width: 100%;
+    border-collapse: separate;
+    /* Allows border-radius to work */
+    border-spacing: 0 7px;
+}
+
+.themes-display-table table thead {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.themes-display-table tr {
+    margin: 5px 0;
+    width: 100%;
+}
+
+.themes-display-table table thead th {
+    font-weight: 450;
+    font-size: 0.9rem;
+    color: var(--table-header-font-color);
+    padding: 1rem 0 !important;
+    background-color: var(--table-head-background);
+    border: 1px solid var(--tr-border-color);
+    border-left: none;
+    border-right: none;
+    width: 20%;
+    text-align: center;
+}
+
+.themes-display-table table thead th:first-child,
+.themes-display-table table thead th:last-child {
+    text-indent: 1rem;
+    /* Moves text inside without affecting table structure */
+    text-align: left;
+}
+
+.themes-display-table table td {
+    font-weight: 400;
+    font-size: 0.9rem;
+    color: var(--table-elements-font-color);
+    text-align: center;
+    border: 1px solid var(--tr-border-color);
+    border-left: none;
+    border-right: none;
+    padding: 0.6rem 0 !important;
+}
+
+.themes-display-table .last-td {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    text-align: center;
+}
+
+.last-td .number {
+    flex-grow: 1;
+    text-align: center;
+}
+
+.last-td .line-btns {
+    display: flex;
+    gap: 5px;
+    margin-left: auto;
+    margin-right: 1rem;
+    align-items: center;
+    gap: 8px;
+}
+
+.themes-display-table .last-td .line-btns button {
+    padding: 5px 0;
+    border-radius: 20px;
+    background-color: #925FE2;
+    width: 115px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.grade-td span {
+    padding: 5px 15px;
+    background-color: #D43F8D20;
+    border-radius: 20px;
+    color: var(--pink-color);
+    border: 1px solid var(--pink-color);
+    font-weight: 500;
+}
+
+.to-top .arrow-top {
+    transform: rotate(180deg);
+    color: #fff;
+}
+
+.theme-display-container .other-options {
+    position: fixed;
+    right: 0;
+    top: 65px;
+    width: 400px;
+    height: calc(100vh - 65px);
+    background-color: #FCFAFA;
+    box-shadow: 2px 8px 30px rgba(0, 0, 0, 0.12);
+    z-index: 200;
+    border-left: 2px solid #D9E1E7;
+    border-top-left-radius: 20px;
+    border-top: 2px solid #D9E1E7;
+    display: flex;
+    flex-direction: column;
+    padding: 0 0.8rem;
+    padding-top: 1rem;
+    gap: 1rem;
+    overflow-y: auto;
+    /* transform: translateX(100%);
+    opacity: 0;
+    transition: transform 0.5s ease-in-out, opacity 0.3s ease-in-out;
+    will-change: transform, opacity; */
+}
+
+.theme-display-container .other-options.open {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.theme-display-container .other-options::-webkit-scrollbar {
+    display: none;
+}
+
+.theme-display-container .other-options .about-title {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+
+}
+
+
+.theme-display-container .other-options table th {
+    font-weight: 450;
+    font-size: 0.9rem;
+    color: var(--table-header-font-color);
+    padding: 1rem 0 !important;
+    background-color: #F5F5F5;
+    background-color: var(--table-head-background);
+    border: 1px solid var(--tr-border-color);
+    border-left: none;
+    border-right: none;
+    text-align: center;
+    width: 33.33%;
+}
+
+.theme-display-container .other-options table tr {
+    margin: 5px 0;
+    width: 100%;
+}
+
+.theme-display-container .other-options table td {
+    margin: 5px 0;
+    font-weight: 400;
+    font-size: 0.9rem;
+    color: var(--table-elements-font-color);
+    text-align: center;
+    border: 1px solid var(--tr-border-color);
+    border-left: none;
+    border-right: none;
+    padding: 0.8rem 0 !important;
+    font-size: 0.8rem;
+}
+
+.th-rtl {
+    padding-right: 0.5rem !important;
+    text-align: right;
+    border-left: 1px solid var(--tr-border-color) !important;
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
+}
+
+.th-ltr {
+    padding-left: 1rem !important;
+    text-align: left;
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+    border-right: 1px solid #E4E4E4 !important;
+    border-left: none;
+}
+
+.other-options .pas-encore-accepter{
+    width: 100%;
+    background-color: #F9F9F9;
+    border-radius: 10px;
+    border: 3px solid #E4E4E4;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: "Kumbh Sans", sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 0 5px;
+    padding-bottom: 1rem;
+}
+
+.other-options .motif-div{
+    width: 100%;
+    background-color: #F4F9F7;
+    border-radius: 10px;
+    border: 3px solid #E4E4E4;
+    display: flex;
+    flex-direction: column;
+    font-family: "Kumbh Sans", sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 10px;
+    padding-bottom: 1rem;
+    gap: 1rem;
+}
+
+.title-display-theme .options-enseignnat-btns button{
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 8px 15px;
+    border-radius: 25px;
+    color: #fff;
+    background-color: #925FE2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 400px;
+    height: 150px;
+    border-radius: 30px;
+}
+
+.loader-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader-dot {
+    width: 12px;
+    height: 12px;
+    margin: 0 5px;
+    background-color: #925FE2;
+    border-radius: 50%;
+    display: inline-block;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loader-dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.loader-dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+.loader-text {
+    margin-top: 20px;
+    color: #333;
+    font-size: 19px;
+    font-weight: 600;
+    font-family: 'Kumbh Sans', sans-serif;
+}
+
+@keyframes bounce {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+
+    40% {
+        transform: scale(1);
+    }
 }

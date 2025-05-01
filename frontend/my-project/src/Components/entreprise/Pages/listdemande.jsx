@@ -55,10 +55,11 @@ const DemandeEntreprise = () => {
   }, [])
 
   const [entreprises, setEntreprises] = useState([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
 
-    axios.get('http://127.0.0.1:8000/entreprises/')
+    axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/entreprises/`)
       .then((res) => setEntreprises(res.data))
       .catch((err) => console.error('Axios Error', err))
 
@@ -75,7 +76,9 @@ const DemandeEntreprise = () => {
   const handleAccepter = (e) => {
     e.preventDefault();
 
-    axios.patch(`http://localhost:8000/entreprises/${acceptEntreprise}/valider`, {
+    setLoading(true)
+
+    axios.patch(`${process.env.REACT_APP_API_URL_SERVICE1}/entreprises/${acceptEntreprise}/valider/`, {
       action: "approve"
     })
       .then(() => {
@@ -85,6 +88,7 @@ const DemandeEntreprise = () => {
         setAcceptEntreprise(null)
       })
       .catch((err) => console.error(err))
+      .finally(() => setLoading(false))
 
     setAcceptClicked(false)
   }
@@ -92,7 +96,8 @@ const DemandeEntreprise = () => {
   const handleRefuse = (e) => {
     e.preventDefault();
 
-    axios.patch(`http://localhost:8000/entreprises/${deleteEntreprise}/delete`, {
+    setLoading(true)
+    axios.delete(`${process.env.REACT_APP_API_URL_SERVICE1}/entreprises/${deleteEntreprise}/delete/`, {
       action: "refuse"
     })
       .then(() => {
@@ -102,6 +107,7 @@ const DemandeEntreprise = () => {
         setAcceptEntreprise(null)
       })
       .catch((err) => console.error(err))
+      .finally(() => setLoading(false))
 
     setDeleteClicked(false)
   }
@@ -129,7 +135,7 @@ const DemandeEntreprise = () => {
         </div>
       </div>
 
-      <div className="recherche-entreprises-line" style={{minHeight: "43px"}}>
+      <div className="recherche-entreprises-line" style={{ minHeight: "43px" }}>
         <div className="recherche-entreprises-input">
           <button
             style={{
@@ -195,7 +201,7 @@ const DemandeEntreprise = () => {
 
               {d.statut === 'pending' ? (
                 <div className='btns-card-line' style={styles.actionButtons}>
-                  <button className='supprimer-btn' onClick={() => {setDeleteClicked(true); setDeleteEntreprise(d.id)}}>
+                  <button className='supprimer-btn' onClick={() => { setDeleteClicked(true); setDeleteEntreprise(d.id) }}>
                     <CloseIcon style={{ marginRight: "5px" }} />
                     <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: "1.1rem", fontWeight: "650" }}>
                       Refuser
@@ -322,6 +328,21 @@ const DemandeEntreprise = () => {
             </div>
           </div>
         </div>
+      }
+
+      {
+        loading && (
+          <div className="loader-overlay">
+            <div className="loader-container">
+              <div className="loader-dots">
+                <div className="loader-dot"></div>
+                <div className="loader-dot"></div>
+                <div className="loader-dot"></div>
+              </div>
+              <p className="loader-text">Opération en cours...</p>
+            </div>
+          </div>
+        )
       }
 
     </div>

@@ -61,10 +61,12 @@ INSTALLED_APPS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        # Or other authentication methods like JWT
     ],
-   
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
 }
+   
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",  # Service 1
     "http://localhost:8001",  # Service 2 (si utilisé dans le frontend)

@@ -1,16 +1,10 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
-import { ReactComponent as DraftIcon } from '../../../Assets/Icons/draft.svg';
 import '../../Partials/Components/i18n'
-import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { EnseignantThemesContext } from './ThemesEnseignant';
 import CreatableSelect from 'react-select/creatable';
+import { ThemeEnseignantContext } from './Theme';
 
-export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
-
-    const { setThemes, setLoading } = useContext(EnseignantThemesContext)
-
-    const { t } = useTranslation();
+export const ModifierTheme = ({ annulerAjouter, startLoading, theme, stopLoading }) => {
 
     const [annees, setAnnees] = useState([])
     const [specialites, setSpecialities] = useState([])
@@ -62,31 +56,37 @@ export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
     ]);
 
     const [newTheme, setNewTheme] = useState({
-        titre: "",
-        resume: "",
-        outils_et_language: "",
-        plan_travail: "",
-        livrable: "",
-        annee_id: null,
-        priorities: [],
-        numberOfGrp: null
+        titre: theme.titre,
+        resume: theme.resume,
+        outils_et_language: theme.outils_et_language || '',
+        plan_travail: theme.plan_travail,
+        livrable: theme.livrable || '',
+        annee_id: theme.annee_id,
+        priorities: theme.priorities,
+        numberOfGrp: theme.numberOfGrp
     })
 
-    const [selectedYear, setSelectedYear] = useState(null);
+    const [selectedYear, setSelectedYear] = useState({
+        id: theme.annee_id,
+        title: theme.annee_titre,
+        departement_title: theme.annee_departement_title || '',
+        has_specialite: theme.annee_has_specialite || ''
+    });
     const [showYearOptions, setShowYearOptions] = useState(false);
-    const [priorities, setPriorities] = useState({});
-    const [showSpecialitesMenu, setShowSpecialitesMenu] = useState(false);
-
-    // Initialiser les priorités quand les années changent
-    useEffect(() => {
+    const [priorities, setPriorities] = useState(() => {
         const initialPriorities = {};
-        annees.forEach(annee => {
-            if (annee.has_specialite) {
-                initialPriorities[annee.id] = [];
-            }
-        });
-        setPriorities(initialPriorities);
-    }, [annees]);
+        if (theme.priorities && theme.priorities.length > 0) {
+            initialPriorities[theme.annee_id] = theme.priorities.map(priority => ({
+                priorite: priority.priorite,
+                specialite_id: priority.specialite_id
+            }));
+        } else {
+            // Initialiser vide si pas de priorités existantes
+            initialPriorities[theme.annee_id] = [];
+        }
+        return initialPriorities;
+    });
+    const [showSpecialitesMenu, setShowSpecialitesMenu] = useState(false);
 
     const handleYearSelect = (annee) => {
         setSelectedYear(annee);
@@ -116,10 +116,7 @@ export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
         });
     };
 
-    const getSpecialiteName = (id) => {
-        const specialite = specialites.find(s => s.id === id)
-        return specialite ? specialite.title : '';
-    }
+    const { setTheme } = useContext(ThemeEnseignantContext);
 
     /*------------The Final Post----------- */
     const handleSubmit = (e) => {
@@ -135,25 +132,19 @@ export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
             annee_id: selectedYear.id
         };
 
-        setLoading(true);
-
-        axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/themes/`, finalTheme, {
+        startLoading();
+        axios.put(`${process.env.REACT_APP_API_URL_SERVICE2}/themes/${theme.id}/`, finalTheme, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('access_token')}`,
                 'Content-Type': 'application/json'
             }
         })
             .then((res) => {
-                setThemes(prev => [...prev, {
-                    ...res.data,
-                    annee_titre:  `${selectedYear.title} ${selectedYear.departement_title.toLowerCase() === "préparatoire" ? "CPI" : "CS"}`,
-                    specialite_title: getSpecialiteName(priorities[selectedYear.id]?.find(p => p.priorite === 1)?.specialite_id)
-                }]);
+                setTheme(res.data);
                 annulerAjouter();
-                addWithSuccess();
             })
             .catch((err) => console.error(err))
-            .finally(() => setLoading(false))
+            .finally(() => stopLoading())
 
     };
 
@@ -309,9 +300,17 @@ export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
                         </div>
                         <div className="select-flex">
                             <div className="annee-field" onClick={() => setShowYearOptions(!showYearOptions)} ref={anneeRef}>
-                                {selectedYear ? `${selectedYear.title} ${selectedYear.departement_title.toLowerCase() === "préparatoire" ? "CPI" : "CS"}` : "Année"}
-                                {/* Icône flèche... */}
-
+                                {selectedYear
+                                    ? `${selectedYear.title} ${selectedYear.title.includes("CPI")
+                                        ? ""
+                                        : selectedYear.title.includes("CS")
+                                            ? ""
+                                            : selectedYear.departement_title?.toLowerCase() === "préparatoire"
+                                                ? "CPI"
+                                                : "CS"
+                                    }`
+                                    : "Année"
+                                }
                                 {showYearOptions && (
                                     <ul className="annee-options">
                                         {annees.map(annee => (
@@ -353,40 +352,48 @@ export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
                                                         {/* Menu des priorités */}
                                                         {selectedYear?.id === annee.id && (
                                                             <ul className="sub-priorite-options">
-                                                                {specialites.map(specialite => (
-                                                                    <li key={specialite.id} style={{ position: "relative" }}>
-                                                                        <div>
-                                                                            {specialite.title}
-                                                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px', width: "100%", justifyContent: "space-between" }}>
-                                                                                {[1, 2, 3].map(priority => {
-                                                                                    const isSelected = priorities[annee.id]?.some(
-                                                                                        item => item.specialite_id === specialite.id && item.priorite === priority
-                                                                                    );
-                                                                                    return (
-                                                                                        <button
-                                                                                            key={priority}
-                                                                                            style={{
-                                                                                                width: '24px',
-                                                                                                height: '24px',
-                                                                                                borderRadius: '50%',
-                                                                                                border: `1px solid ${isSelected ? '#925FE2' : '#D6D6D6'}`,
-                                                                                                background: isSelected ? '#925FE2' : 'white',
-                                                                                                color: isSelected ? 'white' : '#555',
-                                                                                                cursor: 'pointer'
-                                                                                            }}
-                                                                                            onClick={(e) => {
-                                                                                                e.preventDefault();
-                                                                                                handlePrioritySelect(annee.id, specialite.id, isSelected ? null : priority);
-                                                                                            }}
-                                                                                        >
-                                                                                            {priority}
-                                                                                        </button>
-                                                                                    );
-                                                                                })}
+                                                                {specialites.map(specialite => {
+                                                                    // Trouver la priorité existante pour cette spécialité
+                                                                    const existingPriority = priorities[annee.id]?.find(
+                                                                        item => item.specialite_id === specialite.id
+                                                                    )?.priorite;
+
+                                                                    return (
+                                                                        <li key={specialite.id} style={{ position: "relative" }}>
+                                                                            <div>
+                                                                                {specialite.title}
+                                                                                <div style={{ display: 'flex', gap: '8px', marginTop: '4px', width: "100%", justifyContent: "space-between" }}>
+                                                                                    {[1, 2, 3].map(priority => {
+                                                                                        const isSelected = existingPriority === priority ||
+                                                                                            priorities[annee.id]?.some(
+                                                                                                item => item.specialite_id === specialite.id && item.priorite === priority
+                                                                                            );
+                                                                                        return (
+                                                                                            <button
+                                                                                                key={priority}
+                                                                                                style={{
+                                                                                                    width: '24px',
+                                                                                                    height: '24px',
+                                                                                                    borderRadius: '50%',
+                                                                                                    border: `1px solid ${isSelected ? '#925FE2' : '#D6D6D6'}`,
+                                                                                                    background: isSelected ? '#925FE2' : 'white',
+                                                                                                    color: isSelected ? 'white' : '#555',
+                                                                                                    cursor: 'pointer'
+                                                                                                }}
+                                                                                                onClick={(e) => {
+                                                                                                    e.preventDefault();
+                                                                                                    handlePrioritySelect(annee.id, specialite.id, isSelected ? null : priority);
+                                                                                                }}
+                                                                                            >
+                                                                                                {priority}
+                                                                                            </button>
+                                                                                        );
+                                                                                    })}
+                                                                                </div>
                                                                             </div>
-                                                                        </div>
-                                                                    </li>
-                                                                ))}
+                                                                        </li>
+                                                                    );
+                                                                })}
                                                             </ul>
                                                         )}
                                                     </>
@@ -434,14 +441,12 @@ export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
 
                 </form >
                 <div className="btns-form-line">
-                    <button className='brouillon-btn' style={{ backgroundColor: "#E2E4E5", color: "#060606" }}>
-                        <DraftIcon />
-                        {t('enseignantsPage.brouillonBtn')}
+                    <button className='brouillon-btn' style={{ backgroundColor: "#E2E4E5", color: "#060606" }} onClick={() => annulerAjouter()}>
+                        Annuler
                     </button>
                     <button type='submit' className='ajout-btn' form='ajouterFormTheme'>
-                        Ajouter Thème
+                        Modifier Thème
                     </button>
-
                 </div>
             </div >
         </div >
