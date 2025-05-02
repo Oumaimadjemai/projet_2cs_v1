@@ -519,6 +519,41 @@ class UserLoginView(APIView):
                 'user_info':serializer.validated_data["user_info"]
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class UserLoginViewEssay(APIView):
+    def post(self, request):
+        serializer = UserLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
+
+            response = Response({
+                'user_info': serializer.validated_data["user_info"]
+            }, status=status.HTTP_200_OK)
+
+            # Set HttpOnly cookies (adjust secure=True for HTTPS)
+            response.set_cookie(
+                key='access_token',
+                value=access_token,
+                httponly=True,
+                secure=True,  # Set to True in production
+                samesite='None',
+                max_age=3600  # Match access token lifetime
+            )
+            response.set_cookie(
+                key='refresh_token',
+                value=refresh_token,
+                httponly=True,
+                secure=True,
+                samesite='None',
+                max_age=86400  # Match refresh token lifetime
+            )
+
+            return response
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 User = get_user_model()
 

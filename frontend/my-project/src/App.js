@@ -32,6 +32,9 @@ import GroupeDetail from "./Components/enseignante/Components/GroupeDetail";
 import GroupesEnseignant from "./Components/enseignante/Components/Groupes";
 import ThemeAdmin from "./Components/admin/Components/ThemeAdmin";
 import ThemeEnseignant from "./Components/enseignante/Components/Theme";
+import ThemesEntreprise from "./Components/entreprise/Pages/Themes";
+import { EntrepriseLayout } from "./Layouts/EntrepriseLayout";
+import NotFound from "./Components/Partials/Components/NotFound";
 
 export const AppContext = createContext();
 
@@ -98,7 +101,7 @@ function App() {
             <Route index element={<ThemesEnseignant />} />
             <Route path="groupes" element={<GroupesEnseignant />} />
             <Route path="groupes/:id" element={<GroupeDetail />} />
-            <Route path="themes/:id" element={<ThemeEnseignant />} />
+            <Route path="themes/:id" element={<ThemeEnseignant link={'enseignant'} />} />
           </Route>
           <Route path="/etudiant" element={<EtudiantLayout />} >
             <Route index element={<Dashboard />} />
@@ -107,10 +110,13 @@ function App() {
             <Route path="themes" element={<Theme />} />
           </Route>
 
-          <Route path="/entreprise" element={<Entrepriseinterface />} ></Route>
+          <Route path="/entreprise" element={<EntrepriseLayout />} >
+            <Route index element={<ThemesEntreprise />} />
+            <Route path="themes/:id" element={<ThemeEnseignant link={'entreprise'} />} />
+          </Route>
           <Route><Route path="/login" element={<Login />} /></Route>
           <Route><Route path="/login/entreprise" element={< InscriptionEntreprise />} /></Route>
-          <Route path="/theme" element={<Theme />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </AppContext.Provider>

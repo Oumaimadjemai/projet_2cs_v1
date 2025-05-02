@@ -10,7 +10,7 @@ import { ModifierTheme } from './ModifierTheme';
 
 export const ThemeEnseignantContext = createContext();
 
-function ThemeEnseignant() {
+function ThemeEnseignant({link}) {
 
     const { id } = useParams();
     const [theme, setTheme] = useState({})
@@ -114,7 +114,7 @@ function ThemeEnseignant() {
                 <div className="theme-display-wrapper">
                     <div className="title-display-theme" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "0.5rem" }}>
                         <h1 style={{ fontSize: "1.2rem", fontWeight: "500", color: "#4F4F4F", userSelect: "none" }}>
-                            <Link className='return-to-themes' to={'/enseignant'}>Tous Les Thèmes</Link> &gt; <span style={{ color: "#925FE2" }}> {theme.titre} </span>
+                            <Link className='return-to-themes' to={`/${link}`}>Tous Les Thèmes</Link> &gt; <span style={{ color: "#925FE2" }}> {theme.titre} </span>
                         </h1>
                         <div className="options-enseignnat-btns" style={{ display: 'flex', gap: "1.6rem", alignItems: 'center' }}>
                             <button onClick={() => setModifierTheme(true)}>

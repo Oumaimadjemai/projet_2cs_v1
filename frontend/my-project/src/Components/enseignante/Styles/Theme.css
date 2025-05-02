@@ -395,6 +395,11 @@
     font-family: 'Kumbh Sans', sans-serif;
 }
 
+.return-to-themes:hover{
+    text-decoration: underline;
+    color: #000;
+}
+
 @keyframes bounce {
 
     0%,

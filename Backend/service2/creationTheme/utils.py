@@ -28,6 +28,7 @@ def verify_user(request, role):
         f"{SERVICE_1_URL}/verify-user/",
         headers={"Authorization": token}
     )
+    
 
     if response.status_code != 200:
         raise PermissionDenied("Échec de l'authentification.")

@@ -477,3 +477,8 @@
     padding-bottom: 1rem;
     gap: 1rem;
 }
+
+.return-to-themes:hover{
+    text-decoration: underline;
+    color: #000;
+}
