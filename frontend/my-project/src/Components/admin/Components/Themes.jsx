@@ -132,36 +132,43 @@ function Themes() {
     const [selectedSpecialite, setSelectedSpecialite] = useState(null);
     const [selectedEtat, setSelectedEtat] = useState(null)
     const [filteredThemes, setFilteredThemes] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         const result = themes.filter(theme => {
-            // Si aucun filtre n'est sélectionné, retourner tous les thèmes
-            if (filterSelected === "none") return true;
-
-            // Filtre par année
+            // Filtre par année (toujours appliqué)
             const isAnneeMatch = !selectedAnnee.id || theme.annee_id === selectedAnnee.id;
-
-            // Filtre par spécialité
+    
+            // Filtre par spécialité (toujours appliqué)
             const isSpecialiteMatch = !selectedSpecialite || (
                 theme.priorities && theme.priorities.some(priority =>
                     priority.specialite_id === selectedSpecialite && priority.priorite === 1
                 )
             );
-
+    
+            // Filtre par état (seulement si `filterSelected !== "none"`)
             let isEtatMatch = true;
-            if (selectedEtat === "accepted") {
-                isEtatMatch = theme.valide === true;
-            } else if (selectedEtat === "refused") {
-                isEtatMatch = theme.motif !== null && theme.motif !== "";
-            } else if (selectedEtat === "reserved") {
-                isEtatMatch = theme.reserve === true;
+            if (filterSelected !== "none") {
+                if (selectedEtat === "accepted") {
+                    isEtatMatch = theme.valide === true;
+                } else if (selectedEtat === "refused") {
+                    isEtatMatch = theme.motif !== null && theme.motif !== "";
+                } else if (selectedEtat === "reserved") {
+                    isEtatMatch = theme.reserve === true;
+                }
             }
-
-            return isAnneeMatch && isSpecialiteMatch && isEtatMatch;
+    
+            // Filtre par recherche (toujours appliqué)
+            const isSearchMatch = !searchTerm || (
+                theme.titre?.toLowerCase().startsWith(searchTerm.toLowerCase()) ||
+                theme.enseignantInfo?.toLowerCase().startsWith(searchTerm.toLowerCase())
+            );
+    
+            return isAnneeMatch && isSpecialiteMatch && isEtatMatch && isSearchMatch;
         });
-
+    
         setFilteredThemes(result);
-    }, [themes, selectedAnnee, selectedSpecialite, selectedEtat, filterSelected]);
+    }, [themes, selectedAnnee, selectedSpecialite, selectedEtat, filterSelected, searchTerm]);
 
     useEffect(() => {
         if (filterSelected === 'none') {
@@ -424,7 +431,12 @@ function Themes() {
                             </div>
                             <div className="input-line">
                                 <SearchIcon />
-                                <input type="text" placeholder="Recherhcer par le titre de thème ou nom de l'encadrant" />
+                                <input
+                                    type="text"
+                                    placeholder="Recherhcer par le titre de thème ou nom de l'encadrant"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
                             </div>
                         </div>
                     </div>

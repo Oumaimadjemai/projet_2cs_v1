@@ -175,6 +175,15 @@ function EtudiantsListe() {
         id: null
     })
 
+    const [searchTerm, setSearchTerm] = useState('');
+    const filteredEtudiants = etudiants.filter(etudiant => {
+        const search = searchTerm.toLowerCase();
+        return (
+            etudiant.nom.toLowerCase().startsWith(search) ||
+            etudiant.prenom.toLowerCase().startsWith(search)
+        );
+    });
+
     return (
         <EtudiantsContext.Provider value={{ setEtudiants, setLoading }}>
             <div className='etudiants-liste-container' id='dynamic-liste' ref={dynamicListRef}>
@@ -212,7 +221,12 @@ function EtudiantsListe() {
                             </button>
                             <div className="input-line">
                                 <SearchIcon />
-                                <input type="text" placeholder={t('etudiantsPage.searchPlaceholder')} />
+                                <input
+                                    type="text"
+                                    placeholder={t('etudiantsPage.searchPlaceholder')}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
                             </div>
                         </div>
                     </div>
@@ -258,7 +272,7 @@ function EtudiantsListe() {
                                 etudiants.length !== 0 && (
                                     <tbody>
                                         {
-                                            etudiants.map((etudiant) => (
+                                            filteredEtudiants.map((etudiant) => (
                                                 <tr>
                                                     <td
                                                         style={{
@@ -293,7 +307,7 @@ function EtudiantsListe() {
                                                                 border: `1px solid ${getAnneeColor(etudiant.annee_titre, etudiant.specialite_title).color}`
                                                             }}
                                                         >
-                                                           {`${etudiant.annee_titre}${etudiant.specialite_title ? "-" + etudiant.specialite_title : ""}`}
+                                                            {`${etudiant.annee_titre}${etudiant.specialite_title ? "-" + etudiant.specialite_title : ""}`}
                                                         </span>
                                                     </td>
                                                     <td

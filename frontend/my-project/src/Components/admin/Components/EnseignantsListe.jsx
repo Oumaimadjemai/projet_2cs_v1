@@ -94,15 +94,27 @@ function EnseignantsListe() {
 
     const [loading, setLoading] = useState(false)
 
-    const [ modiferEnseignantState, setModifierEnseignantState ] = useState({
+    const [modiferEnseignantState, setModifierEnseignantState] = useState({
         clicked: false,
         enseignant: null
     })
 
-    const [ deletedEnseignantState, setdDeltedEnseignantState ] = useState({
+    const [deletedEnseignantState, setdDeltedEnseignantState] = useState({
         clicked: false,
         id: null
     })
+
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredEnseignants = enseignants.filter(enseignant => {
+        const search = searchTerm.toLowerCase();
+        return (
+            enseignant.nom.toLowerCase().startsWith(search) ||
+            enseignant.prenom.toLowerCase().startsWith(search) ||
+            enseignant.grade.toLowerCase().startsWith(search)
+        );
+    });
+
 
     return (
         <EnseignantContext.Provider value={{ setEnseignants, setLoading }}>
@@ -141,7 +153,12 @@ function EnseignantsListe() {
                             </button>
                             <div className="input-line">
                                 <SearchIcon />
-                                <input type="text" placeholder={t('enseignantsPage.searchPlaceholder')} />
+                                <input
+                                    type="text"
+                                    placeholder={t('enseignantsPage.searchPlaceholder')}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
                             </div>
                         </div>
                     </div>
@@ -189,7 +206,7 @@ function EnseignantsListe() {
                                 enseignants.length !== 0 && (
                                     <tbody>
                                         {
-                                            enseignants.map((enseignant) => (
+                                            filteredEnseignants.map((enseignant) => (
                                                 <tr>
                                                     <td
                                                         style={{
@@ -246,12 +263,12 @@ function EnseignantsListe() {
                                                                 marginRight: isRtl ? "auto" : "1rem"
                                                             }}
                                                         >
-                                                            <button onClick={() => setModifierEnseignantState({ ...modiferEnseignantState, clicked: true, enseignant:enseignant })}>
+                                                            <button onClick={() => setModifierEnseignantState({ ...modiferEnseignantState, clicked: true, enseignant: enseignant })}>
                                                                 <EditIcon />
                                                                 {t('enseignantsPage.modifieBtn')}
                                                             </button>
-                                                            <button onClick={() => setdDeltedEnseignantState({ ...deletedEnseignantState, clicked: true, id:enseignant.id })}>
-                                                                <DeleteIcon  />
+                                                            <button onClick={() => setdDeltedEnseignantState({ ...deletedEnseignantState, clicked: true, id: enseignant.id })}>
+                                                                <DeleteIcon />
                                                                 {t('enseignantsPage.deleteBtn')}
                                                             </button>
                                                         </div>
@@ -314,12 +331,12 @@ function EnseignantsListe() {
                 }
                 {
                     modiferEnseignantState.clicked && (
-                        <ModifierEnseignant annulerModifier={() => setModifierEnseignantState({clicked: false, enseignant: null})} enseignant={modiferEnseignantState.enseignant} />
+                        <ModifierEnseignant annulerModifier={() => setModifierEnseignantState({ clicked: false, enseignant: null })} enseignant={modiferEnseignantState.enseignant} />
                     )
                 }
                 {
                     deletedEnseignantState.clicked && (
-                        <DeletEnseignant annulerDelete={() => setdDeltedEnseignantState({clicked: false, id: null})} id={deletedEnseignantState.id} />
+                        <DeletEnseignant annulerDelete={() => setdDeltedEnseignantState({ clicked: false, id: null })} id={deletedEnseignantState.id} />
                     )
                 }
                 {
@@ -403,115 +420,115 @@ const ModifierEnseignant = ({ annulerModifier, enseignant }) => {
 
                 </div>
                 <form id='ajouterFormEnseignant'>
-                    
-                        <div className="ajouter-input-line">
-                            <div className="input-flex">
-                                <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.nameInput')}</label>
-                                <input
-                                    type="text"
-                                    name="nom"
-                                    id="nom"
-                                    value={modifiedTeacher.nom}
-                                    onChange={(e) => setmodifiedTeacher({ ...modifiedTeacher, nom: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div className="input-flex">
-                                <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.prenomInput')}</label>
-                                <input
-                                    type="text"
-                                    name="prenom"
-                                    id="prenom"
-                                    value={modifiedTeacher.prenom}
-                                    onChange={(e) => setmodifiedTeacher({ ...modifiedTeacher, prenom: e.target.value })}
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <div className="ajouter-input-line select-line">
-                            <div className="input-flex">
-                                <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.emailInput')}</label>
-                                <input
-                                    type="text"
-                                    name="adresse"
-                                    id="adresse"
-                                    value={modifiedTeacher.email}
-                                    onChange={(e) => setmodifiedTeacher({ ...modifiedTeacher, email: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div className="select-flex">
-                                        <div className="select-flex-line">
-                                            <div style={{ position: "relative", display: "inline-block" }}>
-                                                <select
-                                                    className="custom-select"
-                                                    required
-                                                    value={modifiedTeacher.grade}
-                                                    onChange={(e) => setmodifiedTeacher({ ...modifiedTeacher, grade: e.target.value })}
-                                                >
-                                                    <option>{t('enseignantsPage.gradeSelect')}</option>
-                                                    <option>Professeur</option>
-                                                    <option>Chercheur</option>
-                                                    <option>MCF</option>
-                                                    <option>Doctorant</option>
-                                                </select>
-                                                <svg
-                                                    width="10"
-                                                    height="6"
-                                                    viewBox="0 0 10 6"
-                                                    fill="none"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    style={{
-                                                        position: "absolute",
-                                                        right: "60px",
-                                                        top: "50%",
-                                                        transform: "translateY(-50%)",
-                                                        pointerEvents: "none"
-                                                    }}
-                                                >
-                                                    <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
-                                                </svg>
-                                            </div>
-                                            <div style={{ position: "relative", display: "inline-block" }}>
-                                                <select className="custom-select">
-                                                    <option>{t('enseignantsPage.sexSelect')}</option>
-                                                    <option>Male</option>
-                                                    <option>Female</option>
-                                                </select>
-                                                <svg
-                                                    width="10"
-                                                    height="6"
-                                                    viewBox="0 0 10 6"
-                                                    fill="none"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    style={{
-                                                        position: "absolute",
-                                                        right: "60px",
-                                                        top: "50%",
-                                                        transform: "translateY(-50%)",
-                                                        pointerEvents: "none"
-                                                    }}
-                                                >
-                                                    <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
-                                                </svg>
-                                            </div>
 
-                                        </div>
-                                    </div>
+                    <div className="ajouter-input-line">
+                        <div className="input-flex">
+                            <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.nameInput')}</label>
+                            <input
+                                type="text"
+                                name="nom"
+                                id="nom"
+                                value={modifiedTeacher.nom}
+                                onChange={(e) => setmodifiedTeacher({ ...modifiedTeacher, nom: e.target.value })}
+                                required
+                            />
                         </div>
-                        <div className="ajouter-input-line">
-                            <div className="input-flex">
-                                <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.MatInput')}</label>
-                                <input
-                                    type="text"
-                                    name="nom"
-                                    id="nom"
-                                    value={modifiedTeacher.matricule}
-                                    onChange={(e) => setmodifiedTeacher({ ...modifiedTeacher, matricule: e.target.value })}
-                                    required
-                                />
+                        <div className="input-flex">
+                            <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.prenomInput')}</label>
+                            <input
+                                type="text"
+                                name="prenom"
+                                id="prenom"
+                                value={modifiedTeacher.prenom}
+                                onChange={(e) => setmodifiedTeacher({ ...modifiedTeacher, prenom: e.target.value })}
+                                required
+                            />
+                        </div>
+                    </div>
+                    <div className="ajouter-input-line select-line">
+                        <div className="input-flex">
+                            <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.emailInput')}</label>
+                            <input
+                                type="text"
+                                name="adresse"
+                                id="adresse"
+                                value={modifiedTeacher.email}
+                                onChange={(e) => setmodifiedTeacher({ ...modifiedTeacher, email: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="select-flex">
+                            <div className="select-flex-line">
+                                <div style={{ position: "relative", display: "inline-block" }}>
+                                    <select
+                                        className="custom-select"
+                                        required
+                                        value={modifiedTeacher.grade}
+                                        onChange={(e) => setmodifiedTeacher({ ...modifiedTeacher, grade: e.target.value })}
+                                    >
+                                        <option>{t('enseignantsPage.gradeSelect')}</option>
+                                        <option>Professeur</option>
+                                        <option>Chercheur</option>
+                                        <option>MCF</option>
+                                        <option>Doctorant</option>
+                                    </select>
+                                    <svg
+                                        width="10"
+                                        height="6"
+                                        viewBox="0 0 10 6"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        style={{
+                                            position: "absolute",
+                                            right: "60px",
+                                            top: "50%",
+                                            transform: "translateY(-50%)",
+                                            pointerEvents: "none"
+                                        }}
+                                    >
+                                        <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
+                                    </svg>
+                                </div>
+                                <div style={{ position: "relative", display: "inline-block" }}>
+                                    <select className="custom-select">
+                                        <option>{t('enseignantsPage.sexSelect')}</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                    </select>
+                                    <svg
+                                        width="10"
+                                        height="6"
+                                        viewBox="0 0 10 6"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        style={{
+                                            position: "absolute",
+                                            right: "60px",
+                                            top: "50%",
+                                            transform: "translateY(-50%)",
+                                            pointerEvents: "none"
+                                        }}
+                                    >
+                                        <path d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z" fill="#8A8A8A" />
+                                    </svg>
+                                </div>
+
                             </div>
                         </div>
+                    </div>
+                    <div className="ajouter-input-line">
+                        <div className="input-flex">
+                            <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>{t('enseignantsPage.MatInput')}</label>
+                            <input
+                                type="text"
+                                name="nom"
+                                id="nom"
+                                value={modifiedTeacher.matricule}
+                                onChange={(e) => setmodifiedTeacher({ ...modifiedTeacher, matricule: e.target.value })}
+                                required
+                            />
+                        </div>
+                    </div>
 
 
                 </form>

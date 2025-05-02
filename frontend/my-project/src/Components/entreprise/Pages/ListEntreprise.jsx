@@ -102,12 +102,25 @@ const EntrepriseList = () => {
     setConfirmDeleteIdx(null)
   }
 
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filterEntreprises = filterdEntreprises.filter(e => {
+    const search = searchTerm.toLowerCase();
+    return (
+      e.nom.toLowerCase().startsWith(search) ||
+      e.secteur_activite.toLowerCase().startsWith(search) ||
+      e.representant_nom.toLowerCase().startsWith(search) ||
+      e.representant_prenom.toLowerCase().startsWith(search)
+    );
+  });
+  
+
   return (
     <EntrepriseContext.Provider value={{ setEntreprises }}>
       <div style={styles.page}>
         <div style={styles.content}>
           <div style={styles.header}>
-            <div style={styles.title}>Tous les entreprises <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>{cards.length}</span></div>
+            <div style={styles.title}>Tous les entreprises <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>{filterdEntreprises.length}</span></div>
             <div style={styles.btnGroup}>
               <button
                 style={{ ...styles.button, ...styles.demandeLink }}
@@ -144,13 +157,18 @@ const EntrepriseList = () => {
               </button>
               <div className="input-line">
                 <SearchIcon />
-                <input type="text" placeholder={t('etudiantsPage.searchPlaceholder')} />
+                <input
+                  type="text"
+                  placeholder={t('etudiantsPage.searchPlaceholder')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
             </div>
           </div>
 
           <div style={styles.grid}>
-            {filterdEntreprises.map((card, idx) => (
+            {filterEntreprises.map((card, idx) => (
               <div key={idx} style={styles.card}>
                 <div style={styles.menuDots} onClick={() => setOpenMenu(openMenu === idx ? null : idx)}>
                   <FiMoreVertical />

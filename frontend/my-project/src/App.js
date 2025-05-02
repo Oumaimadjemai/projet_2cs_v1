@@ -35,6 +35,7 @@ import ThemeEnseignant from "./Components/enseignante/Components/Theme";
 import ThemesEntreprise from "./Components/entreprise/Pages/Themes";
 import { EntrepriseLayout } from "./Layouts/EntrepriseLayout";
 import NotFound from "./Components/Partials/Components/NotFound";
+import AdminsList from "./Components/admin/Components/AdminsListe";
 
 export const AppContext = createContext();
 
@@ -81,7 +82,7 @@ function App() {
               <Route index element={<EntrepriseList />} />
               <Route path="demandes" element={<DemandeEntreprise />} />
             </Route>
-            <Route path="admins" element={<h1>admins</h1>} />
+            <Route path="admins" element={<AdminsList />} />
             <Route path="scolarite" element={<ScolariteLayout />} >
               <Route index element={<ParametresScolarite />} />
               <Route path="departements" element={<Departements />} />
