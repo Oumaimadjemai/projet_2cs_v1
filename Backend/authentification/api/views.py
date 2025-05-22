@@ -121,11 +121,13 @@ class AdminRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminSerializer
 
 #parametres
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import status
-from .models import Departement
-from .serializers import DepartementSerializer
+class AnneeAcademiqueListCreateView(generics.ListCreateAPIView):
+    queryset = AnneeAcademique.objects.all()
+    serializer_class = AnneeAcademiqueSerializer
+
+class AnneeAcademiqueRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = AnneeAcademique.objects.all()
+    serializer_class = AnneeAcademiqueSerializer
 
 class DepartementListCreateView(APIView):
     def get(self, request, *args, **kwargs):
@@ -230,8 +232,21 @@ class SalleRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
 class PeriodeListCreateView(APIView):
     def get(self, request, *args, **kwargs):
-        Periodes = Periode.objects.all()
-        serializer = PeriodeSerializer(Periodes, many=True)
+        annee_academique_id = request.query_params.get('annee_academique_id', None)
+        archived_param = request.query_params.get('archived', None)  # "true" ou "false"
+
+        queryset = Periode.objects.all()
+
+        if annee_academique_id:
+            queryset = queryset.filter(annee_academique__id=annee_academique_id)
+
+        if archived_param is not None:
+            if archived_param.lower() == 'true':
+                queryset = queryset.filter(archived=True)
+            elif archived_param.lower() == 'false':
+                queryset = queryset.filter(archived=False)
+
+        serializer = PeriodeSerializer(queryset, many=True)
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
@@ -249,6 +264,45 @@ class PeriodeListCreateView(APIView):
 class PeriodeRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Periode.objects.all()
     serializer_class = PeriodeSerializer
+
+class Parametre_groupListCreateView(APIView):
+    def get(self, request, *args, **kwargs):
+        annee_id = request.query_params.get('annee_id', None)
+        annee_academique_id = request.query_params.get('annee_academique_id', None)
+        archived_param = request.query_params.get('archived', None)  # attend "true" ou "false"
+
+        queryset = Parametre_group.objects.all()
+
+        if annee_id:
+            queryset = queryset.filter(annee__id=annee_id)
+
+        if annee_academique_id:
+            queryset = queryset.filter(annee_academique__id=annee_academique_id)
+
+        if archived_param is not None:
+            if archived_param.lower() == 'true':
+                queryset = queryset.filter(archived=True)
+            elif archived_param.lower() == 'false':
+                queryset = queryset.filter(archived=False)
+
+        serializer = Parametre_groupSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        if isinstance(request.data, list):
+            serializer = Parametre_groupSerializer(data=request.data, many=True)
+        else:
+            serializer = Parametre_groupSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Parametre_groupRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Parametre_group.objects.all()
+    serializer_class = Parametre_groupSerializer
 
 
 class EntrepriseListCreateView(generics.ListCreateAPIView):
@@ -1111,64 +1165,7 @@ def export_admins_pdf(request):
     doc.build(elements)
     return response
 
-# from reportlab.lib.pagesizes import A4
-# from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-# from reportlab.lib.styles import getSampleStyleSheet
-# from django.http import HttpResponse
-# from .models import Etudiant
 
-# def export_etudiants_pdf(request):
-#     response = HttpResponse(content_type='application/pdf')
-#     response['Content-Disposition'] = 'attachment; filename="etudiants.pdf"'
-
-#     doc = SimpleDocTemplate(response, pagesize=A4)
-#     elements = []
-#     styles = getSampleStyleSheet()
-
-#     # Titre
-#     titre = Paragraph("Liste des étudiants de l'école supérieure en informatique SBA", styles['Title'])
-#     elements.append(titre)
-#     elements.append(Spacer(1, 20))
-
-#     # Entêtes du tableau
-#     data = [['Ordre', 'Nom', 'Prénom', 'Email', 'Matricule', 'Année d\'étude', 'Moyenne', 'Chef d\'équipe']]
-
-#     # Récupérer et trier les étudiants par nom puis prénom
-#     etudiants = Etudiant.objects.all().order_by('nom', 'prenom')
-
-#     # Remplir les lignes du tableau
-#     for idx, etudiant in enumerate(etudiants, start=1):
-#         # Concatenate the year, department, and specialty as "Année d'étude"
-#         annee_etude = ""
-#         if etudiant.annee_etude:
-#             departement = etudiant.annee_etude.departement.title if etudiant.annee_etude.departement else ""
-#             annee_etude = f"{etudiant.annee_etude.title} - {departement} - {etudiant.specialite.title if etudiant.specialite else ''}"
-
-#         data.append([
-#             str(idx),
-#             etudiant.nom or '',
-#             etudiant.prenom or '',
-#             etudiant.email or '',
-#             etudiant.matricule or '',
-#             annee_etude or '',  # Concatenated "Année d'étude"
-#             etudiant.moyenne_etudiant or '',
-#             'Oui' if etudiant.chef_equipe else 'Non'
-#         ])
-
-#     # Création du tableau
-#     table = Table(data, colWidths=[40, 100, 100, 150, 80, 180, 80, 80])
-
-#     # Style simple avec des bordures
-#     style = TableStyle([
-#         ('GRID', (0, 0), (-1, -1), 1, 'black'),
-#         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-#         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # En-tête en gras
-#     ])
-#     table.setStyle(style)
-
-#     elements.append(table)
-#     doc.build(elements)
-#     return response
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle

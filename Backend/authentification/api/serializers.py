@@ -8,6 +8,22 @@ import cloudinary.uploader
 
 from rest_framework_simplejwt.tokens import RefreshToken
     
+class AnneeAcademiqueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=AnneeAcademique
+        fields='__all__'
+        
+    def validate(self, data):
+        # Validate that date_debut is before date_fin
+        if data['date_debut'] >= data['date_fin']:
+            raise serializers.ValidationError("La date de début doit être antérieure à la date de fin.")
+
+        # Check if the same year string exists
+        year_str = f"{data['date_debut'].year}/{data['date_fin'].year}"
+        if AnneeAcademique.objects.filter(year=year_str).exists():
+            raise serializers.ValidationError(f"L'année académique {year_str} existe déjà.")
+        return data
+
 class DepartementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Departement
@@ -35,6 +51,20 @@ class PeriodeSerializer(serializers.ModelSerializer):
     class Meta:
         model=Periode
         fields='__all__'
+
+class Parametre_groupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Parametre_group
+        fields='__all__'
+    def validate(self, data):
+        annee = data.get('annee') or getattr(self.instance, 'annee', None)
+        type_value = data.get('type') or getattr(self.instance, 'type', None)
+
+        if annee and annee.title == "3" and annee.departement and annee.departement.title.lower() == "cs":
+            if not type_value:
+                raise serializers.ValidationError("Le type de groupe est obligatoire pour la 3CS.")
+
+        return data
 
 User = get_user_model()
 
