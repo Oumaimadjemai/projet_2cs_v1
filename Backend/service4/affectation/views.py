@@ -167,14 +167,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Assignment
 from .utils import get_user_id_from_token
-from .services import get_theme_info, get_group_members, is_admin_user
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Assignment
 from .utils import get_user_id_from_token
-from .services import get_theme_info, get_group_members, is_admin_user
+from .services import *
 from django.db import IntegrityError
 
 class AssignManualThemeView(APIView):
@@ -258,3 +257,23 @@ class AssignManualThemeView(APIView):
             })
 
         return Response(results, status=status.HTTP_200_OK)
+    
+
+class AssignThemesByCriteriaView(APIView):
+    def post(self, request):
+        if not is_admin_user(request):
+            return Response({'error': "Accès refusé. Administrateur requis."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        annee_id = request.data.get('annee')
+        specialite_id = request.data.get('specialite')
+        jwt_token = request.headers.get('Authorization')
+
+        if not annee_id:
+            return Response({'error': "Le champ 'annee' est obligatoire."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            assignments = assign_random_themes_by_criteria(annee_id, specialite_id, jwt_token=jwt_token)
+            return Response({'assignments': assignments}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

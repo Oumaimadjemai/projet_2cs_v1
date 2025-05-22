@@ -1,9 +1,10 @@
 import requests
 from .discovery import discover_service
+from .models import Assignment
 
 SERVICE1 = 'SERVICE1-CLIENT'
 SERVICE2 = 'SERVICE2-CLIENT'
-SERVICE3 = 'SERVICE3_NODE'
+SERVICE3 = 'SERVICE3-NODE'
 
 
 
@@ -108,7 +109,7 @@ def get_theme_info(theme_id):
 
 def get_group_members(group_id, jwt_token=None):
     base = discover_service(SERVICE3)
-    url = f"{base}/api/groups/{group_id}/members/"
+    url = f"{base}/api/groups/{group_id}/members"
 
     headers = {}
     if jwt_token:
@@ -132,26 +133,73 @@ def get_group_members(group_id, jwt_token=None):
 
     return []
 
+
 import random
 
-def assign_random_theme_to_group(theme_id):
-    """
-    Assign a given theme_id to a random group who selected it in their submissions.
-    """
-    submissions = get_submissions()
-    eligible_groups = []
+def assign_random_themes_by_criteria(annee_id, specialite_id=None, jwt_token=None):
+    # Discover services
+    service2_base = discover_service(SERVICE2)
+    service3_base = discover_service(SERVICE3)
 
-    for submission in submissions:
-        group_id = submission['_id']
-        choices = submission['choices'].values()  # p1, p2, p3
-        if str(theme_id) in map(str, choices):
-            eligible_groups.append(group_id)
+    # 1. Get themes by annee or (annee + specialite)
+    if specialite_id:
+        themes_url = f"{service2_base}/themes/by-annee-specialite/{annee_id}/{specialite_id}/"
+    else:
+        themes_url = f"{service2_base}/themes/by-annee/{annee_id}/"
 
-    print(f"[DEBUG] Eligible groups for theme {theme_id}: {eligible_groups}")
+    headers = {'Authorization': jwt_token} if jwt_token else {}
 
-    if not eligible_groups:
-        return None, f"Aucun groupe n'a choisi ce thème."
+    themes_response = requests.get(themes_url, headers=headers)
+    themes_response.raise_for_status()
+    themes = themes_response.json()
 
-    chosen_group = random.choice(eligible_groups)
-    return chosen_group, None
+    # 2. Get groups by same criteria
+    if specialite_id:
+        groups_url = f"{service3_base}/api/groups/by-study-year-specialty?annee={annee_id}&specialite={specialite_id}"
+    else:
+        groups_url = f"{service3_base}/api/groups/by-study-year?annee={annee_id}"
+
+    groups_response = requests.get(groups_url, headers=headers)
+    groups_response.raise_for_status()
+    groups = groups_response.json()
+
+    # 3. Filter out groups already assigned
+    assigned_group_ids = set(Assignment.objects.values_list('group_id', flat=True))
+    eligible_groups = [g for g in groups if g['_id'] not in assigned_group_ids]
+
+    # 4. Prepare and shuffle
+    random.shuffle(themes)
+    random.shuffle(eligible_groups)
+
+    assignments = []
+    theme_index = 0
+
+    for group in eligible_groups:
+        while theme_index < len(themes):
+            theme = themes[theme_index]
+            theme_id = theme['id']
+            max_groups = theme.get('numberOfGrp', 1)
+            current_count = Assignment.objects.filter(theme_id=theme_id).count()
+
+            if current_count < max_groups:
+                encadrant_id = theme.get('enseignant_id') or theme.get('entreprise_id')
+                assignment = Assignment.objects.create(
+                    group_id=group['_id'],
+                    theme_id=theme_id,
+                    encadrant=encadrant_id,
+                    assigned_by_admin_id=None  # optional
+                )
+                assignments.append({
+                    'group_id': group['_id'],
+                    'theme_id': theme_id,
+                    'assignment_id': assignment.id
+                })
+                break
+            else:
+                theme_index += 1
+
+        if theme_index >= len(themes):
+            break  # plus de thèmes disponibles
+
+    return assignments
 

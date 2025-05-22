@@ -836,7 +836,7 @@ class VerifyUserAPIView(APIView):
         return Response({
             "is_enseignant": user.is_enseignant(),
             "is_entreprise": user.is_entreprise(),
-             "is_etudiant": user.is_etudiant(),
+            "is_etudiant": user.is_etudiant(),
             "user_id": user.id
         })
 
