@@ -29,6 +29,10 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis broker
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TASK_SERIALIZER = 'json'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -43,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'import_export',
+    'django_celery_beat',
 ]
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

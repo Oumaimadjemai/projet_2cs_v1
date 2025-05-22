@@ -22,6 +22,8 @@ urlpatterns = [
     path('admins/', AdminListCreateView.as_view(), name='admin-list-create'),
     path('admins/<int:pk>/', AdminRetrieveUpdateDeleteView.as_view(), name='admin-detail'),
 
+    path('annees-academiques/', AnneeAcademiqueListCreateView.as_view(), name='annee-academique-list-create'),
+    path('annees-academiques/<int:pk>/', AnneeAcademiqueRetrieveUpdateDeleteView.as_view(), name='annee-academique-detail'),
     path('departements/', DepartementListCreateView.as_view(), name='departement-list-create'),
     path('departements/<int:pk>/', DepartementRetrieveUpdateDeleteView.as_view(), name='departement-detail'),
     
@@ -33,6 +35,12 @@ urlpatterns = [
     
     path('salles/', SalleListCreateView.as_view(), name='salle-list-create'),
     path('salles/<int:pk>/', SalleRetrieveUpdateDeleteView.as_view(), name='salle-detail'),
+
+    path('periodes/',PeriodeListCreateView.as_view(),name='periode-list-create'),
+    path('periodes/<int:pk>',PeriodeRetrieveUpdateDeleteView.as_view(),name='periode-detail'),
+
+    path('Parametre_groups/',Parametre_groupListCreateView.as_view(),name='Parametre_group-list-create'),
+    path('Parametre_groups/<int:pk>',Parametre_groupRetrieveUpdateDeleteView.as_view(),name='Parametre_group-detail'),
 
     path('entreprises/', EntrepriseListCreateView.as_view(), name='entreprise-list'),
     path('entreprises/<int:pk>/valider/', EntrepriseValidationView.as_view(), name='entreprise-valider'),

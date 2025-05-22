@@ -3,7 +3,7 @@ from .discovery import discover_service
 
 SERVICE1 = 'SERVICE1-CLIENT'
 SERVICE2 = 'SERVICE2-CLIENT'
-SERVICE3 = 'SERVICE3-NODE'
+SERVICE3 = 'SERVICE3_NODE'
 
 
 

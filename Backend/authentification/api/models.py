@@ -5,31 +5,51 @@ from cloudinary.models import CloudinaryField
 # Create your models here.
 
 from django.contrib.auth.models import BaseUserManager
+from django.forms import ValidationError
+from django.utils import timezone
+
+
 #parametres
-class Departement(models.Model):
+
+class AnneeAcademique(models.Model):
+    date_debut=models.DateField()
+    date_fin=models.DateField()
+    year = models.CharField(max_length=9,unique=True,editable=False)
+    def save(self, *args, **kwargs):
+        # Generate the year string automatically
+        self.year = f"{self.date_debut.year}/{self.date_fin.year}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.year
+    def archive_related_objects(self):
+        from .models import Periode, Parametre_group  # avoid circular imports
+
+        if timezone.now().date() > self.date_fin:
+            Periode.objects.filter(annee_academique=self, archived=False).update(archived=True)
+            Parametre_group.objects.filter(annee_academique=self, archived=False).update(archived=True)
+
+class Departement(models.Model):#ne change pas
     title = models.CharField(max_length=50,null=True)
     def __str__(self):
         return self.title
 
-class Annee(models.Model):
+class Annee(models.Model):#ne change pas
     departement = models.ForeignKey(Departement,on_delete=models.CASCADE,null=True)
     title = models.CharField(max_length=50)
     has_specialite = models.BooleanField(default=False)
-    nbr_personne_min=models.IntegerField(null=True)
-    nbr_personne_max=models.IntegerField(null=True)
     
     def __str__(self):
         return f"{self.title} {self.departement.title}"
     
-class Specialite(models.Model):
-    #annee = models.ForeignKey(Annee,on_delete=models.CASCADE,null=True)
+class Specialite(models.Model):#ne change pas
     title = models.CharField(max_length=50)
     abv=models.CharField(max_length=50,null=True)
 
     def __str__(self):
         return f"{self.title}"
 
-class Salle(models.Model):
+class Salle(models.Model):#ne change pas
     departement = models.ForeignKey(Departement, on_delete=models.CASCADE, null=True)
     type = models.CharField(max_length=50)
     num = models.IntegerField()
@@ -39,7 +59,7 @@ class Salle(models.Model):
     def __str__(self):
         return f"Salle {self.num} {self.type}"
 
-class Periode(models.Model):
+class Periode(models.Model):#selon annee academique
     TYPE_CHOICES = [
         ('depot_theme', 'Dépôt des Thèmes'),
         ('soutenance', 'Soutenance'),
@@ -48,14 +68,36 @@ class Periode(models.Model):
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     date_debut = models.DateField()
     date_fin = models.DateField()
+    archived = models.BooleanField(default=False)
+    annee_academique = models.ForeignKey(AnneeAcademique, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return f"{self.get_type_display()} : {self.date_debut} au {self.date_fin}"
+    
 
-    class Meta:
-        verbose_name = "Période"
-        verbose_name_plural = "Périodes"
+class Parametre_group(models.Model):#selon annee_academique
+    TYPE_CHOICES=[
+        ('startup','startup'),
+        ('binome','binome'),
+        ('monome','monome'),
+    ]
+    annee=models.ForeignKey(Annee,on_delete=models.CASCADE,null=True)
+    type=models.CharField(max_length=20,choices=TYPE_CHOICES,null=True)
+    nbr_min=models.IntegerField(null=True)
+    nbr_max=models.IntegerField(null=True)
+    date_soumission=models.DateTimeField(auto_now_add=True,null=True)
+    archived = models.BooleanField(default=False)
+    annee_academique = models.ForeignKey(AnneeAcademique, on_delete=models.CASCADE, null=True, blank=True)
+    def clean(self):
+        super().clean()
 
+        # Check that annee is set
+        if self.annee and self.annee.title == "3" and self.annee.departement and self.annee.departement.title.lower() == "cs":
+            if not self.type:
+                raise ValidationError("Le type de groupe est obligatoire pour la 3e année du département CS.")
+    
+    def __str__(self):
+        return f"Paramètres {self.annee} - {self.type}"
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, nom, prenom, password=None, **extra_fields):
