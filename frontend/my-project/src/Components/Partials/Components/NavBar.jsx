@@ -121,6 +121,7 @@ function NavBar({ menuItems, racinePath }) {
                                                         {subItem.name}
                                                     </Link>
                                                 ))}
+                                            
                                             </ul>
                                         </div>
                                     </div>

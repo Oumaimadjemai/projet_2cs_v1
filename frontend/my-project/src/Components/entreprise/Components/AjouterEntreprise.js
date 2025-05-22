@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import wilayas from '../../inscriEntreprise/Willaya';
 import axios from "axios";
 import { EntrepriseContext } from "../Pages/ListEntreprise";
+import "../Styles/ListEntreprise.css"
 const styles = {
   container: {
     width: '70%',
@@ -149,6 +150,9 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
             errorMsg = "Format de site web invalide (doit commencer par http:// ou https://)";
           }
           break;
+        default:
+          break;
+
       }
     }
 
@@ -184,6 +188,8 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
           if (!/^0[567][0-9]{8}$/.test(value)) {
             errorMsg = "Numéro de téléphone invalide (ex: 0550123456)";
           }
+          break;
+        default:
           break;
       }
     }
@@ -240,6 +246,7 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
   };
 
   const { setEntreprises } = useContext(EntrepriseContext);
+  const [loading, setLoading] = useState(false)
 
   const handleValider = () => {
     const requiredFields = ['nom', 'prenom', 'poste', 'email', 'telephone'];
@@ -274,323 +281,341 @@ const AjouterEntreprise = ({ onClose, onAdd }) => {
       };
       onAdd(newEntreprise);
 
-      axios.post('http://127.0.0.1:8000/entreprises/create-manual/', newEntreprise)
+      setLoading(true);
+
+      axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/entreprises/create-manual/`, newEntreprise)
         .then((res) => {
-          const data = Array.isArray(res.data) ? res.data : [res.data];
-          setEntreprises(prev => [...prev, ...data]);
+          setEntreprises(prev => [...prev, res.data]);
           onClose();
         })
         .catch(error => {
           console.error('Erreur lors de l\'ajout de l\'entreprise:', error);
           alert('Erreur lors de l\'ajout de l\'entreprise');
-        });
+        })
+        .finally(() => setLoading(false))
     }
   };
 
 
   return (
-    <div style={styles.modalOverlay}>
-      <div style={styles.modalForm}>
-        <button style={styles.closeBtn} onClick={onClose}>×</button>
-        <h2 style={{ textAlign: 'center', marginBottom: '10px' }}>Ajouter Entreprise</h2>
+    <>
+      <div style={styles.modalOverlay}>
+        <div style={styles.modalForm}>
+          <button style={styles.closeBtn} onClick={onClose}>×</button>
+          <h2 style={{ textAlign: 'center', marginBottom: '10px' }}>Ajouter Entreprise</h2>
 
-        <div style={styles.tabs}>
-          <div
-            style={{
-              ...styles.tab('entreprise', step === 1 ? 'entreprise' : 'representant'),
-              ...(!isEntrepriseValid && step === 2 ? styles.disabledTab : {})
-            }}
-            onClick={() => isEntrepriseValid && setStep(1)}
-          >
-            Entreprise
-          </div>
-          <div
-            style={{
-              ...styles.tab('representant', step === 2 ? 'representant' : 'entreprise'),
-              ...(!isEntrepriseValid ? styles.disabledTab : {})
-            }}
-            onClick={() => isEntrepriseValid && setStep(2)}
-          >
-            Représentant
-          </div>
-        </div>
-
-        {step === 1 && (
-          <form>
-            <div style={styles.inputRow}>
-              <div style={{ flex: 1 }}>
-                <input type="text" name="nom" value={entrepriseData.nom} onChange={handleEntrepriseChange}
-                  onBlur={(e) => {
-                    if (e.target.value.trim() === "") {
-                      setErrors(prev => ({
-                        ...prev,
-                        entreprise: { ...prev.entreprise, nom: "Ce champ est obligatoire" }
-                      }));
-                    }
-                  }}
-                  style={styles.input}
-                  placeholder="Nom de l'entreprise"
-                />
-                {errors.entreprise.nom && <span style={styles.error}>{errors.entreprise.nom}</span>}
-              </div>
-              <div style={{ flex: 1 }}>
-                <input type="text" name="secteur" value={entrepriseData.secteur} onChange={handleEntrepriseChange}
-                  onBlur={(e) => {
-                    if (e.target.value.trim() === "") {
-                      setErrors(prev => ({
-                        ...prev,
-                        entreprise: { ...prev.entreprise, secteur: "Ce champ est obligatoire" }
-                      }));
-                    }
-                  }}
-                  style={styles.input}
-                  placeholder="Secteur d'activité"
-                />
-                {errors.entreprise.secteur && <span style={styles.error}>{errors.entreprise.secteur}</span>}
-              </div>
-            </div>
-
-            <div style={styles.inputRow}>
-              <div style={{ flex: 1 }}>
-                <select
-                  name="wilaya"
-                  value={entrepriseData.wilaya}
-                  onChange={(e) => {
-                    handleEntrepriseChange(e);
-                    setEntrepriseData(prev => ({ ...prev, ville: "" }));
-                  }}
-                  onBlur={(e) => {
-                    if (e.target.value === "") {
-                      setErrors(prev => ({
-                        ...prev,
-                        entreprise: { ...prev.entreprise, wilaya: "Ce champ est obligatoire" }
-                      }));
-                    }
-                  }}
-                  style={styles.input}
-                >
-                  <option value="">Sélectionner une wilaya</option>
-                  {Object.entries(wilayas).map(([code, wilaya]) => (
-                    <option key={code} value={code}>{wilaya.name}</option>
-                  ))}
-                </select>
-                {errors.entreprise.wilaya && <span style={styles.error}>{errors.entreprise.wilaya}</span>}
-              </div>
-              <div style={{ flex: 1 }}>
-                <select
-                  name="ville"
-                  value={entrepriseData.ville}
-                  onChange={handleEntrepriseChange}
-                  onBlur={(e) => {
-                    if (e.target.value === "") {
-                      setErrors(prev => ({
-                        ...prev,
-                        entreprise: { ...prev.entreprise, ville: "Ce champ est obligatoire" }
-                      }));
-                    }
-                  }}
-                  style={styles.input}
-                  disabled={!entrepriseData.wilaya}
-                >
-                  <option value="">Sélectionner une ville</option>
-                  {entrepriseData.wilaya && wilayas[entrepriseData.wilaya].cities.map((city, i) => (
-                    <option key={i} value={city}>{city}</option>
-                  ))}
-                </select>
-                {errors.entreprise.ville && <span style={styles.error}>{errors.entreprise.ville}</span>}
-              </div>
-            </div>
-
-            <div style={{ ...styles.inputRow, flexDirection: 'column' }}>
-              <div>
-                <input
-                  type="text"
-                  name="adresse"
-                  value={entrepriseData.adresse}
-                  onChange={handleEntrepriseChange}
-                  onBlur={(e) => {
-                    if (e.target.value.trim() === "") {
-                      setErrors(prev => ({
-                        ...prev,
-                        entreprise: { ...prev.entreprise, adresse: "Ce champ est obligatoire" }
-                      }));
-                    }
-                  }}
-                  style={{ ...styles.input, flex: 2, width: '720px' }}
-                  placeholder="Rue Didouche Mourad..."
-                />
-                {errors.entreprise.adresse && <span style={styles.error}>{errors.entreprise.adresse}</span>}
-              </div>
-              <div>
-                <input
-                  type="text"
-                  name="siteWeb"
-                  value={entrepriseData.siteWeb}
-                  onChange={handleEntrepriseChange}
-                  style={{ ...styles.input, flex: 2, width: '720px' }} placeholder="www.techinnovdz.com"
-                />
-                {errors.entreprise.siteWeb && <span style={styles.error}>{errors.entreprise.siteWeb}</span>}
-              </div>
-            </div>
-          </form>
-        )}
-
-        {step === 2 && (
-          <form>
-            <div style={styles.inputRow}>
-              <div style={{ flex: 1 }}>
-                <input
-                  type="text"
-                  name="nom"
-                  value={representantData.nom}
-                  onChange={handleRepresentantChange}
-                  onBlur={(e) => {
-                    if (e.target.value.trim() === "") {
-                      setErrors(prev => ({
-                        ...prev,
-                        representant: { ...prev.representant, nom: "Ce champ est obligatoire" }
-                      }));
-                    }
-                  }}
-                  style={styles.input}
-                  placeholder="Nom"
-                />
-                {errors.representant.nom && <span style={styles.error}>{errors.representant.nom}</span>}
-              </div>
-              <div style={{ flex: 1 }}>
-                <input
-                  type="text"
-                  name="prenom"
-                  value={representantData.prenom}
-                  onChange={handleRepresentantChange}
-                  onBlur={(e) => {
-                    if (e.target.value.trim() === "") {
-                      setErrors(prev => ({
-                        ...prev,
-                        representant: { ...prev.representant, prenom: "Ce champ est obligatoire" }
-                      }));
-                    }
-                  }}
-                  style={styles.input}
-                  placeholder="Prénom"
-                />
-                {errors.representant.prenom && <span style={styles.error}>{errors.representant.prenom}</span>}
-              </div>
-            </div>
-
-            <div style={styles.inputRow}>
-              <div style={{ flex: 1 }}>
-                <select
-                  name="poste"
-                  value={representantData.poste}
-                  onChange={handleRepresentantChange}
-                  onBlur={(e) => {
-                    if (e.target.value === "") {
-                      setErrors(prev => ({
-                        ...prev,
-                        representant: { ...prev.representant, poste: "Ce champ est obligatoire" }
-                      }));
-                    }
-                  }}
-                  style={{ ...styles.input, width: '720px' }}
-                >
-                  <option value="" disabled hidden>Poste occupé</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Développeur">Développeur</option>
-                  <option value="Designer">Designer</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Autre">Autre</option>
-                </select>
-                {errors.representant.poste && <span style={styles.error}>{errors.representant.poste}</span>}
-              </div>
-            </div>
-
-            <div style={{ ...styles.inputRow, flexDirection: 'column' }}>
-              <div>
-                <input
-                  type="email"
-                  name="email"
-                  value={representantData.email}
-                  onChange={handleRepresentantChange}
-                  onBlur={(e) => {
-                    if (e.target.value.trim() === "") {
-                      setErrors(prev => ({
-                        ...prev,
-                        representant: { ...prev.representant, email: "Ce champ est obligatoire" }
-                      }));
-                    }
-                  }}
-                  style={{ ...styles.input, width: '720px' }}
-                  placeholder="email@exemple.com"
-                />
-                {errors.representant.email && <span style={styles.error}>{errors.representant.email}</span>}
-              </div>
-              <div>
-                <input
-                  type="tel"
-                  name="telephone"
-                  value={representantData.telephone}
-                  onChange={handleRepresentantChange}
-                  onBlur={(e) => {
-                    if (e.target.value.trim() === "") {
-                      setErrors(prev => ({
-                        ...prev,
-                        representant: { ...prev.representant, telephone: "Ce champ est obligatoire" }
-                      }));
-                    }
-                  }}
-                  style={{ ...styles.input, width: '720px' }}
-                  placeholder="0601020304"
-                />
-                {errors.representant.telephone && <span style={styles.error}>{errors.representant.telephone}</span>}
-              </div>
-            </div>
-          </form>
-        )}
-
-        <div style={styles.buttonRow}>
-          {step === 1 && (
-            <button
-              onClick={handleNext}
+          <div style={styles.tabs}>
+            <div
               style={{
-                ...styles.button,
-                background: isEntrepriseValid ? '#925FE2' : '#ccc',
-                color: 'white'
+                ...styles.tab('entreprise', step === 1 ? 'entreprise' : 'representant'),
+                ...(!isEntrepriseValid && step === 2 ? styles.disabledTab : {})
               }}
-              disabled={!isEntrepriseValid}
+              onClick={() => isEntrepriseValid && setStep(1)}
             >
-              Suivant
-            </button>
+              Entreprise
+            </div>
+            <div
+              style={{
+                ...styles.tab('representant', step === 2 ? 'representant' : 'entreprise'),
+                ...(!isEntrepriseValid ? styles.disabledTab : {})
+              }}
+              onClick={() => isEntrepriseValid && setStep(2)}
+            >
+              Représentant
+            </div>
+          </div>
+
+          {step === 1 && (
+            <form>
+              <div style={styles.inputRow}>
+                <div style={{ flex: 1 }}>
+                  <input type="text" name="nom" value={entrepriseData.nom} onChange={handleEntrepriseChange}
+                    onBlur={(e) => {
+                      if (e.target.value.trim() === "") {
+                        setErrors(prev => ({
+                          ...prev,
+                          entreprise: { ...prev.entreprise, nom: "Ce champ est obligatoire" }
+                        }));
+                      }
+                    }}
+                    style={styles.input}
+                    placeholder="Nom de l'entreprise"
+                  />
+                  {errors.entreprise.nom && <span style={styles.error}>{errors.entreprise.nom}</span>}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <input type="text" name="secteur" value={entrepriseData.secteur} onChange={handleEntrepriseChange}
+                    onBlur={(e) => {
+                      if (e.target.value.trim() === "") {
+                        setErrors(prev => ({
+                          ...prev,
+                          entreprise: { ...prev.entreprise, secteur: "Ce champ est obligatoire" }
+                        }));
+                      }
+                    }}
+                    style={styles.input}
+                    placeholder="Secteur d'activité"
+                  />
+                  {errors.entreprise.secteur && <span style={styles.error}>{errors.entreprise.secteur}</span>}
+                </div>
+              </div>
+
+              <div style={styles.inputRow}>
+                <div style={{ flex: 1 }}>
+                  <select
+                    name="wilaya"
+                    value={entrepriseData.wilaya}
+                    onChange={(e) => {
+                      handleEntrepriseChange(e);
+                      setEntrepriseData(prev => ({ ...prev, ville: "" }));
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value === "") {
+                        setErrors(prev => ({
+                          ...prev,
+                          entreprise: { ...prev.entreprise, wilaya: "Ce champ est obligatoire" }
+                        }));
+                      }
+                    }}
+                    style={styles.input}
+                  >
+                    <option value="">Sélectionner une wilaya</option>
+                    {Object.entries(wilayas).map(([code, wilaya]) => (
+                      <option key={code} value={code}>{wilaya.name}</option>
+                    ))}
+                  </select>
+                  {errors.entreprise.wilaya && <span style={styles.error}>{errors.entreprise.wilaya}</span>}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <select
+                    name="ville"
+                    value={entrepriseData.ville}
+                    onChange={handleEntrepriseChange}
+                    onBlur={(e) => {
+                      if (e.target.value === "") {
+                        setErrors(prev => ({
+                          ...prev,
+                          entreprise: { ...prev.entreprise, ville: "Ce champ est obligatoire" }
+                        }));
+                      }
+                    }}
+                    style={styles.input}
+                    disabled={!entrepriseData.wilaya}
+                  >
+                    <option value="">Sélectionner une ville</option>
+                    {entrepriseData.wilaya && wilayas[entrepriseData.wilaya].cities.map((city, i) => (
+                      <option key={i} value={city}>{city}</option>
+                    ))}
+                  </select>
+                  {errors.entreprise.ville && <span style={styles.error}>{errors.entreprise.ville}</span>}
+                </div>
+              </div>
+
+              <div style={{ ...styles.inputRow, flexDirection: 'column' }}>
+                <div>
+                  <input
+                    type="text"
+                    name="adresse"
+                    value={entrepriseData.adresse}
+                    onChange={handleEntrepriseChange}
+                    onBlur={(e) => {
+                      if (e.target.value.trim() === "") {
+                        setErrors(prev => ({
+                          ...prev,
+                          entreprise: { ...prev.entreprise, adresse: "Ce champ est obligatoire" }
+                        }));
+                      }
+                    }}
+                    style={{ ...styles.input, flex: 2, width: '720px' }}
+                    placeholder="Rue Didouche Mourad..."
+                  />
+                  {errors.entreprise.adresse && <span style={styles.error}>{errors.entreprise.adresse}</span>}
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    name="siteWeb"
+                    value={entrepriseData.siteWeb}
+                    onChange={handleEntrepriseChange}
+                    style={{ ...styles.input, flex: 2, width: '720px' }} placeholder="www.techinnovdz.com"
+                  />
+                  {errors.entreprise.siteWeb && <span style={styles.error}>{errors.entreprise.siteWeb}</span>}
+                </div>
+              </div>
+            </form>
           )}
+
           {step === 2 && (
-            <>
+            <form>
+              <div style={styles.inputRow}>
+                <div style={{ flex: 1 }}>
+                  <input
+                    type="text"
+                    name="nom"
+                    value={representantData.nom}
+                    onChange={handleRepresentantChange}
+                    onBlur={(e) => {
+                      if (e.target.value.trim() === "") {
+                        setErrors(prev => ({
+                          ...prev,
+                          representant: { ...prev.representant, nom: "Ce champ est obligatoire" }
+                        }));
+                      }
+                    }}
+                    style={styles.input}
+                    placeholder="Nom"
+                  />
+                  {errors.representant.nom && <span style={styles.error}>{errors.representant.nom}</span>}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <input
+                    type="text"
+                    name="prenom"
+                    value={representantData.prenom}
+                    onChange={handleRepresentantChange}
+                    onBlur={(e) => {
+                      if (e.target.value.trim() === "") {
+                        setErrors(prev => ({
+                          ...prev,
+                          representant: { ...prev.representant, prenom: "Ce champ est obligatoire" }
+                        }));
+                      }
+                    }}
+                    style={styles.input}
+                    placeholder="Prénom"
+                  />
+                  {errors.representant.prenom && <span style={styles.error}>{errors.representant.prenom}</span>}
+                </div>
+              </div>
+
+              <div style={styles.inputRow}>
+                <div style={{ flex: 1 }}>
+                  <select
+                    name="poste"
+                    value={representantData.poste}
+                    onChange={handleRepresentantChange}
+                    onBlur={(e) => {
+                      if (e.target.value === "") {
+                        setErrors(prev => ({
+                          ...prev,
+                          representant: { ...prev.representant, poste: "Ce champ est obligatoire" }
+                        }));
+                      }
+                    }}
+                    style={{ ...styles.input, width: '720px' }}
+                  >
+                    <option value="" disabled hidden>Poste occupé</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Développeur">Développeur</option>
+                    <option value="Designer">Designer</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Autre">Autre</option>
+                  </select>
+                  {errors.representant.poste && <span style={styles.error}>{errors.representant.poste}</span>}
+                </div>
+              </div>
+
+              <div style={{ ...styles.inputRow, flexDirection: 'column' }}>
+                <div>
+                  <input
+                    type="email"
+                    name="email"
+                    value={representantData.email}
+                    onChange={handleRepresentantChange}
+                    onBlur={(e) => {
+                      if (e.target.value.trim() === "") {
+                        setErrors(prev => ({
+                          ...prev,
+                          representant: { ...prev.representant, email: "Ce champ est obligatoire" }
+                        }));
+                      }
+                    }}
+                    style={{ ...styles.input, width: '720px' }}
+                    placeholder="email@exemple.com"
+                  />
+                  {errors.representant.email && <span style={styles.error}>{errors.representant.email}</span>}
+                </div>
+                <div>
+                  <input
+                    type="tel"
+                    name="telephone"
+                    value={representantData.telephone}
+                    onChange={handleRepresentantChange}
+                    onBlur={(e) => {
+                      if (e.target.value.trim() === "") {
+                        setErrors(prev => ({
+                          ...prev,
+                          representant: { ...prev.representant, telephone: "Ce champ est obligatoire" }
+                        }));
+                      }
+                    }}
+                    style={{ ...styles.input, width: '720px' }}
+                    placeholder="0601020304"
+                  />
+                  {errors.representant.telephone && <span style={styles.error}>{errors.representant.telephone}</span>}
+                </div>
+              </div>
+            </form>
+          )}
+
+          <div style={styles.buttonRow}>
+            {step === 1 && (
               <button
-                onClick={() => setStep(1)}
+                onClick={handleNext}
                 style={{
                   ...styles.button,
-                  background: '#ccc',
-                  color: 'white',
-                  marginRight: '10px'
-                }}
-              >
-                Retour
-              </button>
-              <button
-                onClick={handleValider}
-                disabled={!isRepresentantValid}
-                style={{
-                  ...styles.button,
-                  background: isRepresentantValid ? '#925FE2' : '#ccc',
+                  background: isEntrepriseValid ? '#925FE2' : '#ccc',
                   color: 'white'
                 }}
+                disabled={!isEntrepriseValid}
               >
-                Valider
+                Suivant
               </button>
-            </>
-          )}
+            )}
+            {step === 2 && (
+              <>
+                <button
+                  onClick={() => setStep(1)}
+                  style={{
+                    ...styles.button,
+                    background: '#ccc',
+                    color: 'white',
+                    marginRight: '10px'
+                  }}
+                >
+                  Retour
+                </button>
+                <button
+                  onClick={handleValider}
+                  disabled={!isRepresentantValid}
+                  style={{
+                    ...styles.button,
+                    background: isRepresentantValid ? '#925FE2' : '#ccc',
+                    color: 'white'
+                  }}
+                >
+                  Valider
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+      {
+        loading && (
+          <div className="loader-overlay">
+            <div className="loader-container">
+              <div className="loader-dots">
+                <div className="loader-dot"></div>
+                <div className="loader-dot"></div>
+                <div className="loader-dot"></div>
+              </div>
+              <p className="loader-text">Opération en cours...</p>
+            </div>
+          </div>
+        )
+      }
+    </>
   );
 };
 

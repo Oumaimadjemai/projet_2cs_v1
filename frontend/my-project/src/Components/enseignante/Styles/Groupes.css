@@ -280,7 +280,7 @@
     right: 0;
     top: 0;
     width: 400px;
-    height: 100%;
+    height: calc(100vh - 65px);
     background-color: #FCFAFA;
     box-shadow: 2px 8px 30px rgba(0, 0, 0, 0.12);
     z-index: 2000;
@@ -290,15 +290,31 @@
     display: flex;
     flex-direction: column;
     padding: 0 0.8rem;
-    padding-top: 2rem;
-    gap: 2rem;
+    padding-top: 1rem;
+    gap: 1rem;
+    overflow-y: auto;
+    
+    /* Initial hidden state */
+    transform: translateX(100%);
+    opacity: 0;
+    transition: transform 0.5s ease-in-out, opacity 0.3s ease-in-out;
+    will-change: transform, opacity; /* Helps with performance */
+}
+
+.groupes-liste-container .about-groupe.open {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.groupes-liste-container .about-groupe::-webkit-scrollbar {
+    display: none;
 }
 
 .groupes-liste-container .about-groupe .about-title {
     display: flex;
     gap: 1rem;
     align-items: center;
-    padding: 0 1.5rem;
+
 }
 
 

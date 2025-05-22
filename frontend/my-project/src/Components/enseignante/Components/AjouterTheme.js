@@ -1,11 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { ReactComponent as DraftIcon } from '../../../Assets/Icons/draft.svg';
-import Select from "react-select";
 import '../../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { EnseignantThemesContext } from './ThemesEnseignant';
+import CreatableSelect from 'react-select/creatable';
 
-export const AjouterTheme = ({ annulerAjouter }) => {
+export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
+
+    const { setThemes, setLoading } = useContext(EnseignantThemesContext)
 
     const { t } = useTranslation();
 
@@ -14,17 +17,17 @@ export const AjouterTheme = ({ annulerAjouter }) => {
 
     useEffect(() => {
 
-        axios.get('http://127.0.0.1:8000/annees/')
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/annees/`)
             .then((res) => setAnnees(res.data))
             .catch((err) => console.error(err))
 
-        axios.get('http://127.0.0.1:8000/specialites/')
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/specialites/`)
             .then((res) => setSpecialities(res.data))
             .catch((err) => console.error(err))
 
     }, [])
 
-    const languages = [
+    const [languages, setLanguages] = useState([
         { value: "html", label: "HTML" },
         { value: "css", label: "CSS" },
         { value: "javascript", label: "JavaScript" },
@@ -43,9 +46,9 @@ export const AjouterTheme = ({ annulerAjouter }) => {
         { value: "pytorch", label: "PyTorch" },
         { value: "nextjs", label: "Next.js" },
         { value: "typescript", label: "TypeScript" }
-    ];
+    ]);
 
-    const livrables = [
+    const [livrables, setLivrables] = useState([
         { value: "rapport-final", label: "Rapport final" },
         { value: "code-source", label: "Code source" },
         { value: "demo", label: "Démo du projet" },
@@ -56,23 +59,30 @@ export const AjouterTheme = ({ annulerAjouter }) => {
         { value: "interface-utilisateur", label: "Interface utilisateur (UI/UX)" },
         { value: "analyse-donnees", label: "Analyse des données" },
         { value: "script-automatisation", label: "Script d'automatisation" }
-    ];
+    ]);
+
+    const [newTheme, setNewTheme] = useState({
+        titre: "",
+        resume: "",
+        outils_et_language: "",
+        plan_travail: "",
+        livrable: "",
+        annee_id: null,
+        priorities: [],
+        numberOfGrp: null
+    })
 
     const [selectedYear, setSelectedYear] = useState(null);
     const [showYearOptions, setShowYearOptions] = useState(false);
     const [priorities, setPriorities] = useState({});
-    const [showPriorityMenu, setShowPriorityMenu] = useState(null);
+    const [showSpecialitesMenu, setShowSpecialitesMenu] = useState(false);
 
     // Initialiser les priorités quand les années changent
     useEffect(() => {
         const initialPriorities = {};
         annees.forEach(annee => {
             if (annee.has_specialite) {
-                initialPriorities[annee.id] = {
-                    priority1: null,
-                    priority2: null,
-                    priority3: null
-                };
+                initialPriorities[annee.id] = [];
             }
         });
         setPriorities(initialPriorities);
@@ -80,77 +90,72 @@ export const AjouterTheme = ({ annulerAjouter }) => {
 
     const handleYearSelect = (annee) => {
         setSelectedYear(annee);
-        setShowYearOptions(false);
+        if (annee.has_specialite) {
+            setShowSpecialitesMenu(true);
+        } else {
+            setShowYearOptions(false);
+        }
     };
 
-    const handleYearWithPrioritySelect = (annee) => {
-        setSelectedYear(annee);
-    }
-
-    useEffect(() => {
-        console.log(priorities)
-    }, [priorities])
-
-    const handlePrioritySelect = (anneeId, priority, specialiteId) => {
+    const handlePrioritySelect = (anneeId, specialiteId, priority) => {
         setPriorities(prev => {
             const newPriorities = { ...prev };
 
-            // Désélectionner si déjà choisi ailleurs
-            Object.keys(newPriorities[anneeId]).forEach(key => {
-                if (newPriorities[anneeId][key] === specialiteId && key !== priority) {
-                    newPriorities[anneeId][key] = null;
-                }
-            });
+            // Supprimer si la spécialité existe déjà
+            newPriorities[anneeId] = newPriorities[anneeId].filter(item => item.specialite_id !== specialiteId);
 
-            newPriorities[anneeId][priority] = specialiteId;
+            // Ajouter la nouvelle priorité
+            if (priority !== null) {
+                newPriorities[anneeId].push({
+                    priorite: priority,
+                    specialite_id: specialiteId
+                });
+            }
+
             return newPriorities;
         });
-        setShowPriorityMenu(null);
     };
 
-    const getAvailableSpecialites = (anneeId, currentPriority) => {
-        const selected = priorities[anneeId] || {};
-        const usedIds = Object.values(selected).filter(Boolean);
-
-        return specialites.filter(spec =>
-            !usedIds.includes(spec.id) ||
-            selected[currentPriority] === spec.id
-        );
-    };
+    const getSpecialiteName = (id) => {
+        const specialite = specialites.find(s => s.id === id)
+        return specialite ? specialite.title : '';
+    }
 
     /*------------The Final Post----------- */
-
     const handleSubmit = (e) => {
         e.preventDefault();
 
         const finalPriorities = selectedYear?.has_specialite
-            ? Object.entries(priorities[selectedYear.id] || {})
-                .filter(([_, id]) => id !== null)
-                .map(([key, id], index) => ({
-                    priorite: index + 1,
-                    specialite_id: id
-                }))
+            ? priorities[selectedYear.id] || []
             : [];
 
         const finalTheme = {
             ...newTheme,
-            priorities: finalPriorities, // (peut être vide si pas 4ème/5ème)
+            priorities: finalPriorities,
             annee_id: selectedYear.id
         };
 
-        console.log(finalTheme);
+        setLoading(true);
 
-
-        axios.post('http://127.0.0.1:8001/themes/', finalTheme, {
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/themes/`, finalTheme, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('access_token')}`,
                 'Content-Type': 'application/json'
             }
         })
-            .then(() => alert('add with success'))
+            .then((res) => {
+                setThemes(prev => [...prev, {
+                    ...res.data,
+                    annee_titre:  `${selectedYear.title} ${selectedYear.departement_title.toLowerCase() === "préparatoire" ? "CPI" : "CS"}`,
+                    specialite_title: getSpecialiteName(priorities[selectedYear.id]?.find(p => p.priorite === 1)?.specialite_id)
+                }]);
+                annulerAjouter();
+                addWithSuccess();
+            })
             .catch((err) => console.error(err))
-    };
+            .finally(() => setLoading(false))
 
+    };
 
     const anneeRef = useRef('')
 
@@ -188,17 +193,6 @@ export const AjouterTheme = ({ annulerAjouter }) => {
         }
     }
 
-    const [newTheme, setNewTheme] = useState({
-        titre: "",
-        resume: "",
-        outils_et_language: "",
-        plan_travail: "",
-        livrable: "",
-        annee_id: null,
-        priorities: [],
-        numberOfGrp: 0
-    })
-
     const handleChangeLanguages = (selectedOptions) => {
         const languagesString = selectedOptions.map(option => option.value).join(', ');
 
@@ -208,6 +202,41 @@ export const AjouterTheme = ({ annulerAjouter }) => {
         });
     };
 
+    const handleCreateLanguage = (inputValue) => {
+        const newOption = { value: inputValue, label: inputValue };
+        setLanguages(prev => [...prev, newOption]);
+
+        const selectedOptions = newTheme.outils_et_language
+            ? newTheme.outils_et_language.split(', ').map(val => ({ value: val, label: val }))
+            : [];
+
+        const updatedSelected = [...selectedOptions, newOption];
+        const languagesString = updatedSelected.map(option => option.value).join(', ');
+
+        setNewTheme({
+            ...newTheme,
+            outils_et_language: languagesString,
+        });
+    };
+
+    const handleCreateLivrable = (inputValue) => {
+        const newOption = { value: inputValue, label: inputValue };
+        setLivrables(prev => [...prev, newOption]);
+
+        const selectedOptions = newTheme.livrable
+            ? newTheme.livrable.split(', ').map(val => ({ value: val, label: val }))
+            : [];
+
+        const updatedSelected = [...selectedOptions, newOption];
+        const livrablesString = updatedSelected.map(option => option.value).join(', ');
+
+        setNewTheme({
+            ...newTheme,
+            livrable: livrablesString,
+        });
+    };
+
+
     const handleChangeLivrables = (selectedOptions) => {
         const livrablesString = selectedOptions.map(option => option.value).join(', ');
 
@@ -216,11 +245,6 @@ export const AjouterTheme = ({ annulerAjouter }) => {
             livrable: livrablesString,
         });
     };
-
-    const getSpecialiteName = (id) => {
-        const specialite = specialites.find(s => s.id === id)
-        return specialite ? specialite.title : '';
-    }
 
     return (
         <div className='ajouter-theme-container'>
@@ -232,7 +256,10 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                     </svg>
 
                 </div>
-                <form id='ajouterFormTheme'>
+                <form
+                    id='ajouterFormTheme'
+                    onSubmit={handleSubmit}
+                >
                     <div className="ajouter-input-line select-line">
                         <div className="input-flex">
                             <label style={{ fontSize: "0.9rem", color: "#00000070", fontWeight: "430" }}>Titre</label>
@@ -242,12 +269,13 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                 id="nom"
                                 value={newTheme.titre}
                                 onChange={(e) => setNewTheme({ ...newTheme, titre: e.target.value })}
+                                required
                             />
                         </div>
                         <div className="select-flex">
                             <div className="select-flex-line">
                                 <div style={{ position: "relative", display: "inline-block", width: "100%" }}>
-                                    <Select
+                                    <CreatableSelect
                                         className="multi-custom-select"
                                         isMulti
                                         options={languages}
@@ -255,16 +283,17 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                             newTheme.outils_et_language.split(', ').includes(option.value)
                                         )}
                                         onChange={handleChangeLanguages}
+                                        onCreateOption={handleCreateLanguage}
                                         placeholder="Outils & Langages"
+                                        required
                                     />
                                 </div>
-
                             </div>
                         </div>
                     </div>
                     <div className="ajouter-input-line select-line">
                         <div style={{ position: "relative", display: "inline-block", width: "300px" }}>
-                            <Select
+                            <CreatableSelect
                                 className="multi-custom-select"
                                 isMulti
                                 options={livrables}
@@ -272,12 +301,15 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                     newTheme.livrable.split(', ').includes(option.value)
                                 )}
                                 onChange={handleChangeLivrables}
+                                onCreateOption={handleCreateLivrable}
                                 placeholder="Livrables"
+                                required
                             />
+
                         </div>
                         <div className="select-flex">
                             <div className="annee-field" onClick={() => setShowYearOptions(!showYearOptions)} ref={anneeRef}>
-                                {selectedYear ? selectedYear.title : "Année"}
+                                {selectedYear ? `${selectedYear.title} ${selectedYear.departement_title.toLowerCase() === "préparatoire" ? "CPI" : "CS"}` : "Année"}
                                 {/* Icône flèche... */}
 
                                 {showYearOptions && (
@@ -292,13 +324,13 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     if (!annee.has_specialite) {
-                                                        handleYearSelect(annee)
+                                                        handleYearSelect(annee);
                                                     } else {
-                                                        handleYearWithPrioritySelect(annee)
+                                                        setSelectedYear(annee);
                                                     }
                                                 }}
                                             >
-                                                {annee.title}
+                                                {annee.title}{annee.departement_title.toLowerCase() === "préparatoire" ? "CPI" : "CS"}
 
                                                 {annee.has_specialite && (
                                                     <>
@@ -311,7 +343,7 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                                 position: "absolute",
                                                                 right: "10px",
                                                                 top: "50%",
-                                                                transform: "translateY(-50%) rotate(-90deg)",
+                                                                transform: `translateY(-50%) rotate(-90deg)`,
                                                                 pointerEvents: "none"
                                                             }}
                                                         >
@@ -321,38 +353,38 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                                         {/* Menu des priorités */}
                                                         {selectedYear?.id === annee.id && (
                                                             <ul className="sub-priorite-options">
-                                                                {[1, 2, 3].map(num => (
-                                                                    <li key={num} style={{ position: "relative" }}>
-                                                                        <div onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            setShowPriorityMenu(`${annee.id}-priority${num}`);
-                                                                        }}>
-                                                                            {priorities[annee.id]?.[`priority${num}`]
-                                                                                ? `Priorité ${num}: ${getSpecialiteName(priorities[annee.id][`priority${num}`])}`
-                                                                                : `Priorité ${num}`}
-                                                                            {/* Icône flèche... */}
+                                                                {specialites.map(specialite => (
+                                                                    <li key={specialite.id} style={{ position: "relative" }}>
+                                                                        <div>
+                                                                            {specialite.title}
+                                                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px', width: "100%", justifyContent: "space-between" }}>
+                                                                                {[1, 2, 3].map(priority => {
+                                                                                    const isSelected = priorities[annee.id]?.some(
+                                                                                        item => item.specialite_id === specialite.id && item.priorite === priority
+                                                                                    );
+                                                                                    return (
+                                                                                        <button
+                                                                                            key={priority}
+                                                                                            style={{
+                                                                                                width: '24px',
+                                                                                                height: '24px',
+                                                                                                borderRadius: '50%',
+                                                                                                border: `1px solid ${isSelected ? '#925FE2' : '#D6D6D6'}`,
+                                                                                                background: isSelected ? '#925FE2' : 'white',
+                                                                                                color: isSelected ? 'white' : '#555',
+                                                                                                cursor: 'pointer'
+                                                                                            }}
+                                                                                            onClick={(e) => {
+                                                                                                e.preventDefault();
+                                                                                                handlePrioritySelect(annee.id, specialite.id, isSelected ? null : priority);
+                                                                                            }}
+                                                                                        >
+                                                                                            {priority}
+                                                                                        </button>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
                                                                         </div>
-
-                                                                        {showPriorityMenu === `${annee.id}-priority${num}` && (
-                                                                            <ul className="priorite-menu">
-                                                                                {getAvailableSpecialites(annee.id, `priority${num}`).map(specialite => (
-                                                                                    <li key={specialite.id} onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        handlePrioritySelect(annee.id, `priority${num}`, specialite.id);
-                                                                                    }}>
-                                                                                        {specialite.title}
-                                                                                    </li>
-                                                                                ))}
-                                                                                <li
-                                                                                    className="annuler-li"
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        handlePrioritySelect(annee.id, `priority${num}`, null);
-                                                                                    }}>
-                                                                                    Annuler
-                                                                                </li>
-                                                                            </ul>
-                                                                        )}
                                                                     </li>
                                                                 ))}
                                                             </ul>
@@ -385,6 +417,7 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                 ref={planRef}
                                 value={newTheme.plan_travail}
                                 onChange={(e) => { handlePlanText(); setNewTheme({ ...newTheme, plan_travail: e.target.value }) }}
+                                required
                             />
                         </div>
                         <div className="input-flex">
@@ -394,6 +427,7 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                                 ref={resumeRef}
                                 value={newTheme.resume}
                                 onChange={(e) => { handleResumeText(); setNewTheme({ ...newTheme, resume: e.target.value }) }}
+                                required
                             />
                         </div>
                     </div>
@@ -404,7 +438,7 @@ export const AjouterTheme = ({ annulerAjouter }) => {
                         <DraftIcon />
                         {t('enseignantsPage.brouillonBtn')}
                     </button>
-                    <button type='submit' className='ajout-btn' form='ajouterFormEnseignant' onClick={(e) => handleSubmit(e)}>
+                    <button type='submit' className='ajout-btn' form='ajouterFormTheme'>
                         Ajouter Thème
                     </button>
 

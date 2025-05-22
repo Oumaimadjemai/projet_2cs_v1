@@ -2,8 +2,7 @@ import React from "react"
 import { Outlet } from 'react-router-dom'
 import NavBar from "../Components/Partials/Components/NavBar"
 import TopBar from "../Components/Partials/Components/TopBar";
-import { ReactComponent as DashboardIcon } from '../Assets/Icons/dashboard.svg';
-import { ReactComponent as ParametersIcon } from '../Assets/Icons/University.svg';
+import { ReactComponent as NotificationsIcon } from '../Assets/Icons/Notifications.svg';
 import { ReactComponent as ThemesIcon } from '../Assets/Icons/Lightbulb.svg';
 import { ReactComponent as GroupesIcon } from '../Assets/Icons/People.svg';
 import { ReactComponent as SoutenancesIcon } from '../Assets/Icons/Mortarboard.svg';
@@ -12,14 +11,9 @@ export const EtudiantLayout = () => {
 
     const etudiatMenu = [
         {
-          name: "Tableau de Bord",
-          icon: <DashboardIcon />,
-          path: "/etudiant",
-        },
-        {
           name: "Thèmes Projet",
           icon: <ThemesIcon />,
-          path: "/etudiant/themes",
+          path: "/etudiant",
         },
         {
           name: "Groupes de Projet",
@@ -28,7 +22,7 @@ export const EtudiantLayout = () => {
         },
         {
             name: "Invitations",
-            icon: <GroupesIcon />,
+            icon: <NotificationsIcon />,
             path: "/etudiant/invitations",
           },
         {

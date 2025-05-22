@@ -35,7 +35,7 @@ export const Departements = () => {
 
     useEffect(() => {
 
-        axios.get('http://127.0.0.1:8000/departements/')
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/departements/`)
             .then((res) => setDepartements(res.data))
             .catch((err) => {
                 console.error("Erreur Axios :", err);
@@ -61,7 +61,7 @@ export const Departements = () => {
 
     const AddDepartements = (e) => {
         e.preventDefault();
-        axios.post('http://127.0.0.1:8000/departements/', newDepartments)
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/departements/`, newDepartments)
             .then((res) => {
                 console.log(res.data)
                 setDepartement(prev => [...prev, ...res.data]);
@@ -83,7 +83,7 @@ export const Departements = () => {
     const handlemodifie = (e) => {
         e.preventDefault()
         if (modifiedDepartement.type === "exist") {
-            axios.put(`http://127.0.0.1:8000/departements/${modifiedDepartement.id}/`, {
+            axios.put(`${process.env.REACT_APP_API_URL_SERVICE1}/departements/${modifiedDepartement.id}/`, {
                 id: modifiedDepartement.id,
                 title: modifiedDepartement.title
             })
@@ -134,7 +134,7 @@ export const Departements = () => {
 
         e.preventDefault();
         if (deletedDepartment.type === "exist") {
-            axios.delete(`http://127.0.0.1:8000/departements/${deletedDepartment.id}/`)
+            axios.delete(`${process.env.REACT_APP_API_URL_SERVICE1}/departements/${deletedDepartment.id}/`)
                 .then((res) => {
                     setDepartements(prevDepartements =>
                         prevDepartements.filter(dep => dep.id !== deletedDepartment.id)
@@ -368,13 +368,13 @@ export const Salles = () => {
 
     useEffect(() => {
 
-        axios.get('http://127.0.0.1:8000/salles/')
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/salles/`)
             .then((res) => setSalles(res.data))
             .catch((err) => {
                 console.error("Erreur Axios :", err);
             })
 
-        axios.get('http://127.0.0.1:8000/departements/')
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/departements/`)
             .then((res) => setDepartements(res.data))
             .catch((err) => {
                 console.error("Erreur Axios :", err);
@@ -404,7 +404,7 @@ export const Salles = () => {
 
     const AddSalles = (e) => {
         e.preventDefault();
-        axios.post('http://127.0.0.1:8000/salles/', newSalles)
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/salles/`, newSalles)
             .then((res) => {
                 console.log(res.data)
                 setSalles(prev => [...prev, ...res.data]);
@@ -439,7 +439,7 @@ export const Salles = () => {
     const handlemodifie = (e) => {
         e.preventDefault()
         if (modifiedSalle.type1 === "exist") {
-            axios.put(`http://127.0.0.1:8000/salles/${modifiedSalle.id}/`, {
+            axios.put(`${process.env.REACT_APP_API_URL_SERVICE1}/salles/${modifiedSalle.id}/`, {
                 id: modifiedSalle.id,
                 type: modifiedSalle.type,
                 num: modifiedSalle.num,
@@ -504,7 +504,7 @@ export const Salles = () => {
 
         e.preventDefault();
         if (deletedSalle.type === "exist") {
-            axios.delete(`http://127.0.0.1:8000/salles/${deletedSalle.id}/`)
+            axios.delete(`${process.env.REACT_APP_API_URL_SERVICE1}/salles/${deletedSalle.id}/`)
                 .then((res) => {
                     setSalles(prevSalles =>
                         prevSalles.filter(salle => salle.id !== deletedSalle.id)
@@ -891,7 +891,7 @@ export const Specialites = () => {
 
     useEffect(() => {
 
-        axios.get('http://127.0.0.1:8000/specialites/')
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/specialites/`)
             .then((res) => setSpecialites(res.data))
             .catch((err) => {
                 console.error("Erreur Axios :", err);
@@ -918,7 +918,7 @@ export const Specialites = () => {
 
     const AddSpecialites = (e) => {
         e.preventDefault();
-        axios.post('http://127.0.0.1:8000/specialites/', newSpecialites)
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/specialites/`, newSpecialites)
             .then((res) => {
                 console.log(res.data)
                 setSpecialites(prev => [...prev, ...res.data]);
@@ -940,7 +940,7 @@ export const Specialites = () => {
     const handlemodifie = (e) => {
         e.preventDefault()
         if (modifiedSpecialite.type === "exist") {
-            axios.put(`http://127.0.0.1:8000/specialites/${modifiedSpecialite.id}/`, {
+            axios.put(`${process.env.REACT_APP_API_URL_SERVICE1}/specialites/${modifiedSpecialite.id}/`, {
                 id: modifiedSpecialite.id,
                 title: modifiedSpecialite.title
             })
@@ -991,7 +991,7 @@ export const Specialites = () => {
 
         e.preventDefault();
         if (deletedSpecialite.type === "exist") {
-            axios.delete(`http://127.0.0.1:8000/specialites/${deletedSpecialite.id}/`)
+            axios.delete(`${process.env.REACT_APP_API_URL_SERVICE1}/specialites/${deletedSpecialite.id}/`)
                 .then((res) => {
                     setSpecialites(prevDepartements =>
                         prevDepartements.filter(dep => dep.id !== deletedSpecialite.id)
@@ -1219,13 +1219,13 @@ export const Annees = () => {
 
     useEffect(() => {
 
-        axios.get('http://127.0.0.1:8000/annees/')
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/annees/`)
             .then((res) => setAnnees(res.data))
             .catch((err) => {
                 console.error("Erreur Axios :", err);
             })
 
-        axios.get('http://127.0.0.1:8000/departements/')
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/departements/`)
             .then((res) => setDepartements(res.data))
             .catch((err) => {
                 console.error("Erreur Axios :", err);
@@ -1257,7 +1257,7 @@ export const Annees = () => {
 
     const AddAnnees = (e) => {
         e.preventDefault();
-        axios.post('http://127.0.0.1:8000/annees/', newAnnees)
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/annees/`, newAnnees)
             .then((res) => {
                 console.log(res.data)
                 setAnnees(prev => [...prev, ...res.data]);
@@ -1281,7 +1281,7 @@ export const Annees = () => {
     const handlemodifie = (e) => {
         e.preventDefault()
         if (modifieddAnnee.type === "exist") {
-            axios.put(`http://127.0.0.1:8000/annees/${modifieddAnnee.id}/`, {
+            axios.put(`${process.env.REACT_APP_API_URL_SERVICE1}/annees/${modifieddAnnee.id}/`, {
                 id: modifieddAnnee.id,
                 title: modifieddAnnee.title,
                 departement: modifieddAnnee.departement,
@@ -1344,7 +1344,7 @@ export const Annees = () => {
 
         e.preventDefault();
         if (deletedAnnee.type === "exist") {
-            axios.delete(`http://127.0.0.1:8000/annees/${deletedAnnee.id}/`)
+            axios.delete(`${process.env.REACT_APP_API_URL_SERVICE1}/annees/${deletedAnnee.id}/`)
                 .then((res) => {
                     setAnnees(prevAnnees =>
                         prevAnnees.filter(dep => dep.id !== deletedAnnee.id)

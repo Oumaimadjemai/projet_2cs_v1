@@ -32,7 +32,7 @@ const EntrepriseList = () => {
 
   useEffect(() => {
 
-    axios.get('http://127.0.0.1:8000/entreprises/')
+    axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/entreprises/`)
       .then((res) => setEntreprises(res.data))
       .catch((err) => console.error('Axios Error', err))
 
@@ -64,11 +64,6 @@ const EntrepriseList = () => {
     image: 'https://i.pravatar.cc/80?img=15'
   }], setShowAddModal(false));
 
-  const handleDelete = idx => {
-    setCards(cards.filter((_, i) => i !== idx));
-    setConfirmDeleteIdx(null);
-  };
-
   const dropRef = useRef('');
 
   useEffect(() => {
@@ -86,12 +81,46 @@ const EntrepriseList = () => {
 
   }, [])
 
+  const [loading, setLoading] = useState(false)
+
+  const handleRefuse = (e) => {
+    e.preventDefault();
+
+    setLoading(true)
+    axios.delete(`${process.env.REACT_APP_API_URL_SERVICE1}/entreprises/${confirmDeleteIdx}/delete/`, {
+      action: "refuse"
+    })
+      .then(() => {
+        setEntreprises(prevEntreprises =>
+          prevEntreprises.filter(e => e.id !== confirmDeleteIdx)
+        )
+        setConfirmDeleteIdx(null)
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false))
+
+    setConfirmDeleteIdx(null)
+  }
+
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filterEntreprises = filterdEntreprises.filter(e => {
+    const search = searchTerm.toLowerCase();
+    return (
+      e.nom.toLowerCase().startsWith(search) ||
+      e.secteur_activite.toLowerCase().startsWith(search) ||
+      e.representant_nom.toLowerCase().startsWith(search) ||
+      e.representant_prenom.toLowerCase().startsWith(search)
+    );
+  });
+  
+
   return (
     <EntrepriseContext.Provider value={{ setEntreprises }}>
       <div style={styles.page}>
         <div style={styles.content}>
           <div style={styles.header}>
-            <div style={styles.title}>Tous les entreprises <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>{cards.length}</span></div>
+            <div style={styles.title}>Tous les entreprises <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>{filterdEntreprises.length}</span></div>
             <div style={styles.btnGroup}>
               <button
                 style={{ ...styles.button, ...styles.demandeLink }}
@@ -128,20 +157,25 @@ const EntrepriseList = () => {
               </button>
               <div className="input-line">
                 <SearchIcon />
-                <input type="text" placeholder={t('etudiantsPage.searchPlaceholder')} />
+                <input
+                  type="text"
+                  placeholder={t('etudiantsPage.searchPlaceholder')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
             </div>
           </div>
 
           <div style={styles.grid}>
-            {filterdEntreprises.map((card, idx) => (
+            {filterEntreprises.map((card, idx) => (
               <div key={idx} style={styles.card}>
                 <div style={styles.menuDots} onClick={() => setOpenMenu(openMenu === idx ? null : idx)}>
                   <FiMoreVertical />
                   {openMenu === idx && (
                     <div style={styles.dropdownMenu} ref={dropRef}>
                       <div style={styles.dropdownItem}>Modifier</div>
-                      <div style={{ ...styles.dropdownItem, color: 'red' }} onClick={() => setConfirmDeleteIdx(idx)}>Supprimer</div>
+                      <div style={{ ...styles.dropdownItem, color: 'red' }} onClick={() => setConfirmDeleteIdx(card.id)}>Supprimer</div>
                     </div>
                   )}
                 </div>
@@ -158,13 +192,13 @@ const EntrepriseList = () => {
                 <a style={styles.addressLink} href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(card.addresse)}`} target="_blank" rel="noopener noreferrer">
                   <HiOutlineLocationMarker style={{ marginRight: '5px' }} />{card.adresse}
                 </a>
-                {confirmDeleteIdx === idx && (
+                {confirmDeleteIdx === card.id && (
                   <div style={styles.confirmOverlay}>
                     <div style={styles.confirmBox}>
                       <p>Voulez-vous vraiment supprimer cette entreprise ?</p>
                       <div style={styles.confirmActions}>
                         <button style={styles.cancelBtn} onClick={() => setConfirmDeleteIdx(null)}>Annuler</button>
-                        <button style={styles.deleteBtn} onClick={() => handleDelete(idx)}>Supprimer</button>
+                        <button style={styles.deleteBtn} onClick={(e) => handleRefuse(e)}>Supprimer</button>
                       </div>
                     </div>
                   </div>
@@ -180,6 +214,20 @@ const EntrepriseList = () => {
             </div>
           </div>
         )}
+        {
+          loading && (
+            <div className="loader-overlay">
+              <div className="loader-container">
+                <div className="loader-dots">
+                  <div className="loader-dot"></div>
+                  <div className="loader-dot"></div>
+                  <div className="loader-dot"></div>
+                </div>
+                <p className="loader-text">Opération en cours...</p>
+              </div>
+            </div>
+          )
+        }
       </div>
     </EntrepriseContext.Provider>
   );

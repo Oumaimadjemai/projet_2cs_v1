@@ -11,7 +11,7 @@ export const AjouterEtudiant = ({ annulerAjouter, handleDraftSave }) => {
 
     const [methodeAjouter, setMethodeAjouter] = useState(0);
 
-    const { setEtudiants } = useContext(EtudiantsContext);
+    const { setEtudiants, setLoading } = useContext(EtudiantsContext);
 
     const [file, setFile] = useState(null);
     const [error, setError] = useState("");
@@ -58,11 +58,11 @@ export const AjouterEtudiant = ({ annulerAjouter, handleDraftSave }) => {
 
     useEffect(() => {
 
-        axios.get('http://127.0.0.1:8000/annees/')
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/annees/`)
             .then((res) => setAnnees(res.data))
             .catch((err) => console.error("Erreur Axios :", err))
 
-        axios.get('http://127.0.0.1:8000/specialites/')
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/specialites/`)
             .then((res) => setSpecialites(res.data))
             .catch((err) => console.error("Erreur Axios :", err))
 
@@ -91,7 +91,9 @@ export const AjouterEtudiant = ({ annulerAjouter, handleDraftSave }) => {
 
         e.preventDefault();
 
-        axios.post('http://127.0.0.1:8000/etudiants/', newStudent)
+        setLoading(true)
+
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/etudiants/`, newStudent)
             .then((res) => {
                 const data = Array.isArray(res.data) ? res.data : [res.data];
                 setEtudiants(prev => [...prev, ...data]);
@@ -103,7 +105,8 @@ export const AjouterEtudiant = ({ annulerAjouter, handleDraftSave }) => {
                 if (err.response) {
                     console.error("Détails de l'erreur :", err.response.data);
                 }
-            });
+            })
+            .finally(() => setLoading(false))
 
     }
 
@@ -118,7 +121,7 @@ export const AjouterEtudiant = ({ annulerAjouter, handleDraftSave }) => {
         const formData = new FormData();
         formData.append("file", file);
 
-        axios.post("http://127.0.0.1:8000/import/etudiant/", formData)
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/import/etudiant/`, formData)
             .then((res) => {
                 alert('Data added successfully');
                 console.log(res.data); // optionally show success response
@@ -150,7 +153,7 @@ export const AjouterEtudiant = ({ annulerAjouter, handleDraftSave }) => {
                     </svg>
 
                 </div>
-                <form id='ajouterFormEtudiant'>
+                <form id='ajouterFormEtudiant' onSubmit={methodeAjouter === 0 ? AddStudent : AddStudents}>
                     <div className="ajouter-choice">
                         <span
                             className={`${methodeAjouter === 0 ? "current" : ""}`}
@@ -214,7 +217,7 @@ export const AjouterEtudiant = ({ annulerAjouter, handleDraftSave }) => {
                                                     <option>{t('etudiantsPage.anneeInput')}</option>
                                                     {
                                                         annees.map((annee) => (
-                                                            <option value={annee.id}>{annee.title}</option>
+                                                            <option value={annee.id}>{annee.title} {annee.departement_title.toLowerCase() === "préparatoire" ? "CPI" : "CS"}</option>
                                                         ))
                                                     }
                                                 </select>
@@ -242,6 +245,7 @@ export const AjouterEtudiant = ({ annulerAjouter, handleDraftSave }) => {
                                                         className="custom-select"
                                                         value={newStudent.specialite}
                                                         onChange={(e) => setNewStudent({ ...newStudent, specialite: parseInt(e.target.value) })}
+                                                        required
                                                     >
                                                         <option>Spécialité</option>
                                                         {
@@ -357,7 +361,7 @@ export const AjouterEtudiant = ({ annulerAjouter, handleDraftSave }) => {
                                     <DraftIcon />
                                     {t('enseignantsPage.brouillonBtn')}
                                 </button>
-                                <button type='submit' className='ajout-btn' form='ajouterFormEtudiant' onClick={(e) => AddStudent(e)}>
+                                <button type='submit' className='ajout-btn' form='ajouterFormEtudiant'>
                                     {t('etudiantsPage.addBtn')}
                                 </button>
                             </> :
@@ -367,7 +371,6 @@ export const AjouterEtudiant = ({ annulerAjouter, handleDraftSave }) => {
                                     className='ajout-btn'
                                     form='ajouterFormEtudiant'
                                     style={{ marginTop: "0.5rem" }}
-                                    onClick={(e) => AddStudents(e)}
                                 >
                                     {t('etudiantsPage.addEtudiants')}
                                 </button>

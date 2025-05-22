@@ -3,10 +3,10 @@ import '../Styles/Groupes.css';
 import { ReactComponent as SearchIcon } from '../../../Assets/Icons/Search.svg';
 import { ReactComponent as ArrowIcon } from '../../../Assets/Icons/Arrow.svg';
 import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/notFound.svg';
+import { ReactComponent as CloseIcon } from '../../../Assets/Icons/close.svg'
 import { AppContext } from '../../../App';
 import '../../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
-import { ReactComponent as GroupesIcon } from '../../../Assets/Icons/People.svg';
 
 function GroupeDetail() {
     const documents = [
@@ -79,6 +79,8 @@ function GroupeDetail() {
 
     const { t } = useTranslation();
 
+    const [groupeDetailClicked, setGroupeClicked] = useState(false)
+
     return (
         <div className='groupes-liste-container' id='dynamic-liste' ref={dynamicListRef}>
             <div className="groupes-liste-wrapper" style={{ paddingRight: isRtl ? "0" : "12px", paddingLeft: isRtl ? "12px" : "0" }}>
@@ -93,7 +95,7 @@ function GroupeDetail() {
                             </svg>
                             Rendez-vous
                         </button>
-                        <span style={{ display: "flex", gap: "10px", alignItems: "center", fontFamily: "Kumbh Sans, sans-serif", fontWeight: "600", color: "#925FE2", cursor: "pointer" }}>
+                        <span style={{ display: "flex", gap: "10px", alignItems: "center", fontFamily: "Kumbh Sans, sans-serif", fontWeight: "600", color: "#925FE2", cursor: "pointer" }} onClick={() => setGroupeClicked(true)}>
                             Sur le Groupe
                             <svg width="8" height="12" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M1.5 1L8.5 8L1.5 15" stroke="#925FE2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -291,56 +293,65 @@ function GroupeDetail() {
                     )
                 }
             </div>
-            <div className="about-groupe">
-                <div className="about-title">
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g clip-path="url(#clip0_633_1297)">
-                            <path d="M20 21.25C22.7167 21.25 25.1167 21.9 27.0667 22.75C28.8667 23.55 30 25.35 30 27.3V30H10V27.3167C10 25.35 11.1333 23.55 12.9333 22.7667C14.8833 21.9 17.2833 21.25 20 21.25ZM6.66667 21.6667C8.5 21.6667 10 20.1667 10 18.3333C10 16.5 8.5 15 6.66667 15C4.83333 15 3.33333 16.5 3.33333 18.3333C3.33333 20.1667 4.83333 21.6667 6.66667 21.6667ZM8.55 23.5C7.93333 23.4 7.31667 23.3333 6.66667 23.3333C5.01667 23.3333 3.45 23.6833 2.03333 24.3C0.8 24.8333 0 26.0333 0 27.3833V30H7.5V27.3167C7.5 25.9333 7.88333 24.6333 8.55 23.5ZM33.3333 21.6667C35.1667 21.6667 36.6667 20.1667 36.6667 18.3333C36.6667 16.5 35.1667 15 33.3333 15C31.5 15 30 16.5 30 18.3333C30 20.1667 31.5 21.6667 33.3333 21.6667ZM40 27.3833C40 26.0333 39.2 24.8333 37.9667 24.3C36.55 23.6833 34.9833 23.3333 33.3333 23.3333C32.6833 23.3333 32.0667 23.4 31.45 23.5C32.1167 24.6333 32.5 25.9333 32.5 27.3167V30H40V27.3833ZM20 10C22.7667 10 25 12.2333 25 15C25 17.7667 22.7667 20 20 20C17.2333 20 15 17.7667 15 15C15 12.2333 17.2333 10 20 10Z" fill="black" />
-                        </g>
-                        <defs>
-                            <clipPath id="clip0_633_1297">
-                                <rect width="40" height="40" fill="white" />
-                            </clipPath>
-                        </defs>
-                    </svg>
-                    <h1 style={{ fontSize: "1.2rem", fontWeight: "600", color: "#000", paddingTop: "6px", fontFamily: "Kumbh Sans, sans-serif" }}>
-                        Membre du Groupe 10
-                    </h1>
-                </div>
-                <div className="groupes-table">
-                    <table>
-                        <thead>
-                            <tr style={{ margin: "5px 0" }}>
-                                <th className={isRtl ? "th-ltr" : "th-rtl"}>
-                                    Nom &Prénom
-                                </th>
-                                <th style={{width: "40%"}}>Email</th>
-                                <th className={`${isRtl ? "th-rtl" : "th-ltr"} text-center`} style={{ width: "100%", paddingLeft: "10px"}}>
-                                    Statut
-                                </th>
-                            </tr>
+            {
+                groupeDetailClicked && (
+                    <div className={`about-groupe ${groupeDetailClicked ? "open" : ""}`}>
+                        <div className="about-title">
+                            <svg width="36" height="36" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ cursor: "pointer" }} onClick={() => setGroupeClicked(false)}>
+                                <path d="M25 27.9168L14.7917 38.1252C14.4098 38.5071 13.9237 38.6981 13.3334 38.6981C12.7431 38.6981 12.257 38.5071 11.875 38.1252C11.4931 37.7432 11.3021 37.2571 11.3021 36.6668C11.3021 36.0766 11.4931 35.5904 11.875 35.2085L22.0834 25.0002L11.875 14.7918C11.4931 14.4099 11.3021 13.9238 11.3021 13.3335C11.3021 12.7432 11.4931 12.2571 11.875 11.8752C12.257 11.4932 12.7431 11.3022 13.3334 11.3022C13.9237 11.3022 14.4098 11.4932 14.7917 11.8752L25 22.0835L35.2084 11.8752C35.5903 11.4932 36.0764 11.3022 36.6667 11.3022C37.257 11.3022 37.7431 11.4932 38.125 11.8752C38.507 12.2571 38.698 12.7432 38.698 13.3335C38.698 13.9238 38.507 14.4099 38.125 14.7918L27.9167 25.0002L38.125 35.2085C38.507 35.5904 38.698 36.0766 38.698 36.6668C38.698 37.2571 38.507 37.7432 38.125 38.1252C37.7431 38.5071 37.257 38.6981 36.6667 38.6981C36.0764 38.6981 35.5903 38.5071 35.2084 38.1252L25 27.9168Z" fill="#000000" fill-opacity="0.8" />
+                            </svg>
+                            <div style={{ display: "flex", gap: "0.5rem", alignSelf: "center" }}>
+                                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <g clip-path="url(#clip0_633_1297)">
+                                        <path d="M20 21.25C22.7167 21.25 25.1167 21.9 27.0667 22.75C28.8667 23.55 30 25.35 30 27.3V30H10V27.3167C10 25.35 11.1333 23.55 12.9333 22.7667C14.8833 21.9 17.2833 21.25 20 21.25ZM6.66667 21.6667C8.5 21.6667 10 20.1667 10 18.3333C10 16.5 8.5 15 6.66667 15C4.83333 15 3.33333 16.5 3.33333 18.3333C3.33333 20.1667 4.83333 21.6667 6.66667 21.6667ZM8.55 23.5C7.93333 23.4 7.31667 23.3333 6.66667 23.3333C5.01667 23.3333 3.45 23.6833 2.03333 24.3C0.8 24.8333 0 26.0333 0 27.3833V30H7.5V27.3167C7.5 25.9333 7.88333 24.6333 8.55 23.5ZM33.3333 21.6667C35.1667 21.6667 36.6667 20.1667 36.6667 18.3333C36.6667 16.5 35.1667 15 33.3333 15C31.5 15 30 16.5 30 18.3333C30 20.1667 31.5 21.6667 33.3333 21.6667ZM40 27.3833C40 26.0333 39.2 24.8333 37.9667 24.3C36.55 23.6833 34.9833 23.3333 33.3333 23.3333C32.6833 23.3333 32.0667 23.4 31.45 23.5C32.1167 24.6333 32.5 25.9333 32.5 27.3167V30H40V27.3833ZM20 10C22.7667 10 25 12.2333 25 15C25 17.7667 22.7667 20 20 20C17.2333 20 15 17.7667 15 15C15 12.2333 17.2333 10 20 10Z" fill="black" />
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_633_1297">
+                                            <rect width="40" height="40" fill="white" />
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                                <h1 style={{ fontSize: "1.2rem", fontWeight: "600", color: "#000", paddingTop: "6px", fontFamily: "Kumbh Sans, sans-serif" }}>
+                                    Membre du Groupe 10
+                                </h1>
+                            </div>
 
-                        </thead>
-                        <tbody>
-                            <tr style={{ margin: "5px 0" }}>
-                                <td
-                                style={{width: "33.33%"}}
-                                    className={isRtl ? "th-ltr" : "th-rtl"}
-                                >
-                                    Marvin McKinney
-                                </td>
-                                <td style={{width: "40%"}}>
-                                    ah.derki@esi-sba.dz
-                                </td>
-                                <td className={isRtl ? "th-lrt" : "th-ltr"} style={{color: "#6FCF97"}}>
-                                    Active
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                        </div>
+                        <div className="groupes-table">
+                            <table>
+                                <thead>
+                                    <tr style={{ margin: "5px 0" }}>
+                                        <th className={isRtl ? "th-ltr" : "th-rtl"} style={{ textIndent: "7px" }}>
+                                            Nom &Prénom
+                                        </th>
+                                        <th style={{ width: "40%" }}>Email</th>
+                                        <th className={`${isRtl ? "th-rtl" : "th-ltr"} text-center`} style={{ width: "100%", paddingLeft: "10px" }}>
+                                            Matricule
+                                        </th>
+                                    </tr>
 
-            </div>
+                                </thead>
+                                <tbody>
+                                    <tr style={{ margin: "5px 0" }}>
+                                        <td
+                                            style={{ width: "33.33%" }}
+                                            className={isRtl ? "th-ltr" : "th-rtl"}
+                                        >
+                                            Marvin McKinney
+                                        </td>
+                                        <td style={{ width: "40%" }}>
+                                            ah.derki@esi-sba.dz
+                                        </td>
+                                        <td className={isRtl ? "th-lrt" : "th-ltr"} style={{ color: "#6FCF97" }}>
+                                            34527889
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )
+            }
         </div >
     )
 }

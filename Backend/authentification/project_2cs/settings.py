@@ -66,6 +66,7 @@ SIMPLE_JWT = {
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': 'django-insecure-1t@eg)yilj^)-=1b+lhhq0_82gmzzkbmcxmbkgf)yrd(c*e+o@',
     'AUTH_HEADER_TYPES': ('Bearer',),  # Vérifie que 'Bearer' est bien configuré
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
 
 
@@ -80,6 +81,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 CORS_ALLOW_ALL_ORIGINS = True
+
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     # "http://localhost:8001",
+# ]
+# CORS_ALLOW_CREDENTIALS = True
+
+
 CORS_ALLOW_METHODS = (
     "DELETE",
     "GET",

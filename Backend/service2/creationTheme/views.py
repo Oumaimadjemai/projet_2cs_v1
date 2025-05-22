@@ -331,7 +331,9 @@ class ThemeAPIView(APIView):
             theme = serializer.save()
 
             # ✅ Génère automatiquement le PDF après la création du thème
-            return generate_pdf(request, theme.id)
+            generate_pdf(request, theme.id)
+        
+            return Response(ThemeSerializer(theme).data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -478,8 +480,8 @@ def is_admin_user(request):
 
     if not auth_header:
         print("No Authorization header!")
-        return False
-
+        return False 
+    
     try:
         base = get_service1_url()
         url = f"{base}/verify-admin/"

@@ -9,7 +9,7 @@ import { EnseignantContext } from './EnseignantsListe';
 
 export const AjouterEnseignant = ({ annulerAjouter, handleDraftSave }) => {
 
-    const { setEnseignants } = useContext(EnseignantContext)
+    const { setEnseignants, setLoading } = useContext(EnseignantContext)
 
     const [methodeAjouter, setMethodeAjouter] = useState(0);
 
@@ -53,21 +53,6 @@ export const AjouterEnseignant = ({ annulerAjouter, handleDraftSave }) => {
 
     const { t } = useTranslation();
 
-    const [annees, setAnnees] = useState([])
-    const [specialites, setSpecialites] = useState([])
-
-    useEffect(() => {
-
-        axios.get('http://127.0.0.1:8000/annees/')
-            .then((res) => setAnnees(res.data))
-            .catch((err) => console.error("Erreur Axios :", err))
-
-        axios.get('http://127.0.0.1:8000/specialites/')
-            .then((res) => setSpecialites(res.data))
-            .catch((err) => console.error("Erreur Axios :", err))
-
-    }, [])
-
 
     const [newTeacher, setNewTeacher] = useState({
         email: "",
@@ -89,7 +74,9 @@ export const AjouterEnseignant = ({ annulerAjouter, handleDraftSave }) => {
 
         e.preventDefault();
 
-        axios.post('http://127.0.0.1:8000/enseignants/', newTeacher)
+        setLoading(true)
+
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/enseignants/`, newTeacher)
             .then((res) => {
                 const data = Array.isArray(res.data) ? res.data : [res.data];
                 setEnseignants(prev => [...prev, ...data]);
@@ -101,8 +88,8 @@ export const AjouterEnseignant = ({ annulerAjouter, handleDraftSave }) => {
                 if (err.response) {
                     console.error("Détails de l'erreur :", err.response.data);
                 }
-            });
-
+            })
+            .finally(() => setLoading(false) )
     }
 
     const AddTeachers = (e) => {
@@ -116,7 +103,7 @@ export const AjouterEnseignant = ({ annulerAjouter, handleDraftSave }) => {
         const formData = new FormData();
         formData.append("file", file);
 
-        axios.post("http://127.0.0.1:8000/import/enseignant/", formData)
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/import/enseignant/`, formData)
             .then((res) => {
                 alert('Data added successfully');
                 console.log(res.data);
@@ -137,7 +124,7 @@ export const AjouterEnseignant = ({ annulerAjouter, handleDraftSave }) => {
                     </svg>
 
                 </div>
-                <form id='ajouterFormEnseignant'>
+                <form id='ajouterFormEnseignant' onSubmit={methodeAjouter === 0 ? AddTeacher : AddTeachers}>
                     <div className="ajouter-choice">
                         <span
                             className={`${methodeAjouter === 0 ? "current" : ""}`}
@@ -325,7 +312,6 @@ export const AjouterEnseignant = ({ annulerAjouter, handleDraftSave }) => {
                                     type='submit'
                                     className='ajout-btn'
                                     form='ajouterFormEnseignant'
-                                    onClick={(e) => AddTeacher(e)}
                                 >
                                     {t('enseignantsPage.addBtn')}
                                 </button>
@@ -335,7 +321,6 @@ export const AjouterEnseignant = ({ annulerAjouter, handleDraftSave }) => {
                                 type='submit' 
                                 className='ajout-btn' 
                                 form='ajouterFormEnseignant'
-                                onClick={(e) => AddTeachers(e)}
                                 >
                                     {t('enseignantsPage.addEnseignants')}
                                 </button>
