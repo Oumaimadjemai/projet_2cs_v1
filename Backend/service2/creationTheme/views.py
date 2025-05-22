@@ -199,7 +199,6 @@ from django.template.loader import render_to_string
 from django.core.files.base import ContentFile  # Import pour sauvegarder le PDF
 from urllib.parse import urljoin
 from .discovery import discover_service
-from django.views.decorators.clickjacking import xframe_options_exempt
 
 # External service URLs
 # SERVICE_1_URL = "http://localhost:8000"
@@ -331,9 +330,7 @@ class ThemeAPIView(APIView):
             theme = serializer.save()
 
             # ✅ Génère automatiquement le PDF après la création du thème
-            generate_pdf(request, theme.id)
-        
-            return Response(ThemeSerializer(theme).data, status=status.HTTP_201_CREATED)
+            return generate_pdf(request, theme.id)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -410,17 +407,7 @@ class ThemePDFView(APIView):
         return Response({'error': 'Le fichier PDF n\'existe pas pour ce thème.'}, status=status.HTTP_404_NOT_FOUND)
 
 
-class ThemePDFGET(APIView):
-    @xframe_options_exempt  # Add this decorator
-    def get(self, request, theme_id):
-        theme = get_object_or_404(Theme, id=theme_id)
-        if theme.option_pdf and os.path.exists(theme.option_pdf.path):
-            response = FileResponse(open(theme.option_pdf.path, 'rb'), content_type='application/pdf')
-            response['Content-Disposition'] = f'inline; filename="fiche_projet_{theme.titre}.pdf"'
-            response['X-Frame-Options'] = 'ALLOW-FROM http://localhost:3000'  # Your React dev server
-            return response
-        return Response({'error': 'PDF file not found'}, status=404)
-        
+
 class AllThemePDFsView(APIView):
     def get(self, request):
         # Récupérer tous les thèmes qui ont un fichier PDF
@@ -480,8 +467,8 @@ def is_admin_user(request):
 
     if not auth_header:
         print("No Authorization header!")
-        return False 
-    
+        return False
+
     try:
         base = get_service1_url()
         url = f"{base}/verify-admin/"
