@@ -71,6 +71,29 @@ class Periode(models.Model):#selon annee academique
     archived = models.BooleanField(default=False)
     annee_academique = models.ForeignKey(AnneeAcademique, on_delete=models.CASCADE, null=True, blank=True)
 
+    def clean(self):
+        super().clean()
+
+        if self.annee_academique:
+            if not (self.annee_academique.date_debut <= self.date_debut <= self.annee_academique.date_fin):
+                raise ValidationError("La date de début n'appartient pas à l'année académique.")
+            if not (self.annee_academique.date_debut <= self.date_fin <= self.annee_academique.date_fin):
+                raise ValidationError("La date de fin n'appartient pas à l'année académique.")
+        if self.date_debut > self.date_fin:
+            raise ValidationError("La date de début doit être antérieure ou égale à la date de fin.")
+
+    def save(self, *args, **kwargs):
+        # Auto-assign annee_academique if not set
+        if not self.annee_academique and self.date_debut and self.date_fin:
+            try:
+                self.annee_academique = AnneeAcademique.objects.get(
+                    date_debut__lte=self.date_debut,
+                    date_fin__gte=self.date_fin
+                )
+            except AnneeAcademique.DoesNotExist:
+                raise ValidationError("Aucune année académique ne correspond à cette période.")
+        self.full_clean()  # trigger clean() to enforce validation
+        super().save(*args, **kwargs)
     def __str__(self):
         return f"{self.get_type_display()} : {self.date_debut} au {self.date_fin}"
     
@@ -95,7 +118,16 @@ class Parametre_group(models.Model):#selon annee_academique
         if self.annee and self.annee.title == "3" and self.annee.departement and self.annee.departement.title.lower() == "cs":
             if not self.type:
                 raise ValidationError("Le type de groupe est obligatoire pour la 3e année du département CS.")
-    
+    def save(self, *args, **kwargs):
+        # Auto-assign annee_academique based on current date if not already set
+        if not self.annee_academique:
+            today = timezone.now().date()
+            try:
+                self.annee_academique = AnneeAcademique.objects.get(date_debut__lte=today, date_fin__gte=today)
+            except AnneeAcademique.DoesNotExist:
+                raise ValidationError("Aucune année académique en cours trouvée pour la date actuelle.")
+        
+        super().save(*args, **kwargs)
     def __str__(self):
         return f"Paramètres {self.annee} - {self.type}"
 
