@@ -1,4 +1,4 @@
-import React, {useEffect} from "react"
+import React, { useEffect } from "react"
 import { Outlet } from 'react-router-dom'
 import NavBar from "../Components/Partials/Components/NavBar"
 import TopBar from "../Components/Partials/Components/TopBar";
@@ -15,52 +15,51 @@ export const EnseignantLayout = () => {
   const socket = useSocket();
 
   useEffect(() => {
-  if (!socket) return;
+    if (!socket) return;
 
-  // Listen for teacher-specific notifications
-  socket.on('role_notification', (data) => {
-    if (data.role === 'enseignant') {
-      toast.info(`ENSEIGNANT: ${data.message}`);
-    }
-  });
+    const userId = localStorage.getItem('user_id');
+    const userName = `${localStorage.getItem('user_nom')} ${localStorage.getItem('user_prenom')}`
 
-  // Register as teacher
-  const userId = localStorage.getItem('userId');
-  socket.emit('register', { 
-    userId,
-    userRole: 'enseignant' 
-  });
+    socket.emit('register', {
+      userId,
+      userRole: 'enseignant'
+    });
 
-  return () => {
-    socket.off('role_notification');
-  };
-}, [socket]);
+    socket.on('user_notification', (data) => {
+      console.log("Notification reçue:", data); 
+      toast.info(`${userName} ${data.message}`);
+    });
 
-    const adminMenu = [
-        {
-          name: t("navElements.themes"),
-          icon: <ThemesIcon />,
-          path: "/enseignant",
-        },
-        {
-          name: t("navElements.groupes"),
-          icon: <GroupesIcon />,
-          path: "/enseignant/groupes",
-        },
-        {
-          name: t("navElements.soutenances"),
-          icon: <SoutenancesIcon />,
-          path: "/enseignant/soutenances",
-        },
-      ];
+    return () => {
+      socket.off('user_notification');
+    };
+  }, [socket]);
 
-    return (
-        <div className="admin-grid">
-            <NavBar menuItems={adminMenu} racinePath={"/enseignant"} />
-            <TopBar />
-            <div className="main-container">
-                <Outlet />
-            </div>
-        </div>
-    )
+  const adminMenu = [
+    {
+      name: t("navElements.themes"),
+      icon: <ThemesIcon />,
+      path: "/enseignant",
+    },
+    {
+      name: t("navElements.groupes"),
+      icon: <GroupesIcon />,
+      path: "/enseignant/groupes",
+    },
+    {
+      name: t("navElements.soutenances"),
+      icon: <SoutenancesIcon />,
+      path: "/enseignant/soutenances",
+    },
+  ];
+
+  return (
+    <div className="admin-grid">
+      <NavBar menuItems={adminMenu} racinePath={"/enseignant"} />
+      <TopBar />
+      <div className="main-container">
+        <Outlet />
+      </div>
+    </div>
+  )
 }

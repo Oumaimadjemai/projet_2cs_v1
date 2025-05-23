@@ -10,10 +10,11 @@ from rest_framework_simplejwt.views import (
 )
 
 urlpatterns = [
-     path('etudiants/', EtudiantListCreateView.as_view(), name='etudiant-list-create'),
+    path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
+    path('etudiants/', EtudiantListCreateView.as_view(), name='etudiant-list-create'),
     path('etudiants/<int:pk>/', EtudiantRetrieveUpdateDeleteView.as_view(), name='etudiant-detail'),
+    path('user/me/', CurrentUserView.as_view(), name='current-user'),
 
-  
     path('enseignants/', EnseignantListCreateView.as_view(), name='enseignant-list-create'),
     path('enseignants/<int:pk>/', EnseignantRetrieveUpdateDeleteView.as_view(), name='enseignant-detail'),
 
@@ -39,8 +40,9 @@ urlpatterns = [
     path('periodes/',PeriodeListCreateView.as_view(),name='periode-list-create'),
     path('periodes/<int:pk>',PeriodeRetrieveUpdateDeleteView.as_view(),name='periode-detail'),
 
-    path('Parametre_groups/',Parametre_groupListCreateView.as_view(),name='Parametre_group-list-create'),
-    path('Parametre_groups/<int:pk>',Parametre_groupRetrieveUpdateDeleteView.as_view(),name='Parametre_group-detail'),
+    path('parametre_groups/',Parametre_groupListCreateView.as_view(),name='Parametre_group-list-create'),
+    path('parametre_groups/<int:pk>',Parametre_groupRetrieveUpdateDeleteView.as_view(),name='Parametre_group-detail'),
+    path('parametre-groups/by-annee/', ParametreGroupByAnneeView.as_view(), name='parametre-group-by-annee'),
 
     path('entreprises/', EntrepriseListCreateView.as_view(), name='entreprise-list'),
     path('entreprises/<int:pk>/valider/', EntrepriseValidationView.as_view(), name='entreprise-valider'),

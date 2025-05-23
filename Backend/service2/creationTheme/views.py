@@ -199,7 +199,6 @@ from django.template.loader import render_to_string
 from django.core.files.base import ContentFile  # Import pour sauvegarder le PDF
 from urllib.parse import urljoin
 from .discovery import discover_service
-from django.views.decorators.clickjacking import xframe_options_exempt
 
 # External service URLs
 # SERVICE_1_URL = "http://localhost:8000"
@@ -360,14 +359,14 @@ class ThemeAPIView(APIView):
 
         # Notify admins
         try:
-            notification_service = self.get_notification_service_url()
+            notification_service = get_notification_service_url()
             requests.post(
                 f"{notification_service}/notify-admins",
                 json={
                     "idSender": user_data['user_id'],
                     "title": "Nouveau thème créé",
                     "message": f"Nouveau thème créé : {theme.titre}",
-                    "type": "creationTheme"
+                    "type": "CREATION_THEME"
                 },
                 timeout=3  # 3 seconds timeout
             )
@@ -450,17 +449,7 @@ class ThemePDFView(APIView):
         return Response({'error': 'Le fichier PDF n\'existe pas pour ce thème.'}, status=status.HTTP_404_NOT_FOUND)
 
 
-class ThemePDFGET(APIView):
-    @xframe_options_exempt  # Add this decorator
-    def get(self, request, theme_id):
-        theme = get_object_or_404(Theme, id=theme_id)
-        if theme.option_pdf and os.path.exists(theme.option_pdf.path):
-            response = FileResponse(open(theme.option_pdf.path, 'rb'), content_type='application/pdf')
-            response['Content-Disposition'] = f'inline; filename="fiche_projet_{theme.titre}.pdf"'
-            response['X-Frame-Options'] = 'ALLOW-FROM http://localhost:3000'  # Your React dev server
-            return response
-        return Response({'error': 'PDF file not found'}, status=404)
-        
+
 class AllThemePDFsView(APIView):
     def get(self, request):
         # Récupérer tous les thèmes qui ont un fichier PDF
@@ -520,8 +509,8 @@ def is_admin_user(request):
 
     if not auth_header:
         print("No Authorization header!")
-        return False 
-    
+        return False
+
     try:
         base = get_service1_url()
         url = f"{base}/verify-admin/"
@@ -546,7 +535,44 @@ class ValiderThemeView(APIView):
         theme.valide = True
         theme.motif = ""
         theme.save()
-        return Response({"message": "Thème validé avec succès."}, status=status.HTTP_200_OK)
+        
+        # Envoi de la notification
+        id_receiver = theme.enseignant_id if theme.enseignant_id else theme.entreprise_id
+        
+        notification_data = {
+            "idReceiver": id_receiver, 
+            "type": "THEME_DECISION",
+            "metadata": {
+                "decision": "accepté",
+                "themeTitle": theme.titre,
+                "themeId": theme.id
+            }
+        }
+        
+        try:
+          
+            notification_service_url = get_notification_service_url()
+            
+            # Envoi de la requête au service de notification
+            response = requests.post(
+                f"{notification_service_url}/notify",
+                json=notification_data,
+                timeout=5
+            )
+            response.raise_for_status()
+            
+            return Response({
+                "message": "Thème validé avec succès.",
+                "notification": response.json()
+            }, status=status.HTTP_200_OK)
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Erreur lors de l'envoi de la notification: {str(e)}")
+            return Response({
+                "message": "Thème validé mais échec de la notification",
+                "error": str(e)
+            }, status=status.HTTP_200_OK)
+        
 
 class RefuserThemeView(APIView):
     def patch(self, request, theme_id):
@@ -561,7 +587,42 @@ class RefuserThemeView(APIView):
         theme.valide = False
         theme.motif = motif
         theme.save()
-        return Response({"message": "Thème refusé avec motif."}, status=status.HTTP_200_OK)
+        
+        id_receiver = theme.enseignant_id if theme.enseignant_id else theme.entreprise_id
+        
+        notification_data = {
+            "idReceiver": id_receiver, 
+            "type": "THEME_DECISION",
+            "metadata": {
+                "decision": "refusé",
+                "themeTitle": theme.titre,
+                "themeId": theme.id
+            }
+        }
+        
+        try:
+          
+            notification_service_url = get_notification_service_url()
+            
+            # Envoi de la requête au service de notification
+            response = requests.post(
+                f"{notification_service_url}/notify",
+                json=notification_data,
+                timeout=5
+            )
+            response.raise_for_status()
+            
+            return Response({
+                "message": "Thème validé avec succès.",
+                "notification": response.json()
+            }, status=status.HTTP_200_OK)
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Erreur lors de l'envoi de la notification: {str(e)}")
+            return Response({
+                "message": "Thème validé mais échec de la notification",
+                "error": str(e)
+            }, status=status.HTTP_200_OK)
 
 
 from django.db.models import Q
@@ -626,7 +687,41 @@ class ReserverThemeView(APIView):
         theme.reserve = True
         theme.save()
 
-        return Response({"message": "Thème réservé avec succès."}, status=status.HTTP_200_OK)
+        id_receiver = theme.enseignant_id if theme.enseignant_id else theme.entreprise_id
+        
+        notification_data = {
+            "idReceiver": id_receiver, 
+            "type": "THEME_DECISION",
+            "metadata": {
+                "decision": "reservé",
+                "themeTitle": theme.titre,
+                "themeId": theme.id
+            }
+        }
+        
+        try:
+          
+            notification_service_url = get_notification_service_url()
+            
+            # Envoi de la requête au service de notification
+            response = requests.post(
+                f"{notification_service_url}/notify",
+                json=notification_data,
+                timeout=5
+            )
+            response.raise_for_status()
+            
+            return Response({
+                "message": "Thème validé avec succès.",
+                "notification": response.json()
+            }, status=status.HTTP_200_OK)
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Erreur lors de l'envoi de la notification: {str(e)}")
+            return Response({
+                "message": "Thème validé mais échec de la notification",
+                "error": str(e)
+            }, status=status.HTTP_200_OK)
 
 
 class ThemesReservesView(APIView):

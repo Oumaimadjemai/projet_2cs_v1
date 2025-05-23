@@ -10,7 +10,7 @@ export const SocketProvider = ({ children, token }) => {
     if (!token) return;
 
     const newSocket = io('http://localhost:4000', {
-      auth: { token },
+      auth: token ? { token } : { isGuest: true },
       withCredentials: true,
       autoConnect: true,
     });

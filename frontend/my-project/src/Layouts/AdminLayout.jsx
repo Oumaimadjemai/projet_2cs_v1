@@ -17,26 +17,59 @@ export const AdminLayout = () => {
   const socket = useSocket();
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket) {
+      console.log("WebSocket non connecté");
+      return;
+    }
 
-    // Listen for admin-specific notifications
-    socket.on('role_notification', (data) => {
-      if (data.role === 'admin') {
-        toast.info(`ADMIN: ${data.message}`);
-      }
-    });
-
-    // Register as admin on connection
     const userId = localStorage.getItem('user_id');
+    const userName = `${localStorage.getItem('user_nom')} ${localStorage.getItem('user_prenom')}`
+    const userRole = 'admin'; // À remplacer par la valeur dynamique si nécessaire
+
+    console.log("📡 Enregistrement WebSocket - ID:", userId, "Rôle:", userRole);
+
+    // 1. Enregistrement standard
     socket.emit('register', {
       userId,
-      userRole: 'admin'
+      userRole
     });
 
+    // 2. Enregistrement supplémentaire pour les notifications admin
+    socket.emit('register_admin');
+
+    // 3. Gestion des notifications
+    const handleRoleNotification = (data) => {
+      if (data.role === 'admin') {
+        toast.info(`${userName} ${data.message}`);
+      }
+    };
+
+    const handleSystemNotification = (data) => {
+      if (data.type === 'ENTREPRISE_DEMANDE') {
+        toast.info(
+          <div>
+            <b>Nouvelle demande entreprise</b>
+            <p>{data.metadata.entrepriseNom}</p>
+            <p>Contact: {data.metadata.email}</p>
+          </div>,
+          { autoClose: false } // Garde la notification visible
+        );
+      } else {
+        toast.info(`[SYSTÈME] ${data.message}`);
+      }
+    };
+
+    // Abonnement
+    socket.on('role_notification', handleRoleNotification);
+    socket.on('system_notification', handleSystemNotification);
+
+    // Nettoyage
     return () => {
-      socket.off('role_notification');
+      socket.off('role_notification', handleRoleNotification);
+      socket.off('system_notification', handleSystemNotification);
     };
   }, [socket]);
+
 
   const adminMenu = [
     {
