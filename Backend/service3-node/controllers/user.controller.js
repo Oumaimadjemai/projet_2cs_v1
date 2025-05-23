@@ -49,38 +49,5 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-exports.getUserInvitations = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const djangoUrl = await discoverDjangoService();
 
-    const groups = await Group.find({ invitations: parseInt(userId) });
 
-    const invitations = await Promise.all(
-      groups.map(async (group) => {
-        const chefResponse = await axios.get(
-          `${djangoUrl}/etudiants/${group.chef_id}/`,
-          {
-            headers: { Authorization: req.headers.authorization },
-          }
-        );
-        return {
-          group_id: group._id,
-          group_name: group.name,
-          chef_name: `${chefResponse.data.prenom} ${chefResponse.data.nom}`,
-          created_at: group.created_at,
-        };
-      })
-    );
-
-    res.json({
-      success: true,
-      invitations,
-    });
-  } catch (error) {
-    console.error("Erreur liste invitations:", error);
-    res
-      .status(500)
-      .json({ error: "Erreur lors de la récupération des invitations" });
-  }
-};
