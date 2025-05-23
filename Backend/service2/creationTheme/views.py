@@ -273,33 +273,7 @@ def generate_pdf(request, theme_id):
     response['Content-Disposition'] = f'attachment; filename="fiche_projet_{theme.titre}.pdf"'
     return response
 
-# 🌟 API to list and create themes
-# class ThemeAPIView(APIView):
 
-#     def get(self, request):
-#         themes = Theme.objects.all()
-#         serializer = ThemeSerializer(themes, many=True)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-#     def post(self, request):
-#         user_data = verify_user(request, role=["enseignant", "entreprise"])
-#         if not user_data:
-#             return Response({"detail": "Utilisateur non authentifié ou rôle incorrect"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         data = request.data.copy()
-#         if user_data.get("is_enseignant"):
-#             data['enseignant_id'] = user_data['user_id']
-#         elif user_data.get("is_entreprise"):
-#             data['entreprise_id'] = user_data['user_id']
-
-#         serializer = ThemeSerializer(data=data)
-#         if serializer.is_valid():
-#             theme = serializer.save()
-
-#             # 🚨 Modification ici : Appeler la fonction pour générer et sauvegarder le PDF
-#             return generate_pdf(request, theme.id)
-
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class ThemeAPIView(APIView):
 
     def get(self, request):
@@ -589,3 +563,42 @@ class ThemesReservesView(APIView):
 
         serializer = ThemeSerializer(themes_reserves, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Q
+from .models import Theme
+from .serializers import ThemeSerializer
+
+class ThemeSearchAPIView(APIView):
+    def get(self, request):
+        query = request.GET.get('q', '')
+        if query:
+            themes = Theme.objects.filter(
+                Q(titre__icontains=query) |
+                Q(resume__icontains=query)  # ← ici, on remplace description par resume
+            )
+        else:
+            themes = Theme.objects.all()
+        serializer = ThemeSerializer(themes, many=True)
+        return Response(serializer.data)
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from .models import Theme
+from .serializers import ThemeSerializer
+class AffecterEnseignantView(APIView):
+    def patch(self, request, theme_id, enseignant_id):
+        if not is_admin_user(request):
+            return Response({"detail": "Accès interdit. Admin seulement."}, status=status.HTTP_403_FORBIDDEN)
+
+        theme = get_object_or_404(Theme, id=theme_id)
+
+        if not theme.valide:
+            return Response({"detail": "Impossible d'affecter un enseignant à un thème non validé."}, status=status.HTTP_400_BAD_REQUEST)
+
+        theme.enseignant_id = enseignant_id
+        theme.save()
+
+        return Response({"message": "Enseignant affecté au thème avec succès."}, status=status.HTTP_200_OK)

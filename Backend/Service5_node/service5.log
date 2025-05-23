@@ -1,0 +1,10 @@
+{"level":"info","message":"✅ MongoDB connected","timestamp":"2025-04-24T22:44:29.153Z"}
+{"level":"info","message":"🚀 Service5 running on http://localhost:5005","timestamp":"2025-04-24T22:44:29.170Z"}
+{"level":"info","message":"✅ Registered with Eureka","timestamp":"2025-04-24T22:44:29.249Z"}
+{"ip":"::1","level":"warn","message":"Invalid token attempt","timestamp":"2025-04-24T22:47:18.356Z"}
+{"ip":"::1","level":"warn","message":"Invalid token attempt","timestamp":"2025-04-24T22:48:29.943Z"}
+{"ip":"::1","level":"warn","message":"Invalid token attempt","timestamp":"2025-04-24T22:50:08.282Z"}
+{"ip":"::1","level":"warn","message":"Invalid token attempt","timestamp":"2025-04-24T22:51:34.040Z"}
+{"level":"info","message":"✅ MongoDB connected","timestamp":"2025-04-25T14:22:33.488Z"}
+{"level":"info","message":"🚀 Service5 running on http://localhost:5005","timestamp":"2025-04-25T14:22:33.522Z"}
+{"level":"info","message":"✅ Registered with Eureka","timestamp":"2025-04-25T14:22:33.613Z"}
