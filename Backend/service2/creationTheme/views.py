@@ -298,6 +298,10 @@ class ThemeAPIView(APIView):
             data['enseignant_id'] = user_data['user_id']
         elif user_data.get("is_entreprise"):
             data['entreprise_id'] = user_data['user_id']
+            # ⬇️ Gérer la convention si fournie
+            if 'convention' in request.FILES:
+
+               data['convention'] = request.FILES.get('convention')
 
         serializer = ThemeSerializer(data=data)
         if serializer.is_valid():
@@ -602,3 +606,128 @@ class AffecterEnseignantView(APIView):
         theme.save()
 
         return Response({"message": "Enseignant affecté au thème avec succès."}, status=status.HTTP_200_OK)
+
+class ThemeConventionView(APIView):
+    def get(self, request, theme_id):
+        try:
+            theme = Theme.objects.get(id=theme_id)
+        except Theme.DoesNotExist:
+            raise Http404("Thème non trouvé.")
+
+        if not theme.convention:
+            return Response({"detail": "Ce thème n'a pas de convention."}, status=status.HTTP_404_NOT_FOUND)
+
+        file_path = theme.convention.path
+        if not os.path.exists(file_path):
+            return Response({"detail": "Fichier introuvable."}, status=status.HTTP_404_NOT_FOUND)
+
+        return FileResponse(open(file_path, 'rb'), content_type='application/pdf', filename=os.path.basename(file_path))
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils.text import slugify
+from django.utils.crypto import get_random_string
+from PyPDF2 import PdfReader
+from .models import Theme
+from .serializers import ThemeSerializer
+from .utils import verify_user  # Assure-toi que cette fonction existe
+
+class ExtractThemeFromPDFView(APIView):
+    def post(self, request):
+        # ✅ Vérification de rôle
+        user_data = verify_user(request, role=["enseignant", "entreprise"])
+        if not user_data or not (user_data.get("is_enseignant") or user_data.get("is_entreprise")):
+            return Response(
+                {"detail": "Accès refusé. Seuls les enseignants ou les entreprises peuvent extraire un thème depuis un PDF."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # ✅ Vérification du fichier
+        if 'file' not in request.FILES:
+            return Response({"detail": "Fichier 'file' requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+        file = request.FILES['file']
+
+        try:
+            # Lecture PDF
+            pdf = PdfReader(file)
+            full_text = "\n".join([p.extract_text() or "" for p in pdf.pages]).replace('\r', ' ').replace('\n', ' ').strip()
+            print("Texte extrait du PDF:\n", full_text)
+
+            def extract_between(text, start_marker, end_marker=None):
+                try:
+                    start = text.lower().index(start_marker.lower()) + len(start_marker)
+                    if end_marker:
+                        end = text.lower().index(end_marker.lower(), start)
+                        return text[start:end].strip()
+                    return text[start:].strip()
+                except ValueError:
+                    return ""
+
+            def multi_extract(text, markers):
+                for m in markers:
+                    result = extract_between(text, *m)
+                    if result:
+                        return result
+                return ""
+
+            titre = multi_extract(full_text, [("titre complet", "encadreur")])
+            resume = multi_extract(full_text, [("résumé", "outils et langages")])
+            outils = multi_extract(full_text, [("outils et langages", "plan de travail")])
+            plan_travail = multi_extract(full_text, [("plan de travail", "livrable"), ("plan de travail",)])
+            livrable = multi_extract(full_text, [("livrable",)])
+
+            # Validation des champs
+            champs_vides = []
+            champs_a_verifier = {
+                "titre": titre,
+                "resume": resume,
+                "outils_et_language": outils,
+                "plan_travail": plan_travail,
+            }
+
+            for champ, valeur in champs_a_verifier.items():
+                if not valeur.strip():
+                    champs_vides.append(champ)
+
+            if champs_vides:
+                return Response({
+                    "detail": "Champs manquants dans le PDF.",
+                    "champs_vides": champs_vides,
+                    "text_debug": full_text
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Préparation de l'objet
+            theme = Theme(
+                titre=titre,
+                resume=resume,
+                outils_et_language=outils,
+                plan_travail=plan_travail,
+                livrable=livrable
+            )
+
+            if user_data.get("is_enseignant"):
+                theme.enseignant_id = user_data["user_id"]
+            elif user_data.get("is_entreprise"):
+                theme.entreprise_id = user_data["user_id"]
+
+            # Enregistrement du thème (sans fichier pour le moment)
+            theme.save()
+
+            # ✅ Sauvegarde du PDF dans 'pdfs/' avec nom personnalisé
+            from django.core.files.base import ContentFile
+            import os
+            ext = os.path.splitext(file.name)[1] or ".pdf"
+            safe_title = slugify(titre)[:40]
+            random_suffix = get_random_string(6)
+            filename = f"pdfs/fiche_projet_{safe_title}_{random_suffix}{ext}"
+
+            theme.option_pdf.save(filename, file, save=True)
+
+            serializer = ThemeSerializer(theme)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({"detail": f"Erreur lors de l'extraction : {str(e)}"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
