@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { nodeAxios } from '../../../axios';
 import { useNavigate, useParams } from 'react-router-dom';
+
 const ThemeSelectionForm = () => {
   const [themes, setThemes] = useState([]);
   const [selections, setSelections] = useState({
@@ -14,48 +15,40 @@ const ThemeSelectionForm = () => {
   const navigate = useNavigate();
   const { groupId } = useParams();
 
-  // Fetch data
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const [themesRes, selectionsRes] = await Promise.all([
-  //         nodeAxios.get('/theme-selection/available-themes'),
-  //         nodeAxios.get('/theme-selection/my-choices?groupId=${groupId}')
-  //       ]);
-
-  //       setThemes(themesRes.data);
-        
-  //       if (selectionsRes.data.status !== 'not_started') {
-  //         setSelections(selectionsRes.data.choices);
-  //         setStatus(selectionsRes.data.status);
-  //       }
-  //     } catch (err) {
-  //       setError(err.response?.data?.error || 'Failed to load data');
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, []);
-  
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [themesRes, selectionsRes] = await Promise.all([
-          nodeAxios.get('/themes/available-themes'),
-          nodeAxios.get(`/themes/my-choices?groupId=${groupId}`) // ✅ Correct
+        setError(null);
+        
+        const [themesRes, choicesRes] = await Promise.all([
+          nodeAxios.get('/themes'),
+          nodeAxios.get(`/themes/my-choices?groupId=${groupId}`)
         ]);
 
-        setThemes(themesRes.data);
-        
-        if (selectionsRes.data.status !== 'not_started') {
-          setSelections(selectionsRes.data.choices);
-          setStatus(selectionsRes.data.status);
+        // Handle themes response - ensure we always get an array
+        let themesData = [];
+        if (Array.isArray(themesRes.data)) {
+          themesData = themesRes.data;
+        } else if (themesRes.data && Array.isArray(themesRes.data.themes)) {
+          themesData = themesRes.data.themes;
+        } else if (themesRes.data && Array.isArray(themesRes.data.data)) {
+          themesData = themesRes.data.data;
+        }
+        setThemes(themesData);
+
+        // Handle choices response
+        if (choicesRes.data) {
+          const choicesData = choicesRes.data.choices || {};
+          setSelections({
+            p1: choicesData.p1 || null,
+            p2: choicesData.p2 || null,
+            p3: choicesData.p3 || null
+          });
+          setStatus(choicesRes.data.status || 'not_started');
         }
       } catch (err) {
+        console.error('Fetch error:', err);
         setError(err.response?.data?.error || 'Failed to load data');
       } finally {
         setLoading(false);
@@ -72,75 +65,40 @@ const ThemeSelectionForm = () => {
     }));
   };
 
-
-
-// const handleSubmit = async () => {
-//     try {
-//       setLoading(true);
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      setError(null);
       
-//       // Prepare the request data
-//       const submissionData = {
-//         p1: selections.p1,
-//         p2: selections.p2,
-//         p3: selections.p3
-//       };
-  
-//       const response = await nodeAxios.post(
-//         '/theme-selection/submit',
-//         submissionData,  // Send the selections in request body
-//         {
-//           headers: {
-//             'Content-Type': 'application/json',
-//             Authorization: `Bearer ${localStorage.getItem('token')}`
-//           }
-//         }
-//       );
-  
-//       setStatus('submitted');
-//       alert('Selections submitted successfully!');
-//       navigate('/confirmation');
-//     } catch (err) {
-//       console.error('Submission error:', err);
-//       setError(err.response?.data?.error || 'Submission failed');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };  
-const handleSubmit = async () => {
-  try {
-    setLoading(true);
+      const submissionData = {
+        p1: selections.p1,
+        p2: selections.p2,
+        p3: selections.p3,
+        groupId: groupId
+      };
     
-    // Ajout du groupId aux données de la soumission
-    const submissionData = {
-      p1: selections.p1,
-      p2: selections.p2,
-      p3: selections.p3,
-      groupId: groupId // Ajout du groupId ici
-    };
-  
-    const response = await nodeAxios.post(
-      '/themes/submit',
-      submissionData,  // Ajout du groupId dans les données
-      {
+      await nodeAxios.post('/themes/submit', submissionData, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
-      }
-    );
-  
-    setStatus('submitted');
-    alert('Selections submitted successfully!');
-    navigate('/confirmation');
-  } catch (err) {
-    console.error('Submission error:', err);
-    setError(err.response?.data?.error || 'Submission failed');
-  } finally {
-    setLoading(false);
-  }
-};
+      });
+    
+      setStatus('submitted');
+      alert('Selections submitted successfully!');
+      navigate('/confirmation');
+    } catch (err) {
+      console.error('Submission error:', err);
+      setError(err.response?.data?.error || 'Submission failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const getThemeById = (id) => themes.find(theme => theme.id === id);
+  const getThemeById = (id) => {
+    if (!id || !Array.isArray(themes)) return null;
+    return themes.find(theme => theme.id === id);
+  };
 
   if (loading) return <div className="text-center py-8">Loading...</div>;
   if (error) return <div className="text-red-500 p-4">{error}</div>;
@@ -159,11 +117,11 @@ const getThemeById = (id) => themes.find(theme => theme.id === id);
                 <h3 className="font-medium">Priority {priority}:</h3>
                 {theme ? (
                   <div>
-                    <p className="font-bold">{theme.title}</p>
+                    <p className="font-bold">{theme.titre}</p>
                     <p className="text-gray-600">{theme.description}</p>
                   </div>
                 ) : (
-                  <p>Not selected</p>
+                  <p>No theme selected</p>
                 )}
               </div>
             );
@@ -180,13 +138,13 @@ const getThemeById = (id) => themes.find(theme => theme.id === id);
                 value={selections[`p${priority}`] || ''}
                 onChange={(e) => handleSelectChange(`p${priority}`, e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded"
+                disabled={status === 'submitted'}
               >
                 <option value="">Select a theme...</option>
-                {themes.map(theme => (
+                {Array.isArray(themes) && themes.map(theme => (
                   <option 
                     key={theme.id} 
                     value={theme.id}
-                    // Disable if selected in another priority
                     disabled={Object.values(selections)
                       .filter((val, idx) => idx !== priority - 1)
                       .includes(theme.id)}
@@ -198,9 +156,9 @@ const getThemeById = (id) => themes.find(theme => theme.id === id);
               
               {selections[`p${priority}`] && (
                 <div className="mt-2 p-2 bg-gray-50 rounded">
-                  <p className="font-semibold">{getThemeById(selections[`p${priority}`])?.title}</p>
+                  <p className="font-semibold">{getThemeById(selections[`p${priority}`])?.title || 'Unknown theme'}</p>
                   <p className="text-sm text-gray-600">
-                    {getThemeById(selections[`p${priority}`])?.description}
+                    {getThemeById(selections[`p${priority}`])?.description || 'No description available'}
                   </p>
                 </div>
               )}
@@ -211,9 +169,9 @@ const getThemeById = (id) => themes.find(theme => theme.id === id);
             <button
               onClick={handleSubmit}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300"
-              disabled={!selections.p1 || !selections.p2 || !selections.p3}
+              disabled={!selections.p1 || !selections.p2 || !selections.p3 || status === 'submitted'}
             >
-              Submit Selections
+              {status === 'not_started' ? 'Submit Selections' : 'Update Selections'}
             </button>
           </div>
         </div>
@@ -223,4 +181,3 @@ const getThemeById = (id) => themes.find(theme => theme.id === id);
 };
 
 export default ThemeSelectionForm;
-

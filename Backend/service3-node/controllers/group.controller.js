@@ -83,6 +83,7 @@ exports.getGroupMembers=async (req, res) => {
         success: true,
         members: membersDetails.filter((m) => m !== null),
         chef_id: group.chef_id,
+        group_name: group.name,
       });
     } catch (error) {
       console.error("[ERROR]", error);
@@ -105,96 +106,413 @@ exports. getUserGroups= async (req, res) => {
       });
     }
   };
-  exports.inviteUser= async (req, res) => {
+  // exports.inviteUser= async (req, res) => {
+  //   try {
+  //     const { groupId, userId } = req.params;
+  //     const inviterId = req.user.id;
+  //     const djangoUrl = await discoverDjangoService();
+
+  //     const group = await Group.findById(groupId);
+  //     if (!group) return res.status(404).json({ error: "Groupe non trouvé" });
+
+  //     if (group.chef_id !== inviterId) {
+  //       return res
+  //         .status(403)
+  //         .json({ error: "Seul le chef peut inviter des membres" });
+  //     }
+  //     const userResponse = await axios.get(`${djangoUrl}/etudiants/${userId}/`, {
+  //       headers: { Authorization: req.headers.authorization },
+  //     });
+
+  //     if (group.members.includes(parseInt(userId))) {
+  //       return res
+  //         .status(400)
+  //         .json({ error: "L'utilisateur est déjà membre du groupe" });
+  //     }
+  //     if (group.invitations.includes(parseInt(userId))) {
+  //       return res.status(400).json({ error: "L'utilisateur a déjà été invité" });
+  //     }
+  //     group.invitations.push(parseInt(userId));
+  //     await group.save();
+
+  //     res.json({
+  //       success: true,
+  //       message: "Invitation envoyée avec succès",
+  //       invited_user: {
+  //         id: userId,
+  //         name: `${userResponse.data.prenom} ${userResponse.data.nom}`,
+  //       },
+  //     });
+  //   } catch (error) {
+  //     console.error("Erreur invitation:", error);
+  //     if (error.response?.status === 404) {
+  //       return res.status(404).json({ error: "Utilisateur non trouvé" });
+  //     }
+  //     res.status(500).json({ error: "Erreur lors de l'envoi de l'invitation" });
+  //   }
+  // };
+
+// exports.acceptInvitation=async (req, res) => {
+//     try {
+//       const { groupId } = req.params;
+//       const userId = req.user.id;
+
+//       const group = await Group.findById(groupId);
+//       if (!group) return res.status(404).json({ error: "Groupe non trouvé" });
+
+//       if (!group.invitations.includes(parseInt(userId))) {
+//         return res
+//           .status(400)
+//           .json({ error: "Vous n'avez pas d'invitation pour ce groupe" });
+//       }
+
+//       if (group.members.length >= 5) {
+//         return res.status(400).json({ error: "Le groupe est déjà complet" });
+//       }
+
+//       group.members.push(parseInt(userId));
+//       group.invitations = group.invitations.filter(
+//         (id) => id !== parseInt(userId)
+//       );
+//       await group.save();
+
+//       // Recalculate group average
+//       const moyenne = await calculateGroupAverage(group._id, req);
+//       await Group.findByIdAndUpdate(group._id, { moyenne_groupe: moyenne });
+
+//       res.json({
+//         success: true,
+//         message: "Vous avez rejoint le groupe avec succès",
+//         group: {
+//           id: group._id,
+//           name: group.name,
+//           members: group.members,
+//         },
+//       });
+//     } catch (error) {
+//       console.error("Erreur acceptation:", error);
+//       res
+//         .status(500)
+//         .json({ error: "Erreur lors de l'acceptation de l'invitation" });
+//     }
+//   };
+exports.acceptInvitation = async (req, res) => {
     try {
-      const { groupId, userId } = req.params;
-      const inviterId = req.user.id;
-      const djangoUrl = await discoverDjangoService();
+        const { groupId } = req.params;
+        const userId = req.user.id;
 
-      const group = await Group.findById(groupId);
-      if (!group) return res.status(404).json({ error: "Groupe non trouvé" });
+        // 1. Récupérer le groupe
+        const group = await Group.findById(groupId);
+        if (!group) return res.status(404).json({ error: "Groupe non trouvé" });
 
-      if (group.chef_id !== inviterId) {
-        return res
-          .status(403)
-          .json({ error: "Seul le chef peut inviter des membres" });
-      }
-      const userResponse = await axios.get(`${djangoUrl}/etudiants/${userId}/`, {
-        headers: { Authorization: req.headers.authorization },
-      });
+        // 2. Vérifier l'invitation
+        if (!group.invitations.includes(parseInt(userId))) {
+            return res.status(400).json({ error: "Vous n'avez pas d'invitation pour ce groupe" });
+        }
 
-      if (group.members.includes(parseInt(userId))) {
-        return res
-          .status(400)
-          .json({ error: "L'utilisateur est déjà membre du groupe" });
-      }
-      if (group.invitations.includes(parseInt(userId))) {
-        return res.status(400).json({ error: "L'utilisateur a déjà été invité" });
-      }
-      group.invitations.push(parseInt(userId));
-      await group.save();
+        // 3. Récupérer les infos de l'étudiant
+        const djangoUrl = await discoverDjangoService();
+        const userResponse = await axios.get(`${djangoUrl}/etudiants/${userId}/`, {
+            headers: { Authorization: req.headers.authorization }
+        });
+        
+        const userAnneeEtude = userResponse.data.annee_etude;
+        if (!userAnneeEtude) {
+            return res.status(400).json({ error: "Votre année d'étude n'est pas définie" });
+        }
 
-      res.json({
-        success: true,
-        message: "Invitation envoyée avec succès",
-        invited_user: {
-          id: userId,
-          name: `${userResponse.data.prenom} ${userResponse.data.nom}`,
-        },
-      });
+        // 4. Récupérer les paramètres de groupe pour l'année
+        const parametresResponse = await axios.get(`${djangoUrl}/parametre-groups/by-annee/?annee=${userAnneeEtude}`, {
+            headers: { Authorization: req.headers.authorization }
+        });
+
+        if (!parametresResponse.data || parametresResponse.data.length === 0) {
+            return res.status(400).json({ 
+                error: "Configuration des groupes non définie pour cette année",
+                annee: userAnneeEtude
+            });
+        }
+
+        const parametres = parametresResponse.data[0];
+        const maxMembres = parseInt(parametres.nbr_max);
+        const minMembres = parseInt(parametres.nbr_min);
+
+        // 5. Vérifier la capacité du groupe
+        if (group.members.length >= maxMembres) {
+            return res.status(400).json({ 
+                error: `Le groupe a atteint sa capacité maximale (${maxMembres} membres)`,
+                max_members: maxMembres,
+                current_members: group.members.length
+            });
+        }
+
+        // 6. Vérifier la cohérence de l'année
+        if (group.annee_etude && group.annee_etude !== userAnneeEtude) {
+            return res.status(400).json({ 
+                error: "Incompatibilité d'année d'étude",
+                details: `Le groupe est pour l'année ${group.annee_etude} et vous êtes en année ${userAnneeEtude}`
+            });
+        }
+
+        // 7. Ajouter le membre
+        group.members.push(parseInt(userId));
+        group.invitations = group.invitations.filter(id => id !== parseInt(userId));
+        
+        // Si c'est le premier membre, définir l'année du groupe
+        if (group.members.length === 1) {
+            group.annee_etude = userAnneeEtude;
+        }
+        
+        await group.save();
+
+        // 8. Calculer la nouvelle moyenne
+        const moyenne = await calculateGroupAverage(group._id, req);
+        await Group.findByIdAndUpdate(group._id, { moyenne_groupe: moyenne });
+
+        // 9. Vérifier si le groupe est complet
+        const isComplete = group.members.length >= minMembres && group.members.length <= maxMembres;
+
+        res.json({
+            success: true,
+            message: "Vous avez rejoint le groupe avec succès",
+            group: {
+                id: group._id,
+                name: group.name,
+                members: group.members,
+                annee_etude: group.annee_etude,
+                is_complete: isComplete
+            },
+            constraints: {
+                min_members: minMembres,
+                max_members: maxMembres,
+                current_members: group.members.length
+            }
+        });
+
     } catch (error) {
-      console.error("Erreur invitation:", error);
-      if (error.response?.status === 404) {
-        return res.status(404).json({ error: "Utilisateur non trouvé" });
-      }
-      res.status(500).json({ error: "Erreur lors de l'envoi de l'invitation" });
-    }
-  };
+        console.error("Erreur acceptation:", error);
+        
+        if (error.response?.status === 404) {
+            return res.status(404).json({ 
+                error: "Ressource non trouvée",
+                details: error.response.data
+            });
+        }
 
-exports.acceptInvitation=async (req, res) => {
+        res.status(500).json({ 
+            error: "Erreur lors de l'acceptation de l'invitation",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+// Accept an invitation to join a group
+// exports.inviteUser = async (req, res) => {
+//     try {
+//         const { groupId, userId } = req.params;
+//         const inviterId = req.user.id;
+
+//         // 1. Récupérer le groupe
+//         const group = await Group.findById(groupId);
+//         if (!group) {
+//             return res.status(404).json({ error: "Groupe non trouvé" });
+//         }
+
+//         // 2. Vérifier les droits du chef
+//         if (group.chef_id !== inviterId) {
+//             return res.status(403).json({ 
+//                 error: "Action réservée au chef de groupe",
+//                 required_role: "chef",
+//                 current_user: inviterId
+//             });
+//         }
+
+//         // 3. Vérifier si l'utilisateur est déjà membre
+//         if (group.members.includes(parseInt(userId))) {
+//             return res.status(400).json({
+//                 error: "L'utilisateur est déjà membre du groupe",
+//                 user_id: userId,
+//                 group_id: groupId
+//             });
+//         }
+
+//         // 4. Récupérer les infos de l'étudiant depuis Django
+//         const djangoUrl = await discoverDjangoService();
+//         const userResponse = await axios.get(`${djangoUrl}/etudiants/${userId}/`, {
+//             headers: { Authorization: req.headers.authorization }
+//         });
+
+//         // 5. Ajouter l'invitation (sans vérifier les doublons)
+//         await Group.findByIdAndUpdate(
+//             groupId,
+//             { $addToSet: { invitations: parseInt(userId) } },
+//             { new: true }
+//         );
+
+//         // 6. Réponse
+//         res.json({
+//             success: true,
+//             message: "Invitation envoyée avec succès",
+//             invitation: {
+//                 group: {
+//                     id: group._id,
+//                     name: group.name
+//                 },
+//                 user: {
+//                     id: userId,
+//                     full_name: `${userResponse.data.prenom} ${userResponse.data.nom}`,
+//                     email: userResponse.data.email // Optionnel
+//                 },
+//                 timestamp: new Date().toISOString()
+//             }
+//         });
+
+//     } catch (error) {
+//         console.error("Erreur invitation:", error);
+        
+//         // Gestion spécifique des erreurs API Django
+//         if (error.response?.status === 404) {
+//             return res.status(404).json({ 
+//                 error: "Utilisateur non trouvé",
+//                 user_id: userId
+//             });
+//         }
+
+//         res.status(500).json({ 
+//             error: "Erreur lors du traitement de l'invitation",
+//             details: process.env.NODE_ENV === 'development' ? error.message : undefined
+//         });
+//     }
+// };
+exports.inviteUser = async (req, res) => {
     try {
-      const { groupId } = req.params;
-      const userId = req.user.id;
+        const { groupId, userId } = req.params;
+        const inviterId = req.user.id;
 
-      const group = await Group.findById(groupId);
-      if (!group) return res.status(404).json({ error: "Groupe non trouvé" });
+        // 1. Récupérer le groupe
+        const group = await Group.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ error: "Groupe non trouvé" });
+        }
 
-      if (!group.invitations.includes(parseInt(userId))) {
-        return res
-          .status(400)
-          .json({ error: "Vous n'avez pas d'invitation pour ce groupe" });
-      }
+        // 2. Vérifier les droits du chef
+        if (group.chef_id !== inviterId) {
+            return res.status(403).json({ 
+                error: "Action réservée au chef de groupe",
+                required_role: "chef",
+                current_user: inviterId
+            });
+        }
 
-      if (group.members.length >= 5) {
-        return res.status(400).json({ error: "Le groupe est déjà complet" });
-      }
+        // 3. Vérifier si l'utilisateur est déjà membre ou invité
+        if (group.members.includes(parseInt(userId))) {
+            return res.status(400).json({
+                error: "L'utilisateur est déjà membre du groupe",
+                user_id: userId
+            });
+        }
 
-      group.members.push(parseInt(userId));
-      group.invitations = group.invitations.filter(
-        (id) => id !== parseInt(userId)
-      );
-      await group.save();
+        // if (group.invitations.includes(parseInt(userId))) {
+        //     return res.status(400).json({
+        //         error: "L'utilisateur a déjà une invitation en attente",
+        //         user_id: userId
+        //     });
+        // }
 
-      // Recalculate group average
-      const moyenne = await calculateGroupAverage(group._id, req);
-      await Group.findByIdAndUpdate(group._id, { moyenne_groupe: moyenne });
+        // 4. Récupérer les infos de l'étudiant
+        const djangoUrl = await discoverDjangoService();
+        const userResponse = await axios.get(`${djangoUrl}/etudiants/${userId}/`, {
+            headers: { Authorization: req.headers.authorization }
+        });
+        
+        const userAnneeEtude = userResponse.data.annee_etude;
+        if (!userAnneeEtude) {
+            return res.status(400).json({ 
+                error: "L'année d'étude de l'utilisateur n'est pas définie",
+                user_id: userId
+            });
+        }
 
-      res.json({
-        success: true,
-        message: "Vous avez rejoint le groupe avec succès",
-        group: {
-          id: group._id,
-          name: group.name,
-          members: group.members,
-        },
-      });
+        // 5. Récupérer les paramètres de groupe
+        const parametresResponse = await axios.get(`${djangoUrl}/parametre-groups/by-annee/?annee=${userAnneeEtude}`, {
+            headers: { Authorization: req.headers.authorization }
+        });
+
+        if (!parametresResponse.data || parametresResponse.data.length === 0) {
+            return res.status(400).json({ 
+                error: "Configuration des groupes non définie pour cette année",
+                annee: userAnneeEtude
+            });
+        }
+
+        const parametres = parametresResponse.data[0];
+        const maxMembres = parseInt(parametres.nbr_max);
+        const minMembres = parseInt(parametres.nbr_min);
+
+        // 6. Vérifier la capacité du groupe
+        if (group.members.length >= maxMembres) {
+            return res.status(400).json({ 
+                error: `Le groupe a atteint sa capacité maximale (${maxMembres} membres)`,
+                max_members: maxMembres,
+                current_members: group.members.length
+            });
+        }
+
+        // 7. Vérifier la cohérence de l'année
+        if (group.annee_etude && group.annee_etude !== userAnneeEtude) {
+            return res.status(400).json({ 
+                error: "Incompatibilité d'année d'étude",
+                details: `Le groupe est pour l'année ${group.annee_etude} et l'utilisateur est en année ${userAnneeEtude}`
+            });
+        }
+
+        // 8. Envoyer l'invitation
+        await Group.findByIdAndUpdate(
+            groupId,
+            { $addToSet: { invitations: parseInt(userId) } },
+            { new: true }
+        );
+
+        res.json({
+            success: true,
+            message: "Invitation envoyée avec succès",
+            invitation: {
+                group: {
+                    id: group._id,
+                    name: group.name,
+                    annee_etude: group.annee_etude
+                },
+                user: {
+                    id: userId,
+                    full_name: `${userResponse.data.prenom} ${userResponse.data.nom}`,
+                    email: userResponse.data.email,
+                    annee_etude: userAnneeEtude
+                },
+                constraints: {
+                    min_members: minMembres,
+                    max_members: maxMembres,
+                    current_members: group.members.length
+                },
+                timestamp: new Date().toISOString()
+            }
+        });
+
     } catch (error) {
-      console.error("Erreur acceptation:", error);
-      res
-        .status(500)
-        .json({ error: "Erreur lors de l'acceptation de l'invitation" });
+        console.error("Erreur invitation:", error);
+        
+        if (error.response?.status === 404) {
+            return res.status(404).json({ 
+                error: "Utilisateur non trouvé",
+                user_id: userId
+            });
+        }
+
+        res.status(500).json({ 
+            error: "Erreur lors du traitement de l'invitation",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
-  };
+};
+
 exports.declineInvitation=async (req, res) => {
     try {
       const { groupId } = req.params;
@@ -223,6 +541,41 @@ exports.declineInvitation=async (req, res) => {
       res.status(500).json({ error: "Erreur lors du refus de l'invitation" });
     }
   };
+  exports.getUserInvitations = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const djangoUrl = await discoverDjangoService();
+
+    const groups = await Group.find({ invitations: parseInt(userId) });
+
+    const invitations = await Promise.all(
+      groups.map(async (group) => {
+        const chefResponse = await axios.get(
+          `${djangoUrl}/etudiants/${group.chef_id}/`,
+          {
+            headers: { Authorization: req.headers.authorization },
+          }
+        );
+        return {
+          group_id: group._id,
+          group_name: group.name,
+          chef_name: `${chefResponse.data.prenom} ${chefResponse.data.nom}`,
+          created_at: group.created_at,
+        };
+      })
+    );
+
+    res.json({
+      success: true,
+      invitations,
+    });
+  } catch (error) {
+    console.error("Erreur liste invitations:", error);
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la récupération des invitations" });
+  }
+};
 exports.getChefThemeChoices=async (req, res) => {
     try {
       const groups = await Group.find();

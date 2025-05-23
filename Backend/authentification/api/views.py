@@ -304,6 +304,17 @@ class Parametre_groupRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIV
     queryset = Parametre_group.objects.all()
     serializer_class = Parametre_groupSerializer
 
+class ParametreGroupByAnneeView(APIView):
+    def get(self, request):
+        annee_id = request.query_params.get('annee')
+
+        if not annee_id:
+            return Response({'error': 'Le paramètre "annee" est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = Parametre_group.objects.filter(annee_id=annee_id, archived=False)
+        serializer = Parametre_groupSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class EntrepriseListCreateView(generics.ListCreateAPIView):
     queryset = Entreprise.objects.all()

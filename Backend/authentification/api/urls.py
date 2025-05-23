@@ -41,6 +41,7 @@ urlpatterns = [
 
     path('Parametre_groups/',Parametre_groupListCreateView.as_view(),name='Parametre_group-list-create'),
     path('Parametre_groups/<int:pk>',Parametre_groupRetrieveUpdateDeleteView.as_view(),name='Parametre_group-detail'),
+    path('parametre-groups/by-annee/', ParametreGroupByAnneeView.as_view(), name='parametre-group-by-annee'),
 
     path('entreprises/', EntrepriseListCreateView.as_view(), name='entreprise-list'),
     path('entreprises/<int:pk>/valider/', EntrepriseValidationView.as_view(), name='entreprise-valider'),
