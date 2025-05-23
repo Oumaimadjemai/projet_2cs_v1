@@ -24,6 +24,8 @@ urlpatterns = [
     path('themes/<int:theme_id>/reserver/', ReserverThemeView.as_view(), name='reserver-theme'),
     path('themes/reserves/', ThemesReservesView.as_view(), name='themes-reserves'),
     path('themes/search/', ThemeSearchAPIView.as_view(), name='theme-search'),
+    path('themes/<int:theme_id>/affecter-enseignant/<int:enseignant_id>/', AffecterEnseignantView.as_view(), name='affecter-enseignant'),
+
 
 
     ]
