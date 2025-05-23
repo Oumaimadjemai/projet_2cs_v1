@@ -137,7 +137,7 @@ export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
 
         setLoading(true);
 
-        axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/themes/`, finalTheme, {
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE2}/themes/`, finalTheme, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('access_token')}`,
                 'Content-Type': 'application/json'

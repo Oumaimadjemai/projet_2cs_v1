@@ -221,6 +221,28 @@ def get_service1_url():
         print("Error resolving service1 from Eureka:", e)
         return "http://localhost:8000"  # Fallback
 
+def get_notification_service_url():
+    
+    try:
+        # Fetch SERVICE6-NOTIFICATIONS instances from Eureka
+        res = requests.get(
+            "http://localhost:8761/eureka/apps/SERVICE6-NOTIFICATIONS",
+            headers={'Accept': 'application/json'}
+        )
+        res.raise_for_status()
+        
+        instances = res.json()['application']['instance']
+        
+        instance = instances[0] if isinstance(instances, list) else instances
+    
+        host = instance['hostName']
+        port = instance['port']['$']
+        return f"http://{host}:{port}"
+        
+    except Exception as e:
+        print(f"Error resolving SERVICE6-NOTIFICATIONS from Eureka: {str(e)}")
+        return "http://localhost:4000"
+
 # 🔁 Helpers
 def get_nom_annee(annee_id):
     if annee_id:
@@ -301,15 +323,16 @@ def generate_pdf(request, theme_id):
 #             return generate_pdf(request, theme.id)
 
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-class ThemeAPIView(APIView):
 
+class ThemeAPIView(APIView):
+    
     def get(self, request):
         themes = Theme.objects.all()
         serializer = ThemeSerializer(themes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        # ✅ Vérifie que l'utilisateur est bien un enseignant ou une entreprise
+        # Verify user is enseignant or entreprise
         user_data = verify_user(request, role=["enseignant", "entreprise"])
 
         if not user_data or not (user_data.get("is_enseignant") or user_data.get("is_entreprise")):
@@ -320,23 +343,40 @@ class ThemeAPIView(APIView):
 
         data = request.data.copy()
 
-        # ✅ Associe correctement l'utilisateur au thème
+        # Associate user with theme
         if user_data.get("is_enseignant"):
             data['enseignant_id'] = user_data['user_id']
+            creator_type = "enseignant"
         elif user_data.get("is_entreprise"):
             data['entreprise_id'] = user_data['user_id']
+            creator_type = "entreprise"
 
         serializer = ThemeSerializer(data=data)
-        if serializer.is_valid():
-            theme = serializer.save()
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            # ✅ Génère automatiquement le PDF après la création du thème
-            generate_pdf(request, theme.id)
-        
-            return Response(ThemeSerializer(theme).data, status=status.HTTP_201_CREATED)
+        theme = serializer.save()
+        generate_pdf(request, theme.id)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Notify admins
+        try:
+            notification_service = self.get_notification_service_url()
+            requests.post(
+                f"{notification_service}/notify-admins",
+                json={
+                    "idSender": user_data['user_id'],
+                    "title": "Nouveau thème créé",
+                    "message": f"Nouveau thème créé : {theme.titre}",
+                    "type": "creationTheme"
+                },
+                timeout=3  # 3 seconds timeout
+            )
+        except Exception as e:
+            print(f"Failed to notify admins: {e}")
+            # Continue even if notification fails
 
+        return Response(ThemeSerializer(theme).data, status=status.HTTP_201_CREATED)
+    
 # 📄 Retrieve, Update, Delete single theme
 class ThemeDetailAPIView(APIView):
 

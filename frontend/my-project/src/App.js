@@ -36,6 +36,9 @@ import ThemesEntreprise from "./Components/entreprise/Pages/Themes";
 import { EntrepriseLayout } from "./Layouts/EntrepriseLayout";
 import NotFound from "./Components/Partials/Components/NotFound";
 import AdminsList from "./Components/admin/Components/AdminsListe";
+import { SocketProvider } from "./Components/Contexts/useSocket";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export const AppContext = createContext();
 
@@ -65,61 +68,69 @@ function App() {
     setCards((prev) => [...prev, newCompany]);
   };
 
+  const token = localStorage.getItem('access_token');
+
+
   return (
     <AppContext.Provider value={{ isRtl, setIsRtl, setLang, lang }}>
       {/* {showIntro ? (
         <IntroPage onTimeout={handleIntroTimeout} />
       ) : ( */}
-      <div className='App'>
-        <Routes>
-          {/* pour la racine */}
-          <Route index element={<Pagedacceuille />} />
-          <Route path="/admin" element={<AdminLayout />} >
-            <Route index element={<Dashboard />} />
-            <Route path="enseignants" element={<EnseignantsListe />} />
-            <Route path="etudiants" element={<EtudiantsListe />} />
-            <Route path="entreprises" element={<EntrepriseListLayout />} >
-              <Route index element={<EntrepriseList />} />
-              <Route path="demandes" element={<DemandeEntreprise />} />
-            </Route>
-            <Route path="admins" element={<AdminsList />} />
-            <Route path="scolarite" element={<ScolariteLayout />} >
-              <Route index element={<ParametresScolarite />} />
-              <Route path="departements" element={<Departements />} />
-              <Route path="salles" element={<Salles />} />
-              <Route path="specialites" element={<Specialites />} />
-              <Route path="annees" element={<Annees />} />
-            </Route>
-            <Route path="themes" element={<Themes />} />
-            <Route path="themes/:id" element={<ThemeAdmin />} />
-            <Route path="groupes" element={<h1>groupes</h1>} />
-            <Route path="soutenances" element={<h1>soutenances</h1>} />
-            <Route path="profile" element={<h1>profile</h1>} />
-            <Route path="notifications" element={<Notifications />} />
-          </Route>
+      <SocketProvider token={token}>
+        <div className='App'>
+          <Routes>
 
-          <Route path="/enseignant" element={<EnseignantLayout />} >
-            <Route index element={<ThemesEnseignant />} />
-            <Route path="groupes" element={<GroupesEnseignant />} />
-            <Route path="groupes/:id" element={<GroupeDetail />} />
-            <Route path="themes/:id" element={<ThemeEnseignant link={'enseignant'} />} />
-          </Route>
-          <Route path="/etudiant" element={<EtudiantLayout />} >
-            <Route index element={<Dashboard />} />
-            <Route path="groupes" element={<Groupes />} />
-            <Route path="invitations" element={<Invitations />} />
-            <Route path="themes" element={<Theme />} />
-          </Route>
+            <Route index element={<Pagedacceuille />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/login/entreprise" element={< InscriptionEntreprise />} />
+            <Route path="*" element={<NotFound />} />
 
-          <Route path="/entreprise" element={<EntrepriseLayout />} >
-            <Route index element={<ThemesEntreprise />} />
-            <Route path="themes/:id" element={<ThemeEnseignant link={'entreprise'} />} />
-          </Route>
-          <Route><Route path="/login" element={<Login />} /></Route>
-          <Route><Route path="/login/entreprise" element={< InscriptionEntreprise />} /></Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
+            <Route path="/admin" element={<AdminLayout />} >
+              <Route index element={<Dashboard />} />
+              <Route path="enseignants" element={<EnseignantsListe />} />
+              <Route path="etudiants" element={<EtudiantsListe />} />
+              <Route path="entreprises" element={<EntrepriseListLayout />} >
+                <Route index element={<EntrepriseList />} />
+                <Route path="demandes" element={<DemandeEntreprise />} />
+              </Route>
+              <Route path="admins" element={<AdminsList />} />
+              <Route path="scolarite" element={<ScolariteLayout />} >
+                <Route index element={<ParametresScolarite />} />
+                <Route path="departements" element={<Departements />} />
+                <Route path="salles" element={<Salles />} />
+                <Route path="specialites" element={<Specialites />} />
+                <Route path="annees" element={<Annees />} />
+              </Route>
+              <Route path="themes" element={<Themes />} />
+              <Route path="themes/:id" element={<ThemeAdmin />} />
+              <Route path="groupes" element={<h1>groupes</h1>} />
+              <Route path="soutenances" element={<h1>soutenances</h1>} />
+              <Route path="profile" element={<h1>profile</h1>} />
+              <Route path="notifications" element={<Notifications />} />
+            </Route>
+
+            <Route path="/enseignant" element={<EnseignantLayout />} >
+              <Route index element={<ThemesEnseignant />} />
+              <Route path="groupes" element={<GroupesEnseignant />} />
+              <Route path="groupes/:id" element={<GroupeDetail />} />
+              <Route path="themes/:id" element={<ThemeEnseignant link={'enseignant'} />} />
+            </Route>
+            <Route path="/etudiant" element={<EtudiantLayout />} >
+              <Route index element={<Dashboard />} />
+              <Route path="groupes" element={<Groupes />} />
+              <Route path="invitations" element={<Invitations />} />
+              <Route path="themes" element={<Theme />} />
+            </Route>
+
+            <Route path="/entreprise" element={<EntrepriseLayout />} >
+              <Route index element={<ThemesEntreprise />} />
+              <Route path="themes/:id" element={<ThemeEnseignant link={'entreprise'} />} />
+            </Route>
+
+          </Routes>
+          <ToastContainer position="top-right" autoClose={5000} />
+        </div>
+      </SocketProvider>
     </AppContext.Provider>
   );
 }
