@@ -55,7 +55,21 @@ function getServiceInstanceUrl(serviceName) {
   return `http://${instance.hostName}:${instance.port.$}`;
 }
 
+async function discoverService(serviceName) {
+  try {
+    const res = await axios.get(`http://${process.env.EUREKA_HOST}:${process.env.EUREKA_PORT}/eureka/apps/${serviceName}`);
+    const instance = res.data.application.instance;
 
+    const instanceInfo = Array.isArray(instance) ? instance[0] : instance;
+    const hostName = instanceInfo.ipAddr || instanceInfo.hostName;
+    const port = instanceInfo.port['$'];
+
+    return `http://${hostName}:${port}`;
+  } catch (error) {
+    console.error(`Erreur découverte service ${serviceName}:`, error.message);
+    throw new Error(`Impossible de résoudre le service ${serviceName}`);
+  }
+}
 // ======================
 // 2. Express Middleware
 // ======================
@@ -93,7 +107,7 @@ const upload = multer({
 // 5. Mongoose Models
 // ======================
 const DocumentSchema = new mongoose.Schema({
-  title: { type: String, required: true },
+  title: { type: String, required: false },
   description: String,
   fileUrl: { type: String, required: true },
   status: { 
@@ -198,53 +212,52 @@ const authenticateTeacherJWT = async (req, res, next) => {
 // ======================
 // 7. API Endpoints
 // ======================
-
-
 app.post('/api/create-document', authenticateJWT, upload.single('document'), async (req, res) => {
   try {
-    // Vérifier si l'utilisateur est un étudiant via Django (service 1)
-    const verifyEtudiant = await axios.get('http://localhost:8000/api/is-etudiant/', {
+    const { SERVICE1_NAME, SERVICE3_NAME } = process.env;
+
+    // Découvrir le Service 1 (Django)
+    const service1Url = await discoverService(SERVICE1_NAME); // SERVICE1-CLIENT
+    const verifyEtudiant = await axios.get(`${service1Url}/api/is-etudiant/`, {
       headers: { Authorization: `Bearer ${req.token}` }
     });
+
     if (!verifyEtudiant.data.is_etudiant) {
       return res.status(403).json({ error: "Only students can submit documents" });
     }
 
-    if (!req.file || !req.body.title) {
+    if (!req.file) {
       return res.status(400).json({ error: "File and title are required" });
     }
 
-    // 1. Récupérer les groupes du user via Service 3
-    const groupsResponse = await axios.get('http://localhost:3000/api/groups/user', {
+    // Découvrir le Service 3 (groupes)
+    const service3Url = await discoverService(SERVICE3_NAME); // SERVICE3-NODE
+    const groupsResponse = await axios.get(`${service3Url}/api/groups/user`, {
       headers: { Authorization: `Bearer ${req.token}` }
     });
-    const userGroups = groupsResponse.data;
 
+    const userGroups = groupsResponse.data;
     if (!userGroups.length) {
       return res.status(400).json({ error: "User does not belong to any group" });
     }
 
-    // 2. Récupérer le group_id du premier groupe
     const groupId = userGroups[0]._id;
 
-    // 3. Récupérer l'encadrant depuis Service 4
+    // Service 4 est encore en localhost ici (tu peux aussi le rendre dynamique plus tard)
     const encadrantResponse = await axios.get(`http://localhost:8003/encadrant-by-group/${groupId}`);
-
     const encadrantId = encadrantResponse.data.encadrant_id;
 
     if (!encadrantId) {
       return res.status(400).json({ error: "No encadrant found for the group" });
     }
 
-    // 4. Créer le document avec l'encadrant comme teacherId
-    
+    // Création du document
     const newDoc = new Document({
       title: req.body.title,
       description: req.body.description || '',
       fileUrl: `/uploads/${req.file.filename}`,
       status: 'en attente',
       createdBy: req.user.user_id,
-  
       teacherId: encadrantId,
       note: req.body.note || '',
     });
@@ -259,44 +272,158 @@ app.post('/api/create-document', authenticateJWT, upload.single('document'), asy
   }
 });
 
+// app.post('/api/create-document', authenticateJWT, upload.single('document'), async (req, res) => {
+//   try {
+//     // Vérifier si l'utilisateur est un étudiant via Django (service 1)
+//     const verifyEtudiant = await axios.get('http://localhost:8000/api/is-etudiant/', {
+//       headers: { Authorization: `Bearer ${req.token}` }
+//     });
+//     if (!verifyEtudiant.data.is_etudiant) {
+//       return res.status(403).json({ error: "Only students can submit documents" });
+//     }
+
+//     if (!req.file || !req.body.title) {
+//       return res.status(400).json({ error: "File and title are required" });
+//     }
+
+//     // 1. Récupérer les groupes du user via Service 3
+//     const groupsResponse = await axios.get('http://localhost:3000/api/groups/user', {
+//       headers: { Authorization: `Bearer ${req.token}` }
+//     });
+//     const userGroups = groupsResponse.data;
+
+//     if (!userGroups.length) {
+//       return res.status(400).json({ error: "User does not belong to any group" });
+//     }
+
+//     // 2. Récupérer le group_id du premier groupe
+//     const groupId = userGroups[0]._id;
+
+//     // 3. Récupérer l'encadrant depuis Service 4
+//     const encadrantResponse = await axios.get(`http://localhost:8003/encadrant-by-group/${groupId}`);
+
+//     const encadrantId = encadrantResponse.data.encadrant_id;
+
+//     if (!encadrantId) {
+//       return res.status(400).json({ error: "No encadrant found for the group" });
+//     }
+
+//     // 4. Créer le document avec l'encadrant comme teacherId
+    
+//     const newDoc = new Document({
+//       title: req.body.title,
+//       description: req.body.description || '',
+//       fileUrl: `/uploads/${req.file.filename}`,
+//       status: 'en attente',
+//       createdBy: req.user.user_id,
+  
+//       teacherId: encadrantId,
+//       note: req.body.note || '',
+//     });
+
+//     await newDoc.save();
+//     res.status(201).json(newDoc);
+
+//   } catch (error) {
+//     console.error("Error in document creation:", error);
+//     const message = error.response?.data?.error || error.message;
+//     res.status(500).json({ error: "Failed to create document", detail: message });
+//   }
+// });
+
+// app.get('/api/groups/:group_id/documents', authenticateJWT, async (req, res) => {
+//   try {
+//     const { group_id } = req.params;
+
+//     // URL du service groupe
+//     const groupServiceUrl = 'http://localhost:3000';
+
+//     // Appel pour récupérer les membres
+//     const membersResponse = await axios.get(`${groupServiceUrl}/api/groups/${group_id}/members`, {
+//       headers: { Authorization: req.headers.authorization },
+//     });
+
+//     if (!membersResponse.data.success) {
+//       return res.status(404).json({ error: 'Membres du groupe non trouvés' });
+//     }
+
+//     const members = membersResponse.data.members;
+//     const memberIds = members.map(m => m.id);
+
+//     // Rechercher documents dont createdBy est dans memberIds
+//     const documents = await Document.find({ createdBy: { $in: memberIds } }).lean();
+
+//     // Construire map id -> "nom prenom"
+//     const idToNomPrenom = {};
+//     members.forEach(m => {
+//       idToNomPrenom[m.id] = `${m.nom} ${m.prenom}`;
+//     });
+
+//     const documentsWithCreator = documents.map(doc => ({
+//       _id: doc._id,
+//       title: doc.title,
+//       status: doc.status,
+//       fileUrl: doc.fileUrl,
+//       createdBy: doc.createdBy,
+//       etudiantNom: idToNomPrenom[doc.createdBy] || 'Étudiant inconnu',
+//     }));
+
+//     res.json({ success: true, documents: documentsWithCreator });
+//   } catch (error) {
+//     console.error('Erreur récupération documents du groupe:', error.message);
+//     res.status(500).json({ error: 'Erreur serveur' });
+//   }
+// });
 
 
-// ======================
-// Health & Info Endpoints for Eureka
-// ======================
-app.get('/health', (req, res) => res.send('OK'));
-app.get('/info', (req, res) => res.json({ service: 'SERVICE5', status: 'running' }));
-
-// ======================
-// Start Server
-// ======================
-app.listen(PORT, () => {
-  console.log(`Service5 is running on port ${PORT}`);
-});
-
-// Route pour que l'enseignant voie les documents soumis par les étudiants
-app.get('/api/enseignant/documents', authenticateTeacherJWT, async (req, res) => {
+// app.get('/api/etudiant/mes-documents', authenticateJWT, authenticateEtudiant, async (req, res) => {
+//   try {
+//     const documents = await Document.find({ createdBy: req.user.user_id }); // 🔍
+//     res.status(200).json(documents);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+app.get('/api/groups/:group_id/documents', authenticateJWT, async (req, res) => {
   try {
-    const documents = await Document.find({ status: 'en attente', teacherId: req.user.user_id });
+    const { group_id } = req.params;
 
-    if (!documents.length) {
-      return res.status(404).json({ error: "No documents found" });
+    // Découverte dynamique de SERVICE3-NODE (service des groupes)
+    const groupServiceUrl = await discoverService(process.env.SERVICE3_NAME); // SERVICE3-NODE
+
+    // Appel pour récupérer les membres
+    const membersResponse = await axios.get(`${groupServiceUrl}/api/groups/${group_id}/members`, {
+      headers: { Authorization: req.headers.authorization },
+    });
+
+    if (!membersResponse.data.success) {
+      return res.status(404).json({ error: 'Membres du groupe non trouvés' });
     }
 
-    res.status(200).json(documents);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
-  }
-});
+    const members = membersResponse.data.members;
+    const memberIds = members.map(m => m.id);
 
-app.get('/api/etudiant/mes-documents', authenticateJWT, authenticateEtudiant, async (req, res) => {
-  try {
-    const documents = await Document.find({ createdBy: req.user.user_id }); // 🔍
-    res.status(200).json(documents);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    const documents = await Document.find({ createdBy: { $in: memberIds } }).lean();
+
+    const idToNomPrenom = {};
+    members.forEach(m => {
+      idToNomPrenom[m.id] = `${m.nom} ${m.prenom}`;
+    });
+
+    const documentsWithCreator = documents.map(doc => ({
+      _id: doc._id,
+      title: doc.title,
+      status: doc.status,
+      fileUrl: doc.fileUrl,
+      createdBy: doc.createdBy,
+      etudiantNom: idToNomPrenom[doc.createdBy] || 'Étudiant inconnu',
+    }));
+
+    res.json({ success: true, documents: documentsWithCreator });
+  } catch (error) {
+    console.error('Erreur récupération documents du groupe:', error.message);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
@@ -538,11 +665,41 @@ app.get('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (r
   }
 });
 
-// Route for student to get rendezvous of their groups
+// // Route for student to get rendezvous of their groups
+// app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
+//   try {
+//     // Call Service 3 to get groups for this user
+//     const groupsResponse = await axios.get('http://localhost:3000/api/groups/user', {
+//       headers: { Authorization: `Bearer ${req.token}` }
+//     });
+
+//     const userGroups = groupsResponse.data;
+//     if (!userGroups.length) {
+//       return res.status(404).json({ error: "Vous n'appartenez à aucun groupe." });
+//     }
+
+//     const groupIds = userGroups.map(g => g._id);
+
+//     // Find rendezvous for these groups
+//     const rendezvous = await RendezVous.find({ groupeId: { $in: groupIds } });
+
+//     res.json({ rendezvous });
+
+//   } catch (error) {
+//     console.error(error);
+//     if (error.response) {
+//       return res.status(error.response.status).json({ error: error.response.data });
+//     }
+//     res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous." });
+//   }
+// });
 app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
   try {
-    // Call Service 3 to get groups for this user
-    const groupsResponse = await axios.get('http://localhost:3000/api/groups/user', {
+    // Découverte dynamique de SERVICE3-NODE
+    const service3Url = await discoverService(process.env.SERVICE3_NAME); // SERVICE3-NODE
+
+    // Appel vers /api/groups/user pour cet étudiant
+    const groupsResponse = await axios.get(`${service3Url}/api/groups/user`, {
       headers: { Authorization: `Bearer ${req.token}` }
     });
 
@@ -553,20 +710,18 @@ app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
 
     const groupIds = userGroups.map(g => g._id);
 
-    // Find rendezvous for these groups
     const rendezvous = await RendezVous.find({ groupeId: { $in: groupIds } });
 
     res.json({ rendezvous });
 
   } catch (error) {
-    console.error(error);
+    console.error("Erreur récupération rendez-vous:", error.message);
     if (error.response) {
       return res.status(error.response.status).json({ error: error.response.data });
     }
     res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous." });
   }
 });
-
 
 // Health Check Endpoints (Required for Eureka)
 app.get('/health', (req, res) => {
