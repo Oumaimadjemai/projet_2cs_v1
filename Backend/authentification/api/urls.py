@@ -86,6 +86,9 @@ urlpatterns = [
     path('export/entreprises/pdf',export_entreprises_pdf,name='export_entreprises_pdf'),
     path('export/etudiants/pdf',export_etudiants_pdf,name='export_etudiants_pdf'),
     path('export/admins/pdf',export_admins_pdf,name='export_admins_pdf'),
+    path('api/is-etudiant/', VerifyEtudiantView.as_view(), name='verify-etudiant'),
+    path('api/verify-enseignant/', VerifyEnseignantView.as_view(), name='verify-enseignant'),
+
 ]
 
 

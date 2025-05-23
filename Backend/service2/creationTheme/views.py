@@ -589,3 +589,21 @@ class ThemesReservesView(APIView):
 
         serializer = ThemeSerializer(themes_reserves, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Q
+from .models import Theme
+from .serializers import ThemeSerializer
+
+class ThemeSearchAPIView(APIView):
+    def get(self, request):
+        query = request.GET.get('q', '')
+        if query:
+            themes = Theme.objects.filter(
+                Q(titre__icontains=query) |
+                Q(resume__icontains=query)  # ← ici, on remplace description par resume
+            )
+        else:
+            themes = Theme.objects.all()
+        serializer = ThemeSerializer(themes, many=True)
+        return Response(serializer.data)
