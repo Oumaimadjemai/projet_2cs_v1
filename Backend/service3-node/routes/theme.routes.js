@@ -16,13 +16,13 @@ router.post('/save-choices', verifyJWT, themeController.saveThemeChoices); // /a
 router.get('/all-groups-choices', verifyJWTAnyUser, themeController.getAllGroupsChoices);
 // Get all data: GET /api/themes/all-groups-choices
 
-// Filter by 3rd year: GET /api/themes/all-groups-choices?annee_etude=1
+// Filter by  year: GET /api/themes/all-groups-choices?annee_etude=1
 
 // Filter by specialty 1: GET /api/themes/all-groups-choices?specialite=1
 
 // Combined filter: GET /api/themes/all-groups-choices?annee_etude=1&specialite=1
  // /api/themes/all-groups-choices
- router.get('/submit', verifyJWT, themeController.submitsheThemeChoices); // /api/themes/submit
+ router.post('/submit', verifyJWT, themeController.submitsheThemeChoices); // /api/themes/submit
 
 
 module.exports = router;

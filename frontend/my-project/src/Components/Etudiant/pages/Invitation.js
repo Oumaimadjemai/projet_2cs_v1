@@ -15,7 +15,7 @@ const Invitations = () => {
   const fetchInvitations = async () => {
     setLoading(true);
     try {
-      const response = await nodeAxios.get('/users/invitations');
+      const response = await nodeAxios.get('/groups/invitations');
       setInvitations(response.data.invitations || []);
     } catch (error) {
       console.error('Erreur détaillée:', error.response?.data || error.message);

@@ -5,7 +5,7 @@ import './App.css';
 import Entrepriseinterface from './Components/entreprise/Components/entrepriseinterface';
 import Login from './Components/Login/Login';
 import Pagedacceuille from './Components/Login/Pagedacceuille';
-import DemandeEntreprise from './Components/entreprise/Pages/listdemande'
+import  DemandeEntreprise  from "./Components/entreprise/Pages/listdemande";
 import InscriptionEntreprise from "./Components/inscriEntreprise/inscriEntreprise";
 import { AdminLayout } from "./Layouts/AdminLayout";
 import Dashboard from "./Components/admin/Components/Dashboard";
@@ -26,7 +26,7 @@ import { EnseignantLayout } from "./Layouts/EnseignantLayout";
 import Themes from "./Components/admin/Components/Themes";
 import Notifications from "./Components/admin/Components/Notifications";
 // import IntroPage from "./Components/Login/IntroPage";
-import EntrepriseList, { EntrepriseListLayout } from "./Components/entreprise/Pages/ListEntreprise";
+import EntrepriseList, {EntrepriseListLayout} from "./Components/entreprise/Pages/ListEntreprise";
 import ThemesEnseignant from "./Components/enseignante/Components/ThemesEnseignant";
 import GroupeDetail from "./Components/enseignante/Components/GroupeDetail";
 import GroupesEnseignant from "./Components/enseignante/Components/Groupes";
@@ -36,6 +36,9 @@ import ThemesEntreprise from "./Components/entreprise/Pages/Themes";
 import { EntrepriseLayout } from "./Layouts/EntrepriseLayout";
 import NotFound from "./Components/Partials/Components/NotFound";
 import AdminsList from "./Components/admin/Components/AdminsListe";
+import DetailGroupe from "./Components/Etudiant/pages/DetailGroupe";
+import ThemesEtudiant from "./Components/Etudiant/pages/Themes";
+import ThemeEtudiant from "./Components/Etudiant/pages/Theme";
 
 export const AppContext = createContext();
 
@@ -107,8 +110,13 @@ function App() {
           <Route path="/etudiant" element={<EtudiantLayout />} >
             <Route index element={<Dashboard />} />
             <Route path="groupes" element={<Groupes />} />
+             <Route path="groupes/:id" element={<DetailGroupe />} />
             <Route path="invitations" element={<Invitations />} />
-            <Route path="themes" element={<Theme />} />
+            <Route path="themes" element={<ThemesEtudiant />} />         
+            <Route path="themes/:id" element={<ThemeEtudiant />} />          
+           <Route path="groupes/:groupId/fiche-vu" element={<Themeselectionform/>} />          
+          
+            
           </Route>
 
           <Route path="/entreprise" element={<EntrepriseLayout />} >
