@@ -6,7 +6,7 @@ import py_eureka_client.eureka_client as eureka_client
 
 class AffectationConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'affectation'
+    name = 'soutenance'
     def ready(self):
         # In DEBUG, ensure we only run in the main process to avoid duplicate registrations
         if settings.DEBUG and os.environ.get('RUN_MAIN') != 'true':

@@ -21,7 +21,31 @@ from django.contrib.auth import get_user_model
 import traceback
 
 
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        user = request.user
+
+        # Détermination du type
+        if hasattr(user, 'etudiant'):
+            user_type = 'etudiant'
+        elif hasattr(user, 'enseignant'):
+            user_type = 'enseignant'
+        elif hasattr(user, 'admin'):
+            user_type = 'admin'
+        elif hasattr(user, 'entreprise'):
+            user_type = 'entreprise'
+        else:
+            user_type = 'inconnu'
+
+        return Response({
+            'id': user.id,
+            'email': user.email,
+            'nom': user.nom,
+            'prenom': user.prenom,
+            'type': user_type,
+        })
 
 
 
@@ -303,6 +327,19 @@ class Parametre_groupListCreateView(APIView):
 class Parametre_groupRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Parametre_group.objects.all()
     serializer_class = Parametre_groupSerializer
+
+
+class ParametreGroupByAnneeView(APIView):
+    def get(self, request):
+        annee_id = request.query_params.get('annee')
+
+        if not annee_id:
+            return Response({'error': 'Le paramètre "annee" est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = Parametre_group.objects.filter(annee_id=annee_id, archived=False)
+        serializer = Parametre_groupSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 class EntrepriseListCreateView(generics.ListCreateAPIView):
@@ -901,6 +938,35 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Etudiant, Annee, Specialite
 from .serializers import EtudiantSerializer
+
+User = get_user_model()
+
+class UserDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found", "code": "user_not_found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Déterminer dynamiquement le type
+        if hasattr(user, 'admin'):
+            user_type = "admin"
+        elif hasattr(user, 'enseignant'):
+            user_type = "enseignant"
+        elif hasattr(user, 'entreprise'):
+            user_type = "entreprise"
+        else:
+            user_type = "etudiant"
+
+        return Response({
+            "id": user.id,
+            "email": user.email,
+            "nom": user.nom,
+            "prenom": user.prenom,
+            "type": user_type
+        })
 
 class EtudiantsByAnneeView(APIView):
     def get(self, request, annee_id):
