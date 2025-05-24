@@ -43,11 +43,11 @@ def validate_annee_id(annee_id):
 
 
 class Theme(models.Model):
-    titre = models.CharField(max_length=50)
-    resume = models.TextField(null=True)
-    outils_et_language = models.TextField(null=True)
-    plan_travail = models.TextField(null=True)
-    livrable = models.TextField(blank=True, null=True)
+    titre = models.TextField()
+    resume = models.TextField(default="")
+    outils_et_language = models.TextField(default="")
+    plan_travail = models.TextField(default="")
+    livrable = models.TextField(default="")
 
     annee_academique_id = models.CharField(
         max_length=9,
@@ -75,6 +75,8 @@ class Theme(models.Model):
     )
 
     option_pdf = models.FileField(upload_to='pdfs/', blank=True, null=True)
+    convention = models.FileField(upload_to='conventions/', null=True, blank=True)
+
 
     def __str__(self):
         return self.titre

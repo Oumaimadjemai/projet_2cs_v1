@@ -83,18 +83,30 @@ axiosInstance.interceptors.response.use(
 );
 
 // Instance spécifique pour le serveur Node
+// export const nodeAxios = axios.create({
+//   baseURL: nodeAPI,
+//   timeout: 60000,
+//   headers:{
+    
+//     Authorization:localStorage.getItem('access_token')
+//     ? 'JWT ' + localStorage.getItem('access_token')
+//     : null,
+//     'Content-Type':'application/json',
+//      Accept:'application/json'    
+// },
+// });
 export const nodeAxios = axios.create({
   baseURL: nodeAPI,
   timeout: 60000,
-  headers:{
-    
-    Authorization:localStorage.getItem('access_token')
-    ? 'JWT ' + localStorage.getItem('access_token')
-    : null,
-    'Content-Type':'application/json',
-     Accept:'application/json'    
-},
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json'
+   
+  },
 });
+
+
+
 
 nodeAxios.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');

@@ -13,7 +13,7 @@ export const EtudiantLayout = () => {
         {
           name: "Thèmes Projet",
           icon: <ThemesIcon />,
-          path: "/etudiant",
+          path: "/etudiant/themes",
         },
         {
           name: "Groupes de Projet",
@@ -42,3 +42,14 @@ export const EtudiantLayout = () => {
         </div>
     )
 }
+
+
+
+
+
+
+
+
+
+
+
