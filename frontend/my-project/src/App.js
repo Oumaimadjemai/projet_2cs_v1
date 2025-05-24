@@ -40,6 +40,8 @@ import { SocketProvider } from "./Components/Contexts/useSocket";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import Rendezvous from './Components/enseignante/Components/Rendezvous';
+
 export const AppContext = createContext();
 
 function App() {
@@ -121,6 +123,20 @@ function App() {
               <Route path="invitations" element={<Invitations />} />
               <Route path="themes" element={<Theme />} />
             </Route>
+          <Route path="/enseignant" element={<EnseignantLayout />} >
+            <Route index element={<ThemesEnseignant />} />
+            <Route path="groupes" element={<GroupesEnseignant />} />
+            <Route path="groupes/:id" element={<GroupeDetail />} />
+            <Route path="themes/:id" element={<ThemeAdmin />} />
+            <Route path="rendez-vous" element={<Rendezvous/>} />
+
+          </Route>
+          <Route path="/etudiant" element={<EtudiantLayout />} >
+            <Route index element={<Dashboard />} />
+            <Route path="groupes" element={<Groupes />} />
+            <Route path="invitations" element={<Invitations />} />
+            <Route path="themes" element={<Theme />} />
+          </Route>
 
             <Route path="/entreprise" element={<EntrepriseLayout />} >
               <Route index element={<ThemesEntreprise />} />
