@@ -15,5 +15,7 @@ urlpatterns = [
     path('assignments/<str:group_id>/', AssignmentDetailView.as_view(), name='assignment-detail'),
     path('assignments/encadrant/<str:encadrant>/', AssignmentByEncadrantView.as_view(), name='assignments-by-encadrant'),
     path('assignments/encadrant-by-groupe/<str:group_id>/', EncadrantByGroupeView.as_view(), name='encadrant-by-groupe'),
+    path('assignments/archive_by_annee/<int:annee_id>/', archive_assignments_by_annee, name='archive-assignments-by-annee'),
+
 ]
 

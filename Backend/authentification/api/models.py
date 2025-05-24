@@ -15,6 +15,7 @@ class AnneeAcademique(models.Model):
     date_debut=models.DateField()
     date_fin=models.DateField()
     year = models.CharField(max_length=9,unique=True,editable=False)
+    archived=models.BooleanField(default=False)
     def save(self, *args, **kwargs):
         # Generate the year string automatically
         self.year = f"{self.date_debut.year}/{self.date_fin.year}"

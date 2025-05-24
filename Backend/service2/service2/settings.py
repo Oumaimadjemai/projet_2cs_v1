@@ -54,7 +54,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework', 
     # 'rest_framework_simplejwt', 
-    'creationTheme',       
+    'creationTheme', 
+     'django_filters',      
 
 ]
 
@@ -65,7 +66,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
+
    
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",  # Service 1
@@ -143,7 +146,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'service2',
         'USER': 'root',  # Ou un autre utilisateur
-        'PASSWORD': 'khalida2003',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': '3306',  # Port par défaut de MySQL
     }

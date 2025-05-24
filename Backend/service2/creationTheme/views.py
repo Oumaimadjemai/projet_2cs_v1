@@ -191,7 +191,7 @@ from django.shortcuts import get_object_or_404
 from .models import Theme
 from .serializers import ThemeSerializer
 from .utils import verify_user
-from django.http import HttpResponse, FileResponse
+from django.http import Http404, HttpResponse, FileResponse
 from weasyprint import HTML
 import os
 import requests
@@ -731,3 +731,31 @@ class ExtractThemeFromPDFView(APIView):
         except Exception as e:
             return Response({"detail": f"Erreur lors de l'extraction : {str(e)}"},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# views.py
+from rest_framework.generics import ListAPIView, UpdateAPIView
+from .models import Theme
+from .serializers import ThemeSerializer
+
+class ThemesByAnneeAcademiqueAPIView(ListAPIView):
+    serializer_class = ThemeSerializer
+
+    def get_queryset(self):
+        annee_id = self.kwargs['annee_academique']
+        return Theme.objects.filter(annee_academique=annee_id)
+
+# views.py
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
+
+class ArchiveThemeAPIView(APIView):
+    def patch(self, request, pk):
+        try:
+            theme = Theme.objects.get(pk=pk)
+            theme.archived = True
+            theme.save()
+            return Response({"message": "Theme archivé avec succès."}, status=status.HTTP_200_OK)
+        except Theme.DoesNotExist:
+            return Response({"error": "Thème non trouvé."}, status=status.HTTP_404_NOT_FOUND)

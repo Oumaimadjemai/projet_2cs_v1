@@ -28,6 +28,8 @@ urlpatterns = [
     path('themes/<int:theme_id>/convention/', ThemeConventionView.as_view(), name='get_theme_convention'),
     path('themes/upload-pdf/', ExtractThemeFromPDFView.as_view(), name='upload_theme_pdf'),
 
+    path('themes/by-annee-academique/<int:annee_academique>/', ThemesByAnneeAcademiqueAPIView.as_view(), name='themes-by-annee-academique'),
+    path('themes/<int:pk>/archived/', ArchiveThemeAPIView.as_view(), name='archive-theme'),
 
 
     ]
