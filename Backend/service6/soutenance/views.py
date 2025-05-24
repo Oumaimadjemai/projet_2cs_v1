@@ -303,6 +303,7 @@ class SoutenanceCreateView(APIView):
             response_data = {
                 "id": soutenance.id,
                 "annee": soutenance.annee,
+                "annee_academique":soutenance.annee_academique,
                 "specialite": soutenance.specialite,
                 "groupe": str(soutenance.groupe),
                 "date": str(soutenance.date),
@@ -322,22 +323,22 @@ class SoutenanceCreateView(APIView):
 @api_view(['GET'])
 def soutenances_par_annee(request, annee_id):
     soutenances = Soutenance.objects.filter(annee=annee_id)
-    serializer = SoutenanceSerializer(soutenances, many=True)
+    serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
     return Response(serializer.data)
 
 
 @api_view(['GET'])
 def soutenances_par_annee_specialite(request, annee_id, specialite_id):
     soutenances = Soutenance.objects.filter(annee=annee_id, specialite=specialite_id)
-    serializer = SoutenanceSerializer(soutenances, many=True)
+    serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
     return Response(serializer.data)
+
 
 @api_view(['GET'])
 def soutenances_par_groupe(request, groupe_id):
     soutenances = Soutenance.objects.filter(groupe=groupe_id)
-    serializer = SoutenanceSerializer(soutenances, many=True)
+    serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
     return Response(serializer.data)
-
 
 
 class SoutenancesParEncadrantView(APIView):
@@ -364,7 +365,7 @@ class SoutenancesParEncadrantView(APIView):
 
             group_ids = [aff['group_id'] for aff in affectations]
             soutenances = Soutenance.objects.filter(groupe__in=group_ids)
-            serializer = SoutenanceSerializer(soutenances, many=True)
+            serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
             return Response(serializer.data)
 
         except requests.exceptions.RequestException as e:
@@ -380,7 +381,7 @@ class SoutenanceDetailView(RetrieveUpdateDestroyAPIView):
     def patch(self, request, pk):
         try:
             soutenance = self.get_object()
-            serializer = self.get_serializer(soutenance, data=request.data, partial=True)
+            serializer = self.get_serializer(soutenance, data=request.data, partial=True, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
@@ -395,9 +396,29 @@ class SoutenanceDetailView(RetrieveUpdateDestroyAPIView):
             return Response({"message": "Soutenance supprimée avec succès"}, status=204)
         except Soutenance.DoesNotExist:
             return Response({"error": "Soutenance non trouvée"}, status=404)
-        
 
 
 class SoutenanceListView(ListAPIView):
     queryset = Soutenance.objects.all()
     serializer_class = SoutenanceSerializer
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+@api_view(['GET'])
+def soutenances_a_archiver(request):
+    soutenances = Soutenance.objects.filter(archived=False)
+    serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
+    return Response(serializer.data)
+
+class SoutenanceArchiverView(APIView):
+    def patch(self, request, pk):
+        try:
+            soutenance = Soutenance.objects.get(pk=pk)
+            soutenance.archived = True
+            soutenance.save()
+            return Response({"detail": "Soutenance archivée."}, status=status.HTTP_200_OK)
+        except Soutenance.DoesNotExist:
+            return Response({"detail": "Soutenance non trouvée."}, status=status.HTTP_404_NOT_FOUND)
