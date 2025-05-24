@@ -2,18 +2,10 @@ import React from 'react';
 import { FaTimes } from 'react-icons/fa';
 
 const RendezVousForm = ({
-  editingIndex,
-  groupe,
-  salle,
-  date,
-  time,
-  groupesOptions,
-  sallesOptions,
-  errors,
-  onChange,
-  onSubmit,
-  onClose,
-  getTodayDate,
+  editingIndex,          groupe,
+  salle,              date,       time,
+  groupesOptions,   sallesOptions, errors,   
+   onChange,  onSubmit, onClose,getTodayDate,
 }) => {
   const styles = {
     modalOverlay: {
@@ -116,9 +108,7 @@ const RendezVousForm = ({
   </select>
   {errors.groupe && <small style={styles.error}>{errors.groupe}</small>}
 </div>
-
-
-            <div style={styles.halfInput}>
+      <div style={styles.halfInput}>
               <select
                 style={styles.input}
                 value={salle}
@@ -132,8 +122,6 @@ const RendezVousForm = ({
               {errors.salle && <small style={styles.error}>{errors.salle}</small>}
             </div>
           </div>
-
-      
           <div style={styles.row}>
             <div style={styles.halfInput}>
               <label style={styles.label}>Date</label>
