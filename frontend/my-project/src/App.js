@@ -33,6 +33,8 @@ import GroupesEnseignant from "./Components/enseignante/Components/Groupes";
 import ThemeAdmin from "./Components/admin/Components/ThemeAdmin";
 import ThemeEnseignant from "./Components/enseignante/Components/Theme";
 
+import Rendezvous from './Components/enseignante/Components/Rendezvous';
+
 export const AppContext = createContext();
 
 function App() {
@@ -99,6 +101,8 @@ function App() {
             <Route path="groupes" element={<GroupesEnseignant />} />
             <Route path="groupes/:id" element={<GroupeDetail />} />
             <Route path="themes/:id" element={<ThemeAdmin />} />
+            <Route path="rendez-vous" element={<Rendezvous/>} />
+
           </Route>
           <Route path="/etudiant" element={<EtudiantLayout />} >
             <Route index element={<Dashboard />} />
