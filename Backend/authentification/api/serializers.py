@@ -12,17 +12,30 @@ class AnneeAcademiqueSerializer(serializers.ModelSerializer):
     class Meta:
         model=AnneeAcademique
         fields='__all__'
-        
+    
     def validate(self, data):
-        # Validate that date_debut is before date_fin
-        if data['date_debut'] >= data['date_fin']:
+    # On utilise les valeurs actuelles si elles ne sont pas dans data (cas du PATCH partiel)
+        date_debut = data.get('date_debut', self.instance.date_debut if self.instance else None)
+        date_fin = data.get('date_fin', self.instance.date_fin if self.instance else None)
+
+        if not date_debut or not date_fin:
+            raise serializers.ValidationError("Les deux dates doivent être renseignées.")
+
+        if date_debut >= date_fin:
             raise serializers.ValidationError("La date de début doit être antérieure à la date de fin.")
 
-        # Check if the same year string exists
-        year_str = f"{data['date_debut'].year}/{data['date_fin'].year}"
-        if AnneeAcademique.objects.filter(year=year_str).exists():
-            raise serializers.ValidationError(f"L'année académique {year_str} existe déjà.")
+        year_str = f"{date_debut.year}/{date_fin.year}"
+
+    # Exclure l’instance actuelle pour éviter les faux positifs lors de la mise à jour
+        qs = AnneeAcademique.objects.filter(year=year_str)
+        if self.instance:
+           qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+           raise serializers.ValidationError(f"L'année académique {year_str} existe déjà.")
+
         return data
+
 
 class DepartementSerializer(serializers.ModelSerializer):
     class Meta:

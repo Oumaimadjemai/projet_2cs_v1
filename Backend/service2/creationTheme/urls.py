@@ -2,6 +2,8 @@
 from django.urls import path
 
 from .views import *
+from . import views
+
 
 
 
@@ -31,5 +33,7 @@ urlpatterns = [
     path('themes/by-annee-academique/<int:annee_academique>/', ThemesByAnneeAcademiqueAPIView.as_view(), name='themes-by-annee-academique'),
     path('themes/<int:pk>/archived/', ArchiveThemeAPIView.as_view(), name='archive-theme'),
 
+
+    path('themes/<int:theme_id>/groupes-par-annee/', views.get_groups_by_theme_annee),
 
     ]
