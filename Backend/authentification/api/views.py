@@ -19,6 +19,30 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth import get_user_model
 import traceback
+import requests
+
+
+def get_notification_service_url():
+    
+    try:
+        # Fetch SERVICE6-NOTIFICATIONS instances from Eureka
+        res = requests.get(
+            "http://localhost:8761/eureka/apps/SERVICE6-NOTIFICATIONS",
+            headers={'Accept': 'application/json'}
+        )
+        res.raise_for_status()
+        
+        instances = res.json()['application']['instance']
+        
+        instance = instances[0] if isinstance(instances, list) else instances
+    
+        host = instance['hostName']
+        port = instance['port']['$']
+        return f"http://{host}:{port}"
+        
+    except Exception as e:
+        print(f"Error resolving SERVICE6-NOTIFICATIONS from Eureka: {str(e)}")
+        return "http://localhost:4000"
 
 
 class CurrentUserView(APIView):
@@ -388,7 +412,40 @@ class EntrepriseListCreateView(generics.ListCreateAPIView):
         if statut:
             return Entreprise.objects.filter(statut=statut)
         return Entreprise.objects.all()
-    
+
+    # Dans votre vue EntrepriseListCreateView
+    def perform_create(self, serializer):
+        try:
+            entreprise = serializer.save(statut="pending")  # Force le statut pending si nécessaire
+        
+        # Debug: afficher les données avant envoi
+            print("Données à notifier:", {
+               "entrepriseNom": entreprise.nom,
+               "email": entreprise.representant_email,
+               "telephone": entreprise.representant_telephone
+            })
+        
+            try:
+              notification_service = get_notification_service_url()
+              response = requests.post(
+                  f"{notification_service}/notify-entreprise-demand",
+                  json={
+                    "entrepriseNom": entreprise.nom,
+                    "email": entreprise.representant_email,
+                    "telephone": entreprise.representant_telephone
+                  },
+                  timeout=3
+                )
+              response.raise_for_status()
+              print("Notification réussie:", response.json())
+            except Exception as e:
+              print("Échec notification:", str(e))
+            # Ne pas bloquer la création même si notification échoue
+
+        except Exception as e:
+           print("Erreur création entreprise:", str(e))
+           raise  # Relance l'exception pour avoir le détail dans les logs
+                 
 class CreateEntrepriseAndUserView(APIView):
     def post(self, request):
         data = request.data
@@ -439,7 +496,7 @@ class CreateEntrepriseAndUserView(APIView):
             statut="approved",  # directly approved
             compte_utilisateur=user
         )
-
+        
         # Send email to representant
         subject = "Création de votre compte Entreprise"
         message = f"""
