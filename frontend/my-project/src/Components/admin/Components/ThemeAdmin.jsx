@@ -7,6 +7,7 @@ import { AppContext } from '../../../App';
 import '../../Partials/Components/i18n'
 import sleepImage from '../../../Assets/Images/sleeping.png'
 import doneImg from '../../../Assets/Images/Done.png'
+import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/EmptyState.svg';
 
 export const ThemeAdminContext = createContext();
 
@@ -14,6 +15,7 @@ function ThemeAdmin() {
 
     const { id } = useParams();
     const [theme, setTheme] = useState({})
+    const [groupes, setGroupes] = useState([])
 
     useEffect(() => {
         const fetchThemeWithExtraInfo = async () => {
@@ -57,7 +59,52 @@ function ThemeAdmin() {
         };
 
         fetchThemeWithExtraInfo();
+
     }, [id]);
+
+    useEffect(() => {
+        
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE4}/assign-manual/`, {
+            headers: {
+                authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+        })
+            .then((res) => {
+                const groupesAffectes = res.data; 
+                const idsAffectes = new Set(groupesAffectes.map(g => g.group_id));
+
+                axios.get(`${process.env.REACT_APP_API_URL_SERVICE3}/api/groups/by-study-year?annee_etude=${theme.annee_id}`, {
+                    headers: {
+                        authorization: `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                })
+                    .then((response) => {
+                        const anneeData = response.data.data.find(item => item.annee_etude === theme.annee_id);
+
+                        if (anneeData) {
+                            const groupesAvecAffectation = anneeData.groupes.map(groupe => ({
+                                ...groupe,
+                                affecte: idsAffectes.has(groupe.id)
+                            }));
+
+                            setGroupes(groupesAvecAffectation);
+                            console.log(groupesAvecAffectation);
+                        } else {
+                            setGroupes([]);
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(err.response?.data || err.message);
+                        setGroupes([]);
+                    });
+            })
+            .catch(err => {
+                console.error("Erreur lors du chargement des groupes affectés :", err);
+            });
+
+        console.log(groupes)
+
+    }, [theme.annee_id])
 
     const textWithLineBreaks = (text) => {
         return text.split('\n').map((line, index) => (
@@ -177,6 +224,39 @@ function ThemeAdmin() {
     }, [submitted, motif]);
 
     const [loading, setLoading] = useState(false)
+
+    const [confirmAffecter, setConfirmAffecter] = useState(false)
+    const [affecterInfos, setAffecterInfos] = useState({
+        theme_id: 0,
+        groupe: 0
+    })
+
+    const affectationManuel = (e, themeId, groupe) => {
+
+        e.preventDefault();
+        setLoading(true)
+
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE4}/assign-manual/`, {
+            theme_id: themeId,
+            group_id: groupe
+        }, {
+            headers: {
+                authorization: `Bearer ${localStorage.getItem('access_token')}`,
+                "Content-Type": "application/json",
+            }
+        })
+            .then(() => {
+                setConfirmAffecter(false)
+                setGroupes(prevGroupes =>
+                    prevGroupes.map(grp =>
+                        grp.id === groupe ? { ...grp, affecte: true } : grp
+                    )
+                )
+            })
+            .catch((err) => alert(err.response.data))
+            .finally(() => setLoading(false))
+
+    }
 
     return (
         <ThemeAdminContext.Provider value={{ setLoading, motif, setTheme, theme }} >
@@ -442,30 +522,59 @@ function ThemeAdmin() {
 
                                                 </thead>
                                                 <tbody>
-                                                    <tr style={{ margin: "5px 0" }}>
-                                                        <td
-                                                            style={{ width: "25%" }}
-                                                            className={isRtl ? "th-ltr" : "th-rtl"}
-                                                        >
-                                                            Groupe 01
-                                                        </td>
-                                                        <td style={{ width: "25%" }}>
-                                                            2 CS
-                                                        </td>
-                                                        <td style={{ width: "25%" }}>
-                                                            1
-                                                        </td>
-                                                        <td className={isRtl ? "th-lrt" : "th-ltr"}>
-                                                            <button style={{
-                                                                padding: "4px 12px",
-                                                                borderRadius: "15px",
-                                                                background: "#925FE2",
-                                                                color: "#fff"
-                                                            }}>
-                                                                Affecter
-                                                            </button>
-                                                        </td>
-                                                    </tr>
+                                                    {
+                                                        groupes.map((groupe) => (
+                                                            <tr style={{ margin: "5px 0" }}>
+                                                                <td
+                                                                    style={{ width: "25%" }}
+                                                                    className={isRtl ? "th-ltr" : "th-rtl"}
+                                                                >
+                                                                    {groupe.nom}
+                                                                </td>
+                                                                <td style={{ width: "25%" }}>
+                                                                    {theme.annee_titre}
+                                                                </td>
+                                                                <td style={{ width: "25%" }}>
+                                                                    {groupe.specialite ? theme.priorities.find(p => p.specialite_id === groupe.specialite).priorite : "Aucun"}
+                                                                </td>
+                                                                <td className={isRtl ? "th-lrt" : "th-ltr"}>
+                                                                    {
+                                                                        groupe.affecte ? (
+                                                                            <button style={{
+                                                                                padding: "4px 12px",
+                                                                                borderRadius: "15px",
+                                                                                background: "#E2E4E5",
+                                                                                color: "#00000090"
+                                                                            }}
+                                                                                onClick={(e) => {
+                                                                                    e.preventDefault()
+                                                                                    setAffecterInfos({ ...affecterInfos, theme_id: theme.id, groupe: groupe.id })
+                                                                                    setConfirmAffecter(true)
+                                                                                }}
+                                                                            >
+                                                                                Affecté
+                                                                            </button>
+                                                                        ) : (
+                                                                            <button style={{
+                                                                                padding: "4px 12px",
+                                                                                borderRadius: "15px",
+                                                                                background: "#925FE2",
+                                                                                color: "#fff"
+                                                                            }}
+                                                                                onClick={(e) => {
+                                                                                    e.preventDefault()
+                                                                                    setAffecterInfos({ ...affecterInfos, theme_id: theme.id, groupe: groupe.id })
+                                                                                    setConfirmAffecter(true)
+                                                                                }}
+                                                                            >
+                                                                                Affecter
+                                                                            </button>
+                                                                        )
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    }
                                                 </tbody>
                                             </table>
                                         </div>
@@ -486,6 +595,10 @@ function ThemeAdmin() {
                             </div>
                         </div>
                     )
+                }
+                {
+                    confirmAffecter &&
+                    <AffecterAlert handleAffecter={(e) => affectationManuel(e, affecterInfos.theme_id, affecterInfos.groupe)} annulerAffecter={() => setConfirmAffecter(false)} />
                 }
             </div>
         </ThemeAdminContext.Provider>
@@ -801,3 +914,39 @@ const ReserveAlert = ({ annulerRefuser, refuserSuccess, id }) => {
     )
 }
 
+const AffecterAlert = ({ annulerAffecter, handleAffecter }) => {
+    return (
+        <div className="add-departement-success">
+            <div className="img-container" style={{ height: "90px", width: "150px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="30" cy="30" r="30" fill="#FFD21E" />
+                    <path d="M29.5001 15.75V34.0833M29.6147 43.25V43.4792H29.3855V43.25H29.6147Z" stroke="white" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+            <span style={{ width: "95%", fontFamily: "Kumbh Sans, sans-serif", textAlign: "center", fontSize: "1.1rem", fontWeight: "500" }}>
+                Êtes-vous certain(e) de vouloir affecter le thème a ce groupe ?
+            </span>
+            <div
+                className="btns-line"
+            >
+                <button
+                    style={{
+                        color: "#000",
+                        background: "#E2E4E5"
+                    }}
+                    onClick={(e) => { annulerAffecter(e) }}
+                >
+                    Annuler
+                </button>
+                <button
+                    style={{
+
+                    }}
+                    onClick={(e) => { handleAffecter(e); }}
+                >
+                    Affecter
+                </button>
+            </div>
+        </div>
+    )
+}

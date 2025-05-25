@@ -115,6 +115,32 @@ function EnseignantsListe() {
         );
     });
 
+    const exportToExcel = (e) => {
+        e.preventDefault();
+        axios({
+            url: `${process.env.REACT_APP_API_URL_SERVICE1}/export/enseignants/excel`,
+            method: 'GET',
+            responseType: 'blob',
+        })
+            .then((response) => {
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'enseignants.xlsx');
+                document.body.appendChild(link);
+                link.click();
+
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(link);
+            })
+            .catch((err) => {
+                console.error('Erreur de téléchargement:', err);
+                if (err.response) {
+                    console.error('Détails:', err.response.data);
+                }
+            });
+    };
+
 
     return (
         <EnseignantContext.Provider value={{ setEnseignants, setLoading }}>
@@ -122,7 +148,7 @@ function EnseignantsListe() {
                 <div className="enseignants-liste-wrapper" style={{ paddingRight: isRtl ? "0" : "12px", paddingLeft: isRtl ? "12px" : "0" }}>
                     <div className="btns-container">
                         <div className="ajouter-enseignants-btns">
-                            <button>
+                            <button onClick={(e) => exportToExcel(e)}>
                                 {t('enseignantsPage.exportBtn')}
                             </button>
                             <button

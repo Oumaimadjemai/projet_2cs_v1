@@ -1,0 +1,176 @@
+.soutenances-container .detail-soutenance {
+    position: fixed;
+    right: 0;
+    top: 65px;
+    width: 400px;
+    height: calc(100vh - 65px);
+    background-color: #FCFAFA;
+    box-shadow: 2px 8px 30px rgba(0, 0, 0, 0.12);
+    z-index: 200;
+    border-left: 2px solid #D9E1E7;
+    border-top-left-radius: 20px;
+    border-top: 2px solid #D9E1E7;
+    display: flex;
+    flex-direction: column;
+    padding: 0 0.8rem;
+    padding-top: 1rem;
+    gap: 1rem;
+    overflow-y: auto;
+    /* transform: translateX(100%);
+    opacity: 0;
+    transition: transform 0.5s ease-in-out, opacity 0.3s ease-in-out;
+    will-change: transform, opacity; */
+}
+
+.soutenances-container .detail-soutenance::-webkit-scrollbar{
+    display: none;
+}
+
+.soutenances-container .detail-soutenance .about-title {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.detail-soutenance .about-soutenance {
+    margin-top: 1rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 0 1rem;
+    gap: 1rem;
+}
+
+.detail-soutenance .about-soutenance .detail-felx-column {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.about-soutenance .detail-felx-column .value {
+    width: 100%;
+    height: 45px;
+    padding: 10px 15px !important;
+    border-radius: 10px;
+    background-color: #EDEDED;
+    display: flex;
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    color: #4F4F4F;
+}
+
+.about-soutenance .jury-display-table table {
+    width: 100%;
+    border-collapse: separate;
+    /* Allows border-radius to work */
+    border-spacing: 0 7px;
+}
+
+.jury-display-table table thead {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.jury-display-table tr {
+    margin: 5px 0;
+    width: 100%;
+}
+
+.jury-display-table table thead th {
+    font-weight: 450;
+    font-size: 0.9rem;
+    color: var(--table-header-font-color);
+    padding: 1rem 0 !important;
+    background-color: var(--table-head-background);
+    border: 1px solid var(--tr-border-color);
+    border-left: none;
+    border-right: none;
+    width: 20%;
+    text-align: center;
+}
+
+.jury-display-table table thead th:first-child,
+.jury-display-table table thead th:last-child {
+    text-indent: 1rem;
+    /* Moves text inside without affecting table structure */
+    text-align: left;
+}
+
+.jury-display-table table td {
+    font-weight: 400;
+    font-size: 0.9rem;
+    color: var(--table-elements-font-color);
+    text-align: center;
+    border: 1px solid var(--tr-border-color);
+    border-left: none;
+    border-right: none;
+    padding: 0.6rem 0 !important;
+}
+
+.jury-display-table .last-td {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    text-align: center;
+}
+
+.last-td .number {
+    flex-grow: 1;
+    text-align: center;
+}
+
+.last-td .line-btns {
+    display: flex;
+    gap: 5px;
+    margin-left: auto;
+    margin-right: 1rem;
+    align-items: center;
+    gap: 8px;
+}
+
+.jury-display-table .last-td .line-btns button {
+    padding: 5px 0;
+    border-radius: 20px;
+    background-color: #925FE2;
+    width: 115px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.grade-td span {
+    padding: 5px 15px;
+    background-color: #D43F8D20;
+    border-radius: 20px;
+    color: var(--pink-color);
+    border: 1px solid var(--pink-color);
+    font-weight: 500;
+}
+
+.to-top .arrow-top {
+    transform: rotate(180deg);
+    color: #fff;
+}
+
+.jury-display-table .th-rtl {
+    padding-right: 1rem !important;
+    text-align: right;
+    border-left: 1px solid var(--tr-border-color) !important;
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
+}
+
+.jury-display-table .th-ltr {
+    padding-left: 1rem !important;
+    text-align: left;
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+    border-right: 1px solid #E4E4E4 !important;
+    border-left: none;
+}

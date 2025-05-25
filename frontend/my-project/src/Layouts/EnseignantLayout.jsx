@@ -8,6 +8,8 @@ import { ReactComponent as SoutenancesIcon } from '../Assets/Icons/Mortarboard.s
 import { useTranslation } from 'react-i18next';
 import { useSocket } from "../Components/Contexts/useSocket";
 import { toast } from 'react-toastify';
+import { ReactComponent as NotificationsIcon } from '../Assets/Icons/Notifications.svg';
+
 
 export const EnseignantLayout = () => {
 
@@ -51,6 +53,11 @@ export const EnseignantLayout = () => {
       icon: <SoutenancesIcon />,
       path: "/enseignant/soutenances",
     },
+      {
+      name: "Rendez-vous",
+      icon: <NotificationsIcon />,
+      path: "/enseignant/rendez-vous",
+    }
   ];
 
   return (

@@ -14,5 +14,7 @@ router.post('/:id/recalculate-average', verifyJWT, groupController.recalculateAv
 router.get('/averages', verifyJWTAnyUser, groupController.getGroupsAverages);
 router.get('/by-study-year', verifyJWTAnyUser, groupController.getGroupsByStudyYear);
 router.get('/by-study-year-specialty', verifyJWTAnyUser, groupController.getGroupsByYearAndSpecialty);
+router.get('/invitations', verifyJWT, groupController.getUserInvitations);
+router.get('/all-groupes', groupController.getAllGroups);
 
 module.exports = router;

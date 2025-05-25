@@ -352,6 +352,17 @@ class Parametre_groupRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIV
     queryset = Parametre_group.objects.all()
     serializer_class = Parametre_groupSerializer
 
+class ParametreGroupByAnneeView(APIView):
+    def get(self, request):
+        annee_id = request.query_params.get('annee')
+
+        if not annee_id:
+            return Response({'error': 'Le paramètre "annee" est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = Parametre_group.objects.filter(annee_id=annee_id, archived=False)
+        serializer = Parametre_groupSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class ParametreGroupByAnneeView(APIView):
     def get(self, request):
@@ -1401,3 +1412,41 @@ def export_etudiants_pdf(request):
     elements.append(table)
     doc.build(elements)
     return response
+class VerifyEtudiantView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        # Dynamically determine the user type based on their attributes
+        if hasattr(user, 'etudiant'):
+            user_type = "etudiant"
+        elif hasattr(user, 'enseignant'):
+            user_type = "enseignant"
+        elif hasattr(user, 'entreprise'):
+            user_type = "entreprise"
+        else:
+            user_type = "admin"  # Default to "admin" if no other type is found
+
+        is_etudiant = user_type == "etudiant"
+        return Response({"is_etudiant": is_etudiant})
+# In your Django Service 1 views.py
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+class VerifyEnseignantView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        if hasattr(user, 'enseignant'):
+            return Response({
+                "is_enseignant": True,
+                "user_id": user.id,
+                "email": user.email,
+                "nom": user.enseignant.nom,
+                "prenom": user.enseignant.prenom,
+            })
+        return Response({"is_enseignant": False}, status=403)

@@ -258,3 +258,18 @@
     text-decoration: underline;
     color: #000;
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  color: #8A8A8A;  
+  fill: #8A8A8A;   
+}
+
+/*
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+
+input[type="date"]::-moz-calendar-picker-indicator {
+  display: none;
+} */

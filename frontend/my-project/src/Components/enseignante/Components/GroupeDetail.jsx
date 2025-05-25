@@ -3,12 +3,30 @@ import '../Styles/Groupes.css';
 import { ReactComponent as SearchIcon } from '../../../Assets/Icons/Search.svg';
 import { ReactComponent as ArrowIcon } from '../../../Assets/Icons/Arrow.svg';
 import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/notFound.svg';
-import { ReactComponent as CloseIcon } from '../../../Assets/Icons/close.svg'
+import doneImg from '../../../Assets/Images/Done.png'
 import { AppContext } from '../../../App';
 import '../../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function GroupeDetail() {
+
+    const { id } = useParams();
+    const [groupe, setGroupe] = useState({})
+
+    useEffect(() => {
+
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE3}/api/groups/${id}/members`, {
+            headers: {
+                authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+        })
+            .then((res) => setGroupe(res.data))
+            .catch((err) => console.error(err.response.data))
+
+    }, [id])
+
     const documents = [
         { id: 1, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
         { id: 2, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Refuser" },
@@ -81,20 +99,40 @@ function GroupeDetail() {
 
     const [groupeDetailClicked, setGroupeClicked] = useState(false)
 
+    const [confirmValider, setConfirmerValider] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [validerSuccess, setValiderSuccess] = useState(false)
+
+    const handleValider = (e) => {
+
+        e.preventDefault()
+        setLoading(true)
+
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE6}/soutenances/valider/${groupe.id}/`, {
+            headers: {
+                authorization: `Bearer ${localStorage.getItem('access_token')}`,
+                "Content-Type": "application/json",
+            }
+        })
+            .then(() => {
+                setConfirmerValider(false)
+                setValiderSuccess(true)
+            })
+            .catch((err) => console.error(err.response.data))
+            .finally(() => setLoading(false))
+
+    }
+
+    const navigate = useNavigate();
+
     return (
         <div className='groupes-liste-container' id='dynamic-liste' ref={dynamicListRef}>
             <div className="groupes-liste-wrapper" style={{ paddingRight: isRtl ? "0" : "12px", paddingLeft: isRtl ? "12px" : "0" }}>
                 <div className="title-detail-line">
                     <h1 style={{ fontSize: "1.2rem", fontWeight: "500", color: "#4F4F4F" }}>
-                        Tous Les Groupes  &gt; <span style={{ color: "#925FE2" }}>Groupe 10</span>
+                        <Link to={'/enseignant/groupes'} className='return-to-groupes'> Tous Les Groupes </Link>  &gt; <span style={{ color: "#925FE2" }}>{ groupe.group_name }</span>
                     </h1>
-                    <div style={{ display: "flex", gap: "1.1rem", alignItems: "center", marginRight: "1rem" }}>
-                        <button>
-                            <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M11 13.5H6C5.71667 13.5 5.47934 13.404 5.288 13.212C5.09667 13.02 5.00067 12.7827 5 12.5C4.99934 12.2173 5.09534 11.98 5.288 11.788C5.48067 11.596 5.718 11.5 6 11.5H11V6.5C11 6.21667 11.096 5.97934 11.288 5.788C11.48 5.59667 11.7173 5.50067 12 5.5C12.2827 5.49934 12.5203 5.59534 12.713 5.788C12.9057 5.98067 13.0013 6.218 13 6.5V11.5H18C18.2833 11.5 18.521 11.596 18.713 11.788C18.905 11.98 19.0007 12.2173 19 12.5C18.9993 12.7827 18.9033 13.0203 18.712 13.213C18.5207 13.4057 18.2833 13.5013 18 13.5H13V18.5C13 18.7833 12.904 19.021 12.712 19.213C12.52 19.405 12.2827 19.5007 12 19.5C11.7173 19.4993 11.48 19.4033 11.288 19.212C11.096 19.0207 11 18.7833 11 18.5V13.5Z" fill="white" />
-                            </svg>
-                            Rendez-vous
-                        </button>
+                    <div style={{ display: "flex", gap: "1.1rem", alignItems: "center", marginRight: "1rem" }} onClick={() => navigate(`/enseignant/groupes/${id}/rendez-vous`)}>
                         <span style={{ display: "flex", gap: "10px", alignItems: "center", fontFamily: "Kumbh Sans, sans-serif", fontWeight: "600", color: "#925FE2", cursor: "pointer" }} onClick={() => setGroupeClicked(true)}>
                             Sur le Groupe
                             <svg width="8" height="12" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -312,7 +350,7 @@ function GroupeDetail() {
                                     </defs>
                                 </svg>
                                 <h1 style={{ fontSize: "1.2rem", fontWeight: "600", color: "#000", paddingTop: "6px", fontFamily: "Kumbh Sans, sans-serif" }}>
-                                    Membre du Groupe 10
+                                    Membre du {groupe.group_name}
                                 </h1>
                             </div>
 
@@ -332,28 +370,167 @@ function GroupeDetail() {
 
                                 </thead>
                                 <tbody>
-                                    <tr style={{ margin: "5px 0" }}>
-                                        <td
-                                            style={{ width: "33.33%" }}
-                                            className={isRtl ? "th-ltr" : "th-rtl"}
-                                        >
-                                            Marvin McKinney
-                                        </td>
-                                        <td style={{ width: "40%" }}>
-                                            ah.derki@esi-sba.dz
-                                        </td>
-                                        <td className={isRtl ? "th-lrt" : "th-ltr"} style={{ color: "#6FCF97" }}>
-                                            34527889
-                                        </td>
-                                    </tr>
+                                    {
+                                        groupe.members.map((member) => (
+                                            <tr style={{ margin: "5px 0" }}>
+                                                <td
+                                                    style={{ width: "33.33%" }}
+                                                    className={isRtl ? "th-ltr" : "th-rtl"}
+                                                >
+                                                    {member.nom} {member.prenom}
+                                                </td>
+                                                <td style={{ width: "40%" }}>
+                                                    {member.email}
+                                                </td>
+                                                <td className={isRtl ? "th-lrt" : "th-ltr"} style={{ textAlign: "center" }}>
+                                                    {
+                                                        member.id === groupe.chef_id ?
+                                                            <span
+                                                                style={{
+                                                                    width: "70px",
+                                                                    padding: "6px 15px",
+                                                                    background: "#1E90FF25",
+                                                                    borderRadius: "20px",
+                                                                    border: "1px solid #1E90FF",
+                                                                    color: "#1E90FF",
+                                                                    fontWeight: "500"
+                                                                }}
+                                                            >
+                                                                Chef
+                                                            </span>
+                                                            :
+                                                            <span
+                                                                style={{
+                                                                    width: "70px",
+                                                                    padding: "6px 10px",
+                                                                    background: "#A9A9A925",
+                                                                    borderRadius: "20px",
+                                                                    border: "1px solid #A9A9A9",
+                                                                    color: "#A9A9A9",
+                                                                    fontWeight: "500"
+                                                                }}
+                                                            >
+                                                                Membre
+                                                            </span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        ))
+                                    }
                                 </tbody>
                             </table>
                         </div>
+                        <button
+                            className="valider-groupe"
+                            style={{
+                                padding: "6px 15px",
+                                background: "#925FE2",
+                                color: "#FFF",
+                                fontFamily: "Kumbh Sans, sans-serif",
+                                marginTop: "auto",
+                                marginBottom: "2rem",
+                                width: "auto",
+                                alignSelf: "flex-end",
+                                borderRadius: "20px",
+                                fontWeight: "500"
+                            }}
+                            onClick={(e) => { e.preventDefault(); setConfirmerValider(true) }}
+                        >
+                            Valider pour Soutenance
+                        </button>
                     </div>
                 )
+            }
+            {
+                loading && (
+                    <div className="loader-overlay">
+                        <div className="loader-container">
+                            <div className="loader-dots">
+                                <div className="loader-dot"></div>
+                                <div className="loader-dot"></div>
+                                <div className="loader-dot"></div>
+                            </div>
+                            <p className="loader-text">Opération en cours...</p>
+                        </div>
+                    </div>
+                )
+            }
+            {
+                confirmValider &&
+                <ValiderAlert annulerAffecter={() => setConfirmerValider(false)} handleAffecter={handleValider} />
+            }
+            {
+                validerSuccess &&
+                <AddAlert addSuccess={() => setValiderSuccess(false)} />
             }
         </div >
     )
 }
 
 export default GroupeDetail
+
+const ValiderAlert = ({ annulerAffecter, handleAffecter }) => {
+    return (
+        <div className="add-departement-success" style={{zIndex: "3000"}}>
+            <div className="img-container" style={{ height: "90px", width: "150px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="30" cy="30" r="30" fill="#FFD21E" />
+                    <path d="M29.5001 15.75V34.0833M29.6147 43.25V43.4792H29.3855V43.25H29.6147Z" stroke="white" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+            <span style={{ width: "95%", fontFamily: "Kumbh Sans, sans-serif", textAlign: "center", fontSize: "1.1rem", fontWeight: "500" }}>
+                Êtes-vous certain(e) de vouloir valider ce groupe pour le soutenance ?
+            </span>
+            <div
+                className="btns-line"
+            >
+                <button
+                    style={{
+                        color: "#000",
+                        background: "#E2E4E5"
+                    }}
+                    onClick={(e) => { annulerAffecter(e) }}
+                >
+                    Annuler
+                </button>
+                <button
+                    style={{
+
+                    }}
+                    onClick={(e) => { handleAffecter(e); }}
+                >
+                    Affecter
+                </button>
+            </div>
+        </div>
+    )
+}
+
+const AddAlert = ({ addSuccess }) => {
+    return (
+        <div className="add-departement-success" style={{zIndex: "3000"}}>
+            <div className="img-container" style={{ height: "90px", width: "100px" }}>
+                <img src={doneImg} alt="done" style={{ height: "100%", width: "100%", objectFit: "cover", transform: "scale(1.2)" }} />
+            </div>
+            <span style={{ width: "95%", fontFamily: "Kumbh Sans, sans-serif", textAlign: "center", fontSize: "1.1rem", fontWeight: "500" }}>
+                ✨Le groupe est officiellement validé pour passer la soutenance..✨
+            </span>
+            <button
+                style={{
+                    alignSelf: "flex-end",
+                    marginTop: "auto",
+                    padding: "5px 0",
+                    background: "#A67EF2",
+                    width: "80px",
+                    borderRadius: "20px",
+                    color: "#fff",
+                    fontWeight: "500"
+                }}
+                onClick={(e) => { e.preventDefault(); addSuccess() }}
+            >
+                OK
+            </button>
+        </div>
+    )
+}
+

@@ -1,8 +1,3 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Assignment
-from .utils import get_user_id_from_token
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -11,6 +6,18 @@ from .models import Assignment
 from .utils import get_user_id_from_token
 from .services import *
 from django.db import IntegrityError
+from .serializers import AssignmentSerializer
+from .services import get_theme_info, get_group_members, is_admin_user
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Assignment
+from .utils import get_user_id_from_token
+from .services import *
+from django.db import IntegrityError
+import jwt
+
 from .serializers import AssignmentSerializer
 
 class AssignManualThemeView(APIView):
@@ -98,6 +105,52 @@ class AssignManualThemeView(APIView):
             })
 
         return Response(results, status=status.HTTP_200_OK)
+
+class GetEncadrantByGroupView(APIView):
+    def get(self, request, group_id):
+        try:
+            assignment = Assignment.objects.get(group_id=group_id)
+            return Response({
+                'group_id': group_id,
+                'encadrant_id': assignment.encadrant
+            }, status=status.HTTP_200_OK)
+        except Assignment.DoesNotExist:
+            return Response({
+                'error': 'Aucun encadrant trouvé pour ce groupe.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+
+class IsEncadrantOfGroupView(APIView):
+    authentication_classes = []  
+
+    def get(self, request, group_id):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return Response({'error': 'Token manquant ou invalide.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        token = auth_header.split(' ')[1]
+        try:
+            payload = jwt.decode(token, options={"verify_signature": False})
+            user_id = payload.get('user_id') or payload.get('id')
+            if not user_id:
+                return Response({'error': 'user_id manquant dans le token.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+            assignment = Assignment.objects.filter(group_id=group_id).first()
+            if not assignment:
+                return Response({'error': 'Aucun encadrement trouvé pour ce groupe.'}, status=status.HTTP_404_NOT_FOUND)
+
+            if assignment.encadrant != int(user_id):
+                return Response({'authorized': False, 'message': 'Vous ne gérez pas ce groupe.'}, status=status.HTTP_403_FORBIDDEN)
+
+            return Response({'authorized': True, 'message': 'Vous êtes l\'encadrant de ce groupe.'}, status=status.HTTP_200_OK)
+
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expiré'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
     
 
 
@@ -148,3 +201,49 @@ class EncadrantByGroupeView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
    
 
+
+class GetEncadrantByGroupView(APIView):
+    def get(self, request, group_id):
+        try:
+            assignment = Assignment.objects.get(group_id=group_id)
+            return Response({
+                'group_id': group_id,
+                'encadrant_id': assignment.encadrant
+            }, status=status.HTTP_200_OK)
+        except Assignment.DoesNotExist:
+            return Response({
+                'error': 'Aucun encadrant trouvé pour ce groupe.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+
+class IsEncadrantOfGroupView(APIView):
+    authentication_classes = []  
+
+    def get(self, request, group_id):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return Response({'error': 'Token manquant ou invalide.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        token = auth_header.split(' ')[1]
+        try:
+            payload = jwt.decode(token, options={"verify_signature": False})
+            user_id = payload.get('user_id') or payload.get('id')
+            if not user_id:
+                return Response({'error': 'user_id manquant dans le token.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+            assignment = Assignment.objects.filter(group_id=group_id).first()
+            if not assignment:
+                return Response({'error': 'Aucun encadrement trouvé pour ce groupe.'}, status=status.HTTP_404_NOT_FOUND)
+
+            if assignment.encadrant != int(user_id):
+                return Response({'authorized': False, 'message': 'Vous ne gérez pas ce groupe.'}, status=status.HTTP_403_FORBIDDEN)
+
+            return Response({'authorized': True, 'message': 'Vous êtes l\'encadrant de ce groupe.'}, status=status.HTTP_200_OK)
+
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expiré'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)

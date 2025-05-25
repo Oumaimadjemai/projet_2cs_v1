@@ -10,7 +10,7 @@ import { ModifierTheme } from './ModifierTheme';
 
 export const ThemeEnseignantContext = createContext();
 
-function ThemeEnseignant({link}) {
+function ThemeEnseignant({ link }) {
 
     const { id } = useParams();
     const [theme, setTheme] = useState({})
@@ -57,6 +57,7 @@ function ThemeEnseignant({link}) {
         };
 
         fetchThemeWithExtraInfo();
+
     }, [id, theme]);
 
 
@@ -109,7 +110,7 @@ function ThemeEnseignant({link}) {
     const [loading, setLoading] = useState(false)
 
     return (
-        <ThemeEnseignantContext.Provider value={{setTheme}}>
+        <ThemeEnseignantContext.Provider value={{ setTheme }}>
             <div className='theme-display-container' id='dynamic-list'>
                 <div className="theme-display-wrapper">
                     <div className="title-display-theme" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "0.5rem" }}>
@@ -318,7 +319,7 @@ function ThemeEnseignant({link}) {
                                                             style={{ width: "25%" }}
                                                             className={isRtl ? "th-ltr" : "th-rtl"}
                                                         >
-                                                            Groupe 01
+                                                            OHJ
                                                         </td>
                                                         <td style={{ width: "25%" }}>
                                                             2 CS
@@ -332,7 +333,8 @@ function ThemeEnseignant({link}) {
                                                                 borderRadius: "15px",
                                                                 background: "#925FE2",
                                                                 color: "#fff"
-                                                            }}>
+                                                            }}
+                                                            >
                                                                 Affecter
                                                             </button>
                                                         </td>

@@ -227,6 +227,7 @@
     will-change: transform, opacity; */
 }
 
+
 .theme-display-container .other-options.open {
     transform: translateX(0);
     opacity: 1;
@@ -481,4 +482,37 @@
 .return-to-themes:hover{
     text-decoration: underline;
     color: #000;
+}
+
+.add-departement-success {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 540px;
+    height: 220px;
+    border-radius: 40px;
+    background-color: #FCFAFA;
+    box-shadow: 2px 8px 30px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    z-index: 250;
+}
+
+.add-departement-success .btns-line {
+    display: flex;
+    align-self: flex-end;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.add-departement-success button {
+    padding: 5px 0;
+    background: #A67EF2;
+    width: 110px;
+    border-radius: 20px;
+    color: #fff;
+    font-weight: 500;
 }

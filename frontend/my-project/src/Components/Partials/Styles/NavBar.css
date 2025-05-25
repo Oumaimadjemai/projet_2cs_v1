@@ -15,7 +15,7 @@
     height: 100%;
     max-height: 100vh;
     /* Limite la hauteur pour ne pas dépasser l'écran */
-    overflow: hidden;
+    overflow: visible !important;
     background: linear-gradient(to top, rgba(146, 95, 226, 0.9) 0%, rgba(146, 95, 226, 0.9) 80%, #E2D4F7 100%);
     border-radius: 20px;
     display: flex;
@@ -199,6 +199,16 @@
     gap: 1rem;
     padding-bottom: 0;
     padding: 1rem 0 !important;
+    z-index: 1000;
+}
+
+.navbar-container .settings-ul{
+    height: 200px;
+    overflow-y: auto;
+}
+
+.navbar-container .settings-ul::-webkit-scrollbar{
+    display: none;
 }
 
 .settings-ul .sub-settings-list-item,

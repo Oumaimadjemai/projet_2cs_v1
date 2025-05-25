@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import '../Styles/Groupes.css';
 import { ReactComponent as SearchIcon } from '../../../Assets/Icons/Search.svg';
 import { ReactComponent as ArrowIcon } from '../../../Assets/Icons/Arrow.svg';
@@ -7,44 +7,119 @@ import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/notFound.svg'
 import { AppContext } from '../../../App';
 import '../../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 
 export const GroupeLayout = () => {
-  return (
-    <>
-      <Outlet />
-    </>
-  )
+    return (
+        <>
+            <Outlet />
+        </>
+    )
 }
 
 function GroupesEnseignant() {
-    const enseignants = [
-        { id: 1, name: "Djamel Bensaber", matricule: "000E123", email: "a.bencaber@esi-sba.dz", grade: "Professeur", sujetsEncadres: 3 },
-        { id: 2, name: "Amine Boukhalfa", matricule: "000E456", email: "a.boukhalfa@esi-sba.dz", grade: "MCF", sujetsEncadres: 5 },
-        { id: 3, name: "Nadia Yousfi", matricule: "000E789", email: "n.yousfi@esi-sba.dz", grade: "Professeur", sujetsEncadres: 2 },
-        { id: 1, name: "Djamel Bensaber", matricule: "000E123", email: "a.bencaber@esi-sba.dz", grade: "Chercheur", sujetsEncadres: 3 },
-        { id: 2, name: "Amine Boukhalfa", matricule: "000E456", email: "a.boukhalfa@esi-sba.dz", grade: "Doctorant", sujetsEncadres: 5 },
-        { id: 3, name: "Nadia Yousfi", matricule: "000E789", email: "n.yousfi@esi-sba.dz", grade: "Professeur", sujetsEncadres: 2 },
-        { id: 1, name: "Djamel Bensaber", matricule: "000E123", email: "a.bencaber@esi-sba.dz", grade: "MCF", sujetsEncadres: 3 },
-        { id: 2, name: "Amine Boukhalfa", matricule: "000E456", email: "a.boukhalfa@esi-sba.dz", grade: "MCF", sujetsEncadres: 5 },
-        { id: 3, name: "Nadia Yousfi", matricule: "000E789", email: "n.yousfi@esi-sba.dz", grade: "Doctorant", sujetsEncadres: 2 },
-        { id: 1, name: "Djamel Bensaber", matricule: "000E123", email: "a.bencaber@esi-sba.dz", grade: "Professeur", sujetsEncadres: 3 },
-        { id: 2, name: "Amine Boukhalfa", matricule: "000E456", email: "a.boukhalfa@esi-sba.dz", grade: "Chercheur", sujetsEncadres: 5 },
-        { id: 3, name: "Nadia Yousfi", matricule: "000E789", email: "n.yousfi@esi-sba.dz", grade: "Professeur", sujetsEncadres: 2 },
-        { id: 1, name: "Djamel Bensaber", matricule: "000E123", email: "a.bencaber@esi-sba.dz", grade: "Doctorant", sujetsEncadres: 3 },
-        { id: 2, name: "Amine Boukhalfa", matricule: "000E456", email: "a.boukhalfa@esi-sba.dz", grade: "MCF", sujetsEncadres: 5 },
-        { id: 3, name: "Nadia Yousfi", matricule: "000E789", email: "n.yousfi@esi-sba.dz", grade: "Chercheur", sujetsEncadres: 2 }
-    ];
+
+    const [groupes, setGroupes] = useState([])
+    const [annees, setAnnees] = useState([])
+
+    useEffect(() => {
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE4}/assign-manual/`, {
+            headers: {
+                authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+        })
+            .then((res) => {
+                const groupesAffectes = res.data;
+
+                const idsAffectes = new Set(); // Pour vérifier si un groupe est affecté
+                const themeIdsParGroupe = new Map(); // Pour stocker les theme_id par groupe_id
+
+                groupesAffectes.forEach(affectation => {
+                    idsAffectes.add(affectation.group_id);
+                    themeIdsParGroupe.set(affectation.group_id, affectation.theme_id);
+                });
+
+                axios.get(`${process.env.REACT_APP_API_URL_SERVICE3}/api/groups/all-groupes`, {
+                    headers: {
+                        authorization: `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                })
+                    .then((response) => {
+                        const anneeData = response.data.data;
+
+                        if (anneeData) {
+
+                            axios.get(`${process.env.REACT_APP_API_URL_SERVICE2}/themes/enseignant/${localStorage.getItem('user_id')}/`, {
+                                headers: {
+                                    authorization: `Bearer ${localStorage.getItem('access_token')}`
+                                }
+                            })
+                                .then((themesResponse) => {
+                                    const themesData = themesResponse.data;
+                                    const themesMap = new Map(themesData.map(theme => [theme.id, theme.titre]));
+
+                                    const groupesEnrichis = anneeData.map(groupe => {
+                                        const themeId = themeIdsParGroupe.get(groupe.id) || groupe.theme_id;
+
+                                        return {
+                                            ...groupe,
+                                            affecte: idsAffectes.has(groupe.id),
+                                            theme_id: themeId,
+                                            theme_titre: themeId ? themesMap.get(themeId) || 'Thème inconnu' : 'Non spécifié'
+                                        };
+                                    });
+
+                                    setGroupes(groupesEnrichis);
+                                    console.log(groupesEnrichis);
+                                })
+                                .catch((err) => {
+                                    console.error("Erreur lors du chargement des thèmes:", err);
+
+                                    const groupesAvecAffectation = anneeData.map(groupe => ({
+                                        ...groupe,
+                                        affecte: idsAffectes.has(groupe.id),
+                                        theme_id: themeIdsParGroupe.get(groupe.id) || groupe.theme_id,
+                                        theme_titre: 'Erreur de chargement'
+                                    }));
+                                    setGroupes(groupesAvecAffectation);
+                                });
+                        } else {
+                            setGroupes([]);
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(err.response?.data || err.message);
+                        setGroupes([]);
+                    });
+            })
+            .catch(err => {
+                console.error("Erreur lors du chargement des groupes affectés :", err);
+            });
+
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/annees/`)
+            .then((res) => setAnnees(res.data))
+            .catch((err) => console.error(err.response.data))
+
+    }, [])
+
+
+    const getAnneeSpecialite = (annee, spec) => {
+        const anneeFound = annees.find((an) => an.id === annee)
+
+        return `${anneeFound.title} ${anneeFound.departement_title.toLowerCase() === "préparatoire" ? "CPI" : "CS"}`
+    }
+
 
     const getGradeColor = (grade) => {
         switch (grade) {
-            case "Professeur":
-                return { color: "#D43F8D", backgroundColor: "#D43F8D20" };
-            case "MCF":
-                return { color: "#E63946", backgroundColor: "#E6394620" };
-            case "Chercheur":
-                return { color: "#0095FF", backgroundColor: "#0095FF20" };
-            case "Doctorant":
-                return { color: "#17BEBB", backgroundColor: "#17BEBB20" };
+            case "2 CPI":
+                return { color: "#FF8F0D", backgroundColor: "#FF8F0D20" };
+            case "1 CS":
+                return { color: "#884DFF", backgroundColor: "#884DFF20" };
+            case "2 CS":
+                return { color: "#E66AA8", backgroundColor: "#E66AA820" };
+            case "3 CS":
+                return { color: "#33A9FF", backgroundColor: "#33A9FF20" };
             default:
                 return "black";
         }
@@ -92,6 +167,8 @@ function GroupesEnseignant() {
     const { isRtl } = useContext(AppContext);
 
     const { t } = useTranslation();
+
+    const navigate = useNavigate();
 
     return (
         <div className='groupes-liste-container' id='dynamic-liste' ref={dynamicListRef}>
@@ -159,10 +236,10 @@ function GroupesEnseignant() {
                             </tr>
                         </thead>
                         {
-                            enseignants.length !== 0 && (
+                            groupes.length !== 0 && (
                                 <tbody>
                                     {
-                                        enseignants.map((enseignant) => (
+                                        groupes.map((groupe) => (
                                             <tr>
                                                 <td
                                                     style={{
@@ -181,23 +258,23 @@ function GroupesEnseignant() {
                                                         textOverflow: "ellipsis"
                                                     }}
                                                 >
-                                                    {enseignant.name}
+                                                    {groupe.nom}
                                                 </td>
                                                 <td>
-                                                    {enseignant.matricule}
+                                                    {groupe.chef.nom_complet}
                                                 </td>
                                                 <td style={{ width: "25%" }}>
-                                                    {enseignant.email}
+                                                    {groupe.theme_titre}
                                                 </td>
                                                 <td className='grade-td'>
                                                     <span
                                                         style={{
-                                                            color: getGradeColor(enseignant.grade).color,
-                                                            backgroundColor: getGradeColor(enseignant.grade).backgroundColor,
-                                                            border: `1px solid ${getGradeColor(enseignant.grade).color}`
+                                                            color: getGradeColor(getAnneeSpecialite(groupe.annee_etude)).color,
+                                                            backgroundColor: getGradeColor(getAnneeSpecialite(groupe.annee_etude)).backgroundColor,
+                                                            border: `1px solid ${getGradeColor(getAnneeSpecialite(groupe.annee_etude)).color}`
                                                         }}
                                                     >
-                                                        {enseignant.grade}
+                                                        {getAnneeSpecialite(groupe.annee_etude)}
                                                     </span>
                                                 </td>
                                                 <td
@@ -211,7 +288,7 @@ function GroupesEnseignant() {
                                                         borderLeft: isRtl ? "1px solid #E4E4E4" : "none",
                                                     }}
                                                 >
-                                                    <span className="number">{enseignant.sujetsEncadres}</span>
+                                                    <span className="number">{groupe.sujetsEncadres}</span>
                                                     <div
                                                         className="line-btns"
                                                         style={{
@@ -219,10 +296,10 @@ function GroupesEnseignant() {
                                                             marginRight: isRtl ? "auto" : "1rem"
                                                         }}
                                                     >
-                                                        <button>
+                                                        <button onClick={() => navigate(`/enseignant/groupes/${groupe.id}/rendez-vous`)}>
                                                             Rendez-vous
                                                         </button>
-                                                        <span style={{ display: "flex", gap: "8px", alignItems: "center", color: "#884DFF" }}>
+                                                        <span style={{ display: "flex", gap: "8px", alignItems: "center", color: "#884DFF", cursor: "pointer" }} onClick={() => navigate(`/enseignant/groupes/${groupe.id}`)}>
                                                             Voir plus
                                                             <svg width="7" height="12" viewBox="0 0 5 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                 <path d="M0 8.825L3.09042 5L0 1.175L0.951417 0L5 5L0.951417 10L0 8.825Z" fill="#884DFF" fill-opacity="0.8" />
@@ -238,7 +315,7 @@ function GroupesEnseignant() {
                         }
                     </table>
                     {
-                        enseignants.length === 0 && (
+                        groupes.length === 0 && (
                             <div className="no-enseignants-available">
                                 <EmptyIcon className='empty-icon' />
                                 <div className="lines-box">
@@ -286,3 +363,4 @@ function GroupesEnseignant() {
 }
 
 export default GroupesEnseignant
+
