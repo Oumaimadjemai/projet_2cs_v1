@@ -64,7 +64,7 @@ export const Departements = () => {
         axios.post(`${process.env.REACT_APP_API_URL_SERVICE1}/departements/`, newDepartments)
             .then((res) => {
                 console.log(res.data)
-                setDepartement(prev => [...prev, ...res.data]);
+                setDepartements(prev => [...prev, ...res.data]);
                 setNewDepartments([])
                 setAddSuccess(true)
             })

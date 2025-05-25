@@ -58,7 +58,8 @@ class Theme(models.Model):
     # )
     archived=models.BooleanField(default=False)
     annee_academique=models.IntegerField(null=True)
-    date_soumission = models.DateField(default=timezone.now)
+    date_soumission = models.DateField(auto_now_add=True)
+
 
     valide = models.BooleanField(default=False, null=True)
     reserve = models.BooleanField(default=False, null=True)
