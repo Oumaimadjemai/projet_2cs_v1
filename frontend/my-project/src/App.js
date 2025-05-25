@@ -128,25 +128,6 @@ function App() {
               <Route path="notifications" element={<Notifications />} />
             </Route>
 
-          <Route path="/enseignant" element={<EnseignantLayout />} >
-            <Route index element={<ThemesEnseignant />} />
-            <Route path="groupes" element={<GroupesEnseignant />} />
-            <Route path="groupes/:id" element={<GroupeDetail />} />
-            <Route path="themes/:id" element={<ThemeEnseignant link={'enseignant'} />} />
-          </Route>
-          <Route path="/etudiant" element={<EtudiantLayout />} >
-            <Route index element={<Dashboard />} />
-            <Route path="groupes" element={<Groupes />} />
-             <Route path="groupes/:id" element={<DetailGroupe />} />
-            <Route path="invitations" element={<Invitations />} />
-            <Route path="themes" element={<ThemesEtudiant />} />         
-            <Route path="themes/:id" element={<ThemeEtudiant />} />          
-           <Route path="groupes/:groupId/fiche-vu" element={<Themeselectionform/>} /> 
-           <Route path="rendezvous" element={<RendezVousPage/>} />          
-         
-          <Route path="soutenances" element={<DefenseInformation/>} />
-            
-          </Route>
             <Route path="/enseignant" element={<EnseignantLayout />} >
               <Route index element={<ThemesEnseignant />} />
               <Route path="groupes" element={<GroupesEnseignant />} />
@@ -156,14 +137,19 @@ function App() {
               <Route path="rendez-vous" element={<RendezVousGenrale />} />
               <Route path="profile" element={<ProfileEnseignant />} />
             </Route>
-            <Route path="/etudiant" element={<EtudiantLayout />} >
-              <Route index element={<Dashboard />} />
-              <Route path="groupes" element={<Groupes />} />
-              <Route path="groupes/:id" element={<DetailGroupe />} />
-              <Route path="invitations" element={<Invitations />} />
-              <Route path="themes" element={<Theme />} />
-              <Route path="profile" element={<ProfileEtudiant />} />
-            </Route>
+          <Route path="/etudiant" element={<EtudiantLayout />} >
+            <Route index element={<Dashboard />} />
+            <Route path="groupes" element={<Groupes />} />
+             <Route path="groupes/:id" element={<DetailGroupe />} />
+            <Route path="invitations" element={<Invitations />} />
+            <Route path="themes" element={<ThemesEtudiant />} />         
+            <Route path="themes/:id" element={<ThemeEtudiant />} />          
+           <Route path="groupes/:groupId/fiche-vu" element={<Themeselectionform/>} /> 
+           <Route path="rendezvous" element={<RendezVousPage/>} />   
+           <Route path="profile" element={<ProfileEtudiant />} />       
+         
+            <Route path="soutenances" element={<DefenseInformation/>} />
+          </Route>
 
             <Route path="/entreprise" element={<EntrepriseLayout />} >
               <Route index element={<ThemesEntreprise />} />

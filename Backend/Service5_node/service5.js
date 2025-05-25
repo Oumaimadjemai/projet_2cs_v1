@@ -292,7 +292,6 @@ app.post('/api/create-document', authenticateJWT, upload.single('document'), asy
     }
 
     if (!req.file) {
-    if (!req.file) {
       return res.status(400).json({ error: "File and title are required" });
     }
 
@@ -780,7 +779,6 @@ app.get('/api/groups/:group_id/documents', authenticateJWT, async (req, res) => 
 
 app.post('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (req, res) => {
   const { salle, heure, date } = req.body;
-  const { salle, heure, date } = req.body;
   const { groupId } = req.params;
   const enseignantId = req.user.user_id;
 
@@ -959,11 +957,6 @@ app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
       groupMap[group._id] = group.name;
     });
 
-    // Map des _id => name pour tous les groupes
-    const groupMap = {};
-    userGroups.forEach(group => {
-      groupMap[group._id] = group.name;
-    });
 
     const groupIds = userGroups.map(g => g._id);
 
@@ -971,13 +964,6 @@ app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
     // Récupération des rendez-vous pour ces groupes
     const rendezvous = await RendezVous.find({ groupeId: { $in: groupIds } });
 
-    // Ajouter group_name à chaque rendez-vous
-    const enrichedRendezvous = rendezvous.map(rdv => ({
-      ...rdv.toObject(),
-      group_name: groupMap[rdv.groupeId] || null
-    }));
-
-    res.json({ rendezvous: enrichedRendezvous });
     // Ajouter group_name à chaque rendez-vous
     const enrichedRendezvous = rendezvous.map(rdv => ({
       ...rdv.toObject(),
