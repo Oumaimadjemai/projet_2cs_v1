@@ -13,7 +13,7 @@ class Soutenance(models.Model):
     heure_debut = models.TimeField(null=True)
     heure_fin=models.TimeField(null=True)
     salle = models.IntegerField()
-    jury = JSONField(null=True)  # Liste d'IDs des enseignants, ex: ["id1", "id2"]
+    jury = JSONField(null=True,blank=True)  # Liste d'IDs des enseignants, ex: ["id1", "id2"]
     created_at = models.DateTimeField(auto_now_add=True)
     annee_academique=models.IntegerField(null=True)
     archived=models.BooleanField(default=False)

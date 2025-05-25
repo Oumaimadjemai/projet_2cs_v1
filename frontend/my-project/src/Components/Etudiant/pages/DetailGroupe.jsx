@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { nodeAxios,nodeAxios2} from '../../../axios';
 import { AjouterDocument } from './AjouterDocument';
-
+import { NavLink } from 'react-router-dom';
 function DetailGroupe() {
     // const documents = [
     //     { id: 1, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
@@ -29,6 +29,7 @@ function DetailGroupe() {
 
     const [loadingDocuments, setLoadingDocuments] = useState(false);
 
+    
     useEffect(() => {
         const fetchGroupMembers = async () => {
             try {
@@ -142,6 +143,20 @@ useEffect(() => {
                             </svg>
                             Déposer un Document
                         </button>
+                        
+
+
+{/* <NavLink 
+  to={`/etudiant/groupes/${groupId}/rendezvous`}
+  className={({ isActive }) => isActive ? "active-link" : ""}
+>
+  <button className='ajout-btn'>
+    <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 13.5H6C5.71667 13.5 5.47934 13.404 5.288 13.212C5.09667 13.02 5.00067 12.7827 5 12.5C4.99934 12.2173 5.09534 11.98 5.288 11.788C5.48067 11.596 5.718 11.5 6 11.5H11V6.5C11 6.21667 11.096 5.97934 11.288 5.788C11.48 5.59667 11.7173 5.50067 12 5.5C12.2827 5.49934 12.5203 5.59534 12.713 5.788C12.9057 5.98067 13.0013 6.218 13 6.5V11.5H18C18.2833 11.5 18.521 11.596 18.713 11.788C18.905 11.98 19.0007 12.2173 19 12.5C18.9993 12.7827 18.9033 13.0203 18.712 13.213C18.5207 13.4057 18.2833 13.5013 18 13.5H13V18.5C13 18.7833 12.904 19.021 12.712 19.213C12.52 19.405 12.2827 19.5007 12 19.5C11.7173 19.4993 11.48 19.4033 11.288 19.212C11.096 19.0207 11 18.7833 11 18.5V13.5Z" fill="white" />
+    </svg>
+    Rendezvous
+  </button>
+</NavLink> */}
                         <span style={{ display: "flex", gap: "10px", alignItems: "center", fontFamily: "Kumbh Sans, sans-serif", fontWeight: "600", color: "#925FE2", cursor: "pointer" }} onClick={() => setGroupeClicked(true)}>
                             Sur le Groupe
                             <svg width="8" height="12" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -165,7 +180,7 @@ useEffect(() => {
                         </button>
                         <div className="input-line">
                             <SearchIcon />
-                            <input type="text" placeholder="Rechercher un groupe par N° groupe ou nom" />
+                            <input type="text" placeholder="Rechercher un document par nom" />
                         </div>
                     </div>
                 </div>

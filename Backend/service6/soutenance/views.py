@@ -324,6 +324,7 @@ class SoutenanceCreateView(APIView):
 def soutenances_par_annee(request, annee_id):
     soutenances = Soutenance.objects.filter(annee=annee_id)
     serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
+    serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
     return Response(serializer.data)
 
 
@@ -331,12 +332,15 @@ def soutenances_par_annee(request, annee_id):
 def soutenances_par_annee_specialite(request, annee_id, specialite_id):
     soutenances = Soutenance.objects.filter(annee=annee_id, specialite=specialite_id)
     serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
+    serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
     return Response(serializer.data)
+
 
 
 @api_view(['GET'])
 def soutenances_par_groupe(request, groupe_id):
     soutenances = Soutenance.objects.filter(groupe=groupe_id)
+    serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
     serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
     return Response(serializer.data)
 
@@ -366,6 +370,7 @@ class SoutenancesParEncadrantView(APIView):
             group_ids = [aff['group_id'] for aff in affectations]
             soutenances = Soutenance.objects.filter(groupe__in=group_ids)
             serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
+            serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
             return Response(serializer.data)
 
         except requests.exceptions.RequestException as e:
@@ -381,6 +386,7 @@ class SoutenanceDetailView(RetrieveUpdateDestroyAPIView):
     def patch(self, request, pk):
         try:
             soutenance = self.get_object()
+            serializer = self.get_serializer(soutenance, data=request.data, partial=True, context={'request': request})
             serializer = self.get_serializer(soutenance, data=request.data, partial=True, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
