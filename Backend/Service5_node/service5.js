@@ -517,6 +517,23 @@ app.post('/api/create-document/:groupId', authenticateJWT, upload.single('docume
 //     res.status(500).json({ error: err.message });
 //   }
 // });
+app.get('/api/documents/:id', authenticateJWT, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const document = await Document.findById(id).lean(); // lean() returns a plain JS object
+
+    if (!document) {
+      return res.status(404).json({ success: false, error: 'Document non trouvé' });
+    }
+
+    res.json({ success: true, document });
+  } catch (error) {
+    console.error('Erreur récupération document par ID:', error.message);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
+  }
+});
+
 app.get('/api/groups/:group_id/documents', authenticateJWT, async (req, res) => {
   try {
     const { group_id } = req.params;
