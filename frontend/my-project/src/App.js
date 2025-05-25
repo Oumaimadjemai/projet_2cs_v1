@@ -49,6 +49,8 @@ import RendezVousPage from "./Components/enseignante/Components/RendezVous";
 import DetailGroupe from "./Components/Etudiant/pages/DetailGroupe";
 import RendezVousGenrale from "./Components/enseignante/Components/RendezVousGenrale";
 
+// import Rendezvous from './Components/enseignante/Components/Rendezvous';
+
 export const AppContext = createContext();
 
 function App() {

@@ -60,6 +60,166 @@ exports.createGroup = async (req, res) => {
     });
   }
 };
+exports.createGroupWithMembers = async (req, res) => {
+  try {
+    const { members } = req.body;
+
+    if (!Array.isArray(members) || members.length === 0) {
+      return res.status(400).json({ error: "Le tableau 'members' est requis et ne peut pas être vide." });
+    }
+
+    const chefId = members[0];
+
+    const djangoUrl = await discoverDjangoService();
+
+    // Vérifier que TOUS les membres sont bien des étudiants
+    const validMembers = [];
+    for (const id of members) {
+      try {
+        const response = await axios.get(`${djangoUrl}/etudiants/${id}/`, {
+          headers: { Authorization: req.headers.authorization },
+        });
+        validMembers.push(response.data);
+      } catch (err) {
+        return res.status(400).json({
+          error: `L'utilisateur avec l'ID ${id} n'est pas un étudiant ou n'existe pas.`,
+        });
+      }
+    }
+
+    // 🔄 Récupérer le nom du chef via /users/<chefId>/
+    let groupName = "Groupe";
+    try {
+      const chefUserResponse = await axios.get(`${djangoUrl}/users/${chefId}/`, {
+        headers: { Authorization: req.headers.authorization },
+      });
+      const chefUser = chefUserResponse.data;
+      groupName = `${chefUser.nom} ${chefUser.prenom}`.trim() || "Chef";
+    } catch (err) {
+      console.warn("Impossible de récupérer le nom complet via /users/:id, utilisation du nom partiel.");
+      const chefData = validMembers.find((e) => e.id === chefId);
+      groupName = chefData?.user?.nom || "Chef";
+    }
+
+    // Déterminer l'année académique
+    const currentYear = new Date().getFullYear();
+    const nextYear = currentYear + 1;
+    const month = new Date().getMonth();
+    const anneeAcademique = month >= 8 ? `${currentYear}-${nextYear}` : `${currentYear - 1}-${currentYear}`;
+
+    // 🟢 On NE vérifie plus si le chef a déjà un groupe cette année
+
+    // Création du groupe
+    const group = await Group.create({
+      name: groupName,
+      chef_id: chefId,
+      members,
+      annee_academique_id: anneeAcademique,
+      moyenne_groupe: null
+    });
+
+    // Marquer le chef comme chef d’équipe côté Django
+    await axios.patch(
+      `${djangoUrl}/etudiants/${chefId}/`,
+      { chef_equipe: true },
+      { headers: { Authorization: req.headers.authorization } }
+    );
+
+    // Calcul de la moyenne du groupe
+    const moyenne = await groupService.calculateGroupAverage(group._id, req.headers.authorization);
+    const updatedGroup = await Group.findByIdAndUpdate(
+      group._id,
+      { moyenne_groupe: moyenne },
+      { new: true }
+    );
+
+    res.status(201).json({
+      success: true,
+      group: updatedGroup,
+      message: `Groupe '${groupName}' créé avec succès pour l'année ${anneeAcademique}`,
+    });
+  } catch (error) {
+    console.error("Erreur création groupe avec membres:", error.message);
+    res.status(500).json({
+      error: "Erreur lors de la création du groupe",
+      details: process.env.NODE_ENV === 'development' ? error.message : null,
+    });
+  }
+};
+
+
+// exports.createGroupWithMembers = async (req, res) => {
+//   try {
+//     const { members } = req.body;
+
+//     if (!Array.isArray(members) || members.length === 0) {
+//       return res.status(400).json({ error: "Le tableau 'members' est requis et ne peut pas être vide." });
+//     }
+
+//     const chefId = members[0];
+
+//     const djangoUrl = await discoverDjangoService();
+
+//     // Récupérer le nom du chef pour nommer le groupe
+//     const chefResponse = await axios.get(`${djangoUrl}/etudiants/${chefId}/`, {
+//       headers: { Authorization: req.headers.authorization },
+//     });
+
+//     const chefName = chefResponse.data?.user?.last_name || "Chef";
+//     const groupName = `Groupe_${chefName}`;
+
+//     // Déterminer l'année académique
+//     const currentYear = new Date().getFullYear();
+//     const nextYear = currentYear + 1;
+//     const month = new Date().getMonth();
+//     const anneeAcademique = month >= 8 ? `${currentYear}-${nextYear}` : `${currentYear - 1}-${currentYear}`;
+
+//     // Vérifie que le chef n’a pas déjà créé de groupe cette année
+//     const existingGroup = await Group.findOne({ chef_id: chefId, annee_academique_id: anneeAcademique });
+//     if (existingGroup) {
+//       return res.status(400).json({
+//         error: `L'étudiant avec l'ID ${chefId} a déjà créé un groupe pour ${anneeAcademique}`,
+//       });
+//     }
+
+//     // Création du groupe
+//     const group = await Group.create({
+//       name: groupName,
+//       chef_id: chefId,
+//       members,
+//       annee_academique_id: anneeAcademique,
+//       moyenne_groupe: null
+//     });
+
+//     // Marquer le chef comme chef d’équipe côté Django
+//     await axios.patch(
+//       `${djangoUrl}/etudiants/${chefId}/`,
+//       { chef_equipe: true },
+//       { headers: { Authorization: req.headers.authorization } }
+//     );
+
+//     // Calcul de la moyenne du groupe
+//     const moyenne = await groupService.calculateGroupAverage(group._id, req.headers.authorization);
+//     const updatedGroup = await Group.findByIdAndUpdate(
+//       group._id,
+//       { moyenne_groupe: moyenne },
+//       { new: true }
+//     );
+
+//     res.status(201).json({
+//       success: true,
+//       group: updatedGroup,
+//       message: `Groupe '${groupName}' créé avec succès pour l'année ${anneeAcademique}`,
+//     });
+//   } catch (error) {
+//     console.error("Erreur création groupe avec membres:", error.message);
+//     res.status(500).json({
+//       error: "Erreur lors de la création du groupe",
+//       details: process.env.NODE_ENV === 'development' ? error.message : null,
+//     });
+//   }
+// };
+
 exports.getGroupMembers=async (req, res) => {
     try {
       const group = await Group.findById(req.params.id);

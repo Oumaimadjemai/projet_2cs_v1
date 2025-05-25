@@ -172,10 +172,36 @@ class AdminRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 class AnneeAcademiqueListCreateView(generics.ListCreateAPIView):
     queryset = AnneeAcademique.objects.all()
     serializer_class = AnneeAcademiqueSerializer
+    def get_queryset(self):
+        queryset = AnneeAcademique.objects.all()
+        archived = self.request.query_params.get('archived')
+        if archived is not None:
+            # Convertit le paramètre en booléen Python
+            if archived.lower() in ['true', '1', 'yes']:
+                queryset = queryset.filter(archived=True)
+            elif archived.lower() in ['false', '0', 'no']:
+                queryset = queryset.filter(archived=False)
+        return queryset
+
+
 
 class AnneeAcademiqueRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = AnneeAcademique.objects.all()
     serializer_class = AnneeAcademiqueSerializer
+
+# In views.py (Service 1)
+@api_view(["PATCH"])
+def archive_annee(request, pk):
+    try:
+        annee = AnneeAcademique.objects.get(pk=pk)
+        annee.archived = True
+        annee.save()
+        annee.archive_related_objects()
+        return Response({"message": "Archivée avec succès"})
+    except AnneeAcademique.DoesNotExist:
+        return Response({"error": "Introuvable"}, status=404)
+
+
 
 class DepartementListCreateView(APIView):
     def get(self, request, *args, **kwargs):

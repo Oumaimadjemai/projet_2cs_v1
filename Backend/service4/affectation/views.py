@@ -1,3 +1,8 @@
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Assignment
+from .utils import get_user_id_from_token
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -76,6 +81,8 @@ class AssignManualThemeView(APIView):
         'chef_id': chef_id,
         'assigned_by_admin_id': admin_id,
         'assigned_at': assignment.assigned_at,
+        'annee_academique':assignment.annee_academique,
+        'date_soumission':assignment.date_soumission
     }, status=status.HTTP_201_CREATED)
 
     def get(self, request):
@@ -247,3 +254,11 @@ class IsEncadrantOfGroupView(APIView):
             return Response({'error': 'Token expiré'}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+from rest_framework.decorators import api_view
+@api_view(['PATCH'])
+def archive_assignments_by_annee(request, annee_id):
+    # On archive tous les assignments non archivés liés à annee_id
+    assignments = Assignment.objects.filter(annee_academique=annee_id, archived=False)
+    count = assignments.update(archived=True)
+    return Response({"archived_count": count}, status=status.HTTP_200_OK)

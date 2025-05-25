@@ -20,6 +20,7 @@ class Migration(migrations.Migration):
                 ('date_debut', models.DateField()),
                 ('date_fin', models.DateField()),
                 ('year', models.CharField(editable=False, max_length=9, unique=True)),
+                ('archived', models.BooleanField(default=False)),
             ],
         ),
         migrations.RemoveField(

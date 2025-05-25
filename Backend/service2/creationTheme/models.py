@@ -5,7 +5,9 @@ import requests
 from django.db import models
 from django.core.exceptions import ValidationError
 from .discovery import discover_service
+from django.utils import timezone
 
+from .utils import find_annee_academique_id
 # SERVICE_1_URL = "http://localhost:8000"  # Replace with actual Service 1 URL
 
 SERVICE1_APP = 'SERVICE1-CLIENT'  # Nom utilisé dans Eureka
@@ -13,9 +15,9 @@ SERVICE1_APP = 'SERVICE1-CLIENT'  # Nom utilisé dans Eureka
 def get_service1_url():
     return discover_service(SERVICE1_APP)
 
-def generate_annee_academique_id():
-    current_year = datetime.datetime.now().year
-    return f"{current_year}/{current_year + 1}"
+# def generate_annee_academique_id():
+#     current_year = datetime.datetime.now().year
+#     return f"{current_year}/{current_year + 1}"
 
 
 def validate_specialite_id(specialite_id):
@@ -43,17 +45,20 @@ def validate_annee_id(annee_id):
 
 
 class Theme(models.Model):
-    titre = models.CharField(max_length=50)
-    resume = models.TextField(null=True)
-    outils_et_language = models.TextField(null=True)
-    plan_travail = models.TextField(null=True)
-    livrable = models.TextField(blank=True, null=True)
+    titre = models.TextField()
+    resume = models.TextField(default="")
+    outils_et_language = models.TextField(default="")
+    plan_travail = models.TextField(default="")
+    livrable = models.TextField(default="")
 
-    annee_academique_id = models.CharField(
-        max_length=9,
-        default=generate_annee_academique_id,
-        editable=False
-    )
+    # annee_academique_id = models.CharField(
+    #     max_length=9,
+    #     default=generate_annee_academique_id,
+    #     editable=False
+    # )
+    archived=models.BooleanField(default=False)
+    annee_academique=models.IntegerField(null=True)
+    date_soumission = models.DateField(default=timezone.now)
 
     valide = models.BooleanField(default=False, null=True)
     reserve = models.BooleanField(default=False, null=True)
@@ -75,6 +80,8 @@ class Theme(models.Model):
     )
 
     option_pdf = models.FileField(upload_to='pdfs/', blank=True, null=True)
+    convention = models.FileField(upload_to='conventions/', null=True, blank=True)
+
 
     def __str__(self):
         return self.titre
@@ -98,3 +105,8 @@ class Theme(models.Model):
             response = requests.get(f"{base}/entreprises/{self.entreprise_id}/")
             if response.status_code != 200:
                 raise ValidationError(f"L'ID entreprise '{self.entreprise_id}' est introuvable dans le service 1.")
+    
+    def save(self, *args, **kwargs):
+        if not self.annee_academique:
+            self.annee_academique = find_annee_academique_id(self.date_soumission)
+        super().save(*args, **kwargs)
