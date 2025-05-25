@@ -39,6 +39,8 @@ import AdminsList from "./Components/admin/Components/AdminsListe";
 import DetailGroupe from "./Components/Etudiant/pages/DetailGroupe";
 import ThemesEtudiant from "./Components/Etudiant/pages/Themes";
 import ThemeEtudiant from "./Components/Etudiant/pages/Theme";
+import DefenseInformation from "./Components/Etudiant/pages/DefenseInformation";
+import RendezVousPage from "./Components/Etudiant/Components/Rendezvous";
 
 export const AppContext = createContext();
 
@@ -114,8 +116,10 @@ function App() {
             <Route path="invitations" element={<Invitations />} />
             <Route path="themes" element={<ThemesEtudiant />} />         
             <Route path="themes/:id" element={<ThemeEtudiant />} />          
-           <Route path="groupes/:groupId/fiche-vu" element={<Themeselectionform/>} />          
-          
+           <Route path="groupes/:groupId/fiche-vu" element={<Themeselectionform/>} /> 
+           <Route path="rendezvous" element={<RendezVousPage/>} />          
+         
+          <Route path="soutenances" element={<DefenseInformation/>} />
             
           </Route>
 

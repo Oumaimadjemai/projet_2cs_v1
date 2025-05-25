@@ -2,6 +2,7 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
+   path('soutenances/etudiant/', SoutenanceParEtudiantView.as_view(), name='soutenance-par-etudiant'),
    path('soutenances/valider/<str:group_id>/', ValidateSoutenanceView.as_view(), name='valider-soutenance'),
    path('soutenances/<group_id>/',SoutenanceCreateView.as_view(),name='soutenance-create'),
    path('soutenances/annee/<int:annee_id>/', soutenances_par_annee),

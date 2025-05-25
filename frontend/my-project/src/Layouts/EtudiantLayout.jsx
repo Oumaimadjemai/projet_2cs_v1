@@ -25,6 +25,11 @@ export const EtudiantLayout = () => {
             icon: <NotificationsIcon />,
             path: "/etudiant/invitations",
           },
+           {
+          name: "Rendez-vous",
+          icon: <GroupesIcon />,
+          path: "/etudiant/rendezvous",
+        },
         {
           name: "Soutenances",
           icon: <SoutenancesIcon />,
