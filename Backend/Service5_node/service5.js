@@ -108,6 +108,7 @@ const upload = multer({
 // ======================
 const DocumentSchema = new mongoose.Schema({
   title: { type: String, required: false },
+  title: { type: String, required: false },
   description: String,
   fileUrl: { type: String, required: true },
   status: {
@@ -129,7 +130,10 @@ const rendezVousSchema = new mongoose.Schema({
   heure: { type: String, required: true },
   minutes: { type: String, required: false },
   ampm: { type: String, required: false },
+  minutes: { type: String, required: false },
+  ampm: { type: String, required: false },
   date: { type: String, required: true },
+  jour: { type: String, required: false },
   jour: { type: String, required: false },
   enseignantId: { type: Number, required: true } 
 
@@ -323,6 +327,7 @@ app.post('/api/create-document', authenticateJWT, upload.single('document'), asy
       status: 'en attente',
       createdBy: req.user.user_id,
       teacherId: encadrantId,
+      groupId: groupId,
       note: req.body.note || '',
     });
 
@@ -741,6 +746,51 @@ app.post('/api/enseignant/document/:id/note', authenticateTeacherJWT, async (req
     return res.status(500).json({ error: "Erreur serveur", detail: err.message });
   }
 });
+app.get('/api/groups/:group_id/documents', authenticateJWT, async (req, res) => {
+  try {
+    const { group_id } = req.params;
+
+    // URL du service groupe
+    const groupServiceUrl = 'http://localhost:3000';
+
+    // Appel pour récupérer les membres
+    const membersResponse = await axios.get(`${groupServiceUrl}/api/groups/${group_id}/members`, {
+      headers: { Authorization: req.headers.authorization },
+    });
+
+    if (!membersResponse.data.success) {
+      return res.status(404).json({ error: 'Membres du groupe non trouvés' });
+    }
+
+    const members = membersResponse.data.members;
+    const memberIds = members.map(m => m.id);
+
+    // Rechercher documents dont createdBy est dans memberIds
+    const documents = await Document.find({ createdBy: { $in: memberIds } }).lean();
+
+    // Construire map id -> "nom prenom"
+    const idToNomPrenom = {};
+    members.forEach(m => {
+      idToNomPrenom[m.id] =`${m.nom} ${m.prenom}`;
+    });
+
+    const documentsWithCreator = documents.map(doc => ({
+      _id: doc._id,
+      title: doc.title,
+      status: doc.status,
+      fileUrl: doc.fileUrl,
+      createdBy: doc.createdBy,
+      etudiantNom: idToNomPrenom[doc.createdBy] || 'Étudiant inconnu',
+      createdAt: doc.createdAt ? doc.createdAt.toISOString().slice(0, 10) : null,
+    }));
+
+    res.json({ success: true, documents: documentsWithCreator });
+  } catch (error) {
+    console.error('Erreur récupération documents du groupe:', error.message);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 
 
 
@@ -792,7 +842,6 @@ app.post('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (
     res.status(500).json({ error: "Erreur lors de la création du rendez-vous." });
   }
 });
-// GET /api/enseignant/rendez-vous/:groupId
 app.get('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (req, res) => {
   const { groupId } = req.params;
   const enseignantId = req.user.user_id;
@@ -914,6 +963,7 @@ app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
 
     const userGroups = groupsResponse.data;
 
+
     if (!userGroups.length) {
       return res.status(404).json({ error: "Vous n'appartenez à aucun groupe." });
     }
@@ -924,8 +974,10 @@ app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
       groupMap[group._id] = group.name;
     });
 
+
     const groupIds = userGroups.map(g => g._id);
 
+    // Récupération des rendez-vous pour ces groupes
     // Récupération des rendez-vous pour ces groupes
     const rendezvous = await RendezVous.find({ groupeId: { $in: groupIds } });
 
@@ -938,6 +990,7 @@ app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
     res.json({ rendezvous: enrichedRendezvous });
 
   } catch (error) {
+    console.error("Erreur récupération rendez-vous:", error.message);
     console.error("Erreur récupération rendez-vous:", error.message);
     if (error.response) {
       return res.status(error.response.status).json({ error: error.response.data });

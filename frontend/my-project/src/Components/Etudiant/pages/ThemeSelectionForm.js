@@ -149,16 +149,16 @@ const ThemeSelectionForm = () => {
                       .filter((val, idx) => idx !== priority - 1)
                       .includes(theme.id)}
                   >
-                    {theme.title} - {theme.specialite}
+                    {theme.titre} - {theme.specialite}
                   </option>
                 ))}
               </select>
               
               {selections[`p${priority}`] && (
                 <div className="mt-2 p-2 bg-gray-50 rounded">
-                  <p className="font-semibold">{getThemeById(selections[`p${priority}`])?.title || 'Unknown theme'}</p>
+                  <p className="font-semibold">{getThemeById(selections[`p${priority}`])?.titre || 'Unknown theme'}</p>
                   <p className="text-sm text-gray-600">
-                    {getThemeById(selections[`p${priority}`])?.description || 'No description available'}
+                    {getThemeById(selections[`p${priority}`])?.resume || 'No description available'}
                   </p>
                 </div>
               )}

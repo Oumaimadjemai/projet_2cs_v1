@@ -289,6 +289,7 @@ async function getMembersDetails(memberIds, djangoUrl, authHeader) {
     return [];
   }
 }
+
 exports.submitsheThemeChoices=   async (req, res) => {
     try {
       const userId = req.user.id;
@@ -364,3 +365,74 @@ exports.submitsheThemeChoices=   async (req, res) => {
       });
     }
   };
+  exports.getGroupChoicesById = async (req, res) => {
+  try {
+    const groupId = req.params.groupId; // Assuming you pass groupId as a URL parameter
+    
+    // Find the group by ID
+    const group = await Group.findById(groupId).lean();
+    if (!group) {
+      return res.status(404).json({
+        success: false,
+        error: "Group not found"
+      });
+    }
+
+    const djangoUrl = await discoverDjangoService();
+
+    // Get members details
+    const membersDetails = await getMembersDetails(
+      group.members,
+      djangoUrl,
+      req.headers.authorization
+    );
+
+    if (!membersDetails.length) {
+      return res.status(404).json({
+        success: false,
+        error: "No members found in this group"
+      });
+    }
+
+    // Find the chef or default to first member
+    const chef = membersDetails.find(m => m.id === group.chef_id) || membersDetails[0];
+
+    // Get theme selections for this group
+    const selections = await ThemeSelection.find({ group_id: group._id }).lean();
+
+    // Format the response
+    const response = {
+      group_id: group._id,
+      group_name: group.name,
+      chef: {
+        id: chef.id,
+        nom_complet: `${chef.prenom} ${chef.nom}`,
+        email: chef.email
+      },
+      members: membersDetails.map(m => ({
+        id: m.id,
+        nom_complet: `${m.prenom} ${m.nom}`
+      })),
+      theme_selections: selections.map(sel => ({
+        user_id: sel.user_id,
+        choices: sel.choices,
+        status: sel.status,
+        submitted_at: sel.submitted_at
+      })),
+      annee_etude: typeof chef.annee_etude === 'number' ? chef.annee_etude : null,
+      specialite: typeof chef.specialite === 'number' ? chef.specialite : null
+    };
+
+    res.json({
+      success: true,
+      data: response
+    });
+
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};

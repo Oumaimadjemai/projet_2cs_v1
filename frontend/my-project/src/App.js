@@ -47,6 +47,10 @@ import GroupeAdmin from "./Components/admin/Components/Groupe";
 import SoutenancesAdmin from "./Components/admin/Components/Soutenances";
 import RendezVousPage from "./Components/enseignante/Components/RendezVous";
 import DetailGroupe from "./Components/Etudiant/pages/DetailGroupe";
+import ThemesEtudiant from "./Components/Etudiant/pages/Themes";
+import ThemeEtudiant from "./Components/Etudiant/pages/Theme";
+import DefenseInformation from "./Components/Etudiant/pages/DefenseInformation";
+import RendezVousPage from "./Components/Etudiant/Components/Rendezvous";
 import RendezVousGenrale from "./Components/enseignante/Components/RendezVousGenrale";
 
 // import Rendezvous from './Components/enseignante/Components/Rendezvous';
@@ -133,14 +137,19 @@ function App() {
               <Route path="rendez-vous" element={<RendezVousGenrale />} />
               <Route path="profile" element={<ProfileEnseignant />} />
             </Route>
-            <Route path="/etudiant" element={<EtudiantLayout />} >
-              <Route index element={<Dashboard />} />
-              <Route path="groupes" element={<Groupes />} />
-              <Route path="groupes/:id" element={<DetailGroupe />} />
-              <Route path="invitations" element={<Invitations />} />
-              <Route path="themes" element={<Theme />} />
-              <Route path="profile" element={<ProfileEtudiant />} />
-            </Route>
+          <Route path="/etudiant" element={<EtudiantLayout />} >
+            <Route index element={<Dashboard />} />
+            <Route path="groupes" element={<Groupes />} />
+             <Route path="groupes/:id" element={<DetailGroupe />} />
+            <Route path="invitations" element={<Invitations />} />
+            <Route path="themes" element={<ThemesEtudiant />} />         
+            <Route path="themes/:id" element={<ThemeEtudiant />} />          
+           <Route path="groupes/:groupId/fiche-vu" element={<Themeselectionform/>} /> 
+           <Route path="rendezvous" element={<RendezVousPage/>} />   
+           <Route path="profile" element={<ProfileEtudiant />} />       
+         
+            <Route path="soutenances" element={<DefenseInformation/>} />
+          </Route>
 
             <Route path="/entreprise" element={<EntrepriseLayout />} >
               <Route index element={<ThemesEntreprise />} />
