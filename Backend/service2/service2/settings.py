@@ -148,6 +148,7 @@ DATABASES = {
         'PORT': '3306',  # Port par défaut de MySQL
     }
 }
+SERVICE4_ADMIN_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ4Nzc5NzA1LCJpYXQiOjE3NDgxNzQ5MDUsImp0aSI6ImRmNTM2ZjVhMDFiMjQxZTdiN2Q0YzIwNDE5MDNiM2E0IiwidXNlcl9pZCI6NH0.pOniXfvNH2Qdc3n-J6CJOdJqPZuxVabpxqSY97X_rN0"
 
 
 # Password validation
