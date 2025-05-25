@@ -15,13 +15,10 @@ const RendezVousPage = () => {
 
   const filteredRendezVous = rendezVous.filter(item => {
     const searchTermLower = searchTerm.toLowerCase();
-    if (filterBy === 'groupe') {
-      return item.groupe.toLowerCase().includes(searchTermLower);
-    } else if (filterBy === 'salle') {
+     if (filterBy === 'salle') {
       return item.salle.toLowerCase().includes(searchTermLower);
     } else {
       return (
-        item.groupe.toLowerCase().includes(searchTermLower) ||
         item.salle.toLowerCase().includes(searchTermLower)
       )}
   });
@@ -165,10 +162,10 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '40px 20px',
+    padding: '70px 20px',
     textAlign: 'center',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '10px',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.1)' ,
+    borderRadius: '20px',
     marginTop: '20px'
   },
   emptyIcon: {
