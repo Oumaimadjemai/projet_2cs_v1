@@ -4,6 +4,8 @@ const { verifyJWT, verifyJWTAnyUser } = require('../middleware/auth');
 const groupController = require('../controllers/group.controller');
 
 router.post('/create-group', verifyJWT, groupController.createGroup);
+router.post('/create-group-with-members', verifyJWTAnyUser, groupController.createGroupWithMembers);
+
 router.get('/:id/members', verifyJWTAnyUser, groupController.getGroupMembers);
 router.get('/user', verifyJWT, groupController.getUserGroups);
 router.post('/:groupId/invite/:userId', verifyJWT, groupController.inviteUser);
