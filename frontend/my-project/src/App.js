@@ -50,7 +50,7 @@ import DetailGroupe from "./Components/Etudiant/pages/DetailGroupe";
 import ThemesEtudiant from "./Components/Etudiant/pages/Themes";
 import ThemeEtudiant from "./Components/Etudiant/pages/Theme";
 import DefenseInformation from "./Components/Etudiant/pages/DefenseInformation";
-import RendezVousPage from "./Components/Etudiant/Components/Rendezvous";
+// import RendezVousPage from "./Components/Etudiant/Components/Rendezvous";
 import RendezVousGenrale from "./Components/enseignante/Components/RendezVousGenrale";
 
 // import Rendezvous from './Components/enseignante/Components/Rendezvous';
