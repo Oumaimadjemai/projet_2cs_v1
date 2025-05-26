@@ -113,15 +113,48 @@ const EntrepriseList = () => {
       e.representant_prenom.toLowerCase().startsWith(search)
     );
   });
-  
+
+  const exportToExcel = (e) => {
+    e.preventDefault();
+    axios({
+      url: `${process.env.REACT_APP_API_URL_SERVICE1}/export/entreprises/excel/`,
+      method: 'GET',
+      responseType: 'blob',
+    })
+      .then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'entreprises.xlsx');
+        document.body.appendChild(link);
+        link.click();
+
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+      })
+      .catch((err) => {
+        console.error('Erreur de téléchargement:', err);
+        if (err.response) {
+          console.error('Détails:', err.response.data);
+        }
+      });
+  };
+
 
   return (
     <EntrepriseContext.Provider value={{ setEntreprises }}>
       <div style={styles.page}>
         <div style={styles.content}>
           <div style={styles.header}>
-            <div style={styles.title}>Tous les entreprises <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>{filterdEntreprises.length}</span></div>
+            <div style={styles.title}>Tous les Entreprises <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>{entreprises.length}</span></div>
+
             <div style={styles.btnGroup}>
+              <button
+                style={{ color: "#FFF", fontWeight: "500", fontFamily: "Kumbh Sans, sans-serif", background: "#925FE2", padding: "1px 15px", borderRadius: "40px", fontSize: "0.9rem" }}
+                onClick={(e) => exportToExcel(e)}
+              >
+                Export to Excel
+              </button>
               <button
                 style={{ ...styles.button, ...styles.demandeLink }}
                 onClick={() => navigate('/admin/entreprises/demandes')}

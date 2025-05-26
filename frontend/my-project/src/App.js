@@ -20,7 +20,7 @@ import EtudiantsListe from "./Components/admin/Components/EtudiantsListe";
 import ParametresScolarite, { ScolariteLayout } from "./Components/admin/Components/ParametresScolarite";
 import cookies from 'js-cookie';
 import i18n from "./Components/Partials/Components/i18n";
-import { Annees, Departements, Salles, Specialites } from "./Components/admin/Components/Parametres";
+import { Annees, AnneesAcademiques, Departements, ParametresGroupe, Periodes, Salles, Specialites } from "./Components/admin/Components/Parametres";
 // import TextToSpeech from "./Components/admin/Components/TextToSpeech";
 import { EnseignantLayout } from "./Layouts/EnseignantLayout";
 import Themes from "./Components/admin/Components/Themes";
@@ -39,8 +39,21 @@ import AdminsList from "./Components/admin/Components/AdminsListe";
 import { SocketProvider } from "./Components/Contexts/useSocket";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ProfileAdmin from "./Components/admin/Components/ProfileAdmin";
+import ProfileEnseignant from "./Components/enseignante/Components/ProfileEnseignant";
+import ProfileEtudiant from "./Components/Etudiant/pages/ProfileEtudiant";
+import GroupesAdmin from "./Components/admin/Components/Groupes";
+import GroupeAdmin from "./Components/admin/Components/Groupe";
+import SoutenancesAdmin from "./Components/admin/Components/Soutenances";
+import RendezVousPage from "./Components/enseignante/Components/RendezVous";
+import DetailGroupe from "./Components/Etudiant/pages/DetailGroupe";
+import ThemesEtudiant from "./Components/Etudiant/pages/Themes";
+import ThemeEtudiant from "./Components/Etudiant/pages/Theme";
+import DefenseInformation from "./Components/Etudiant/pages/DefenseInformation";
+import RendezVousPage from "./Components/Etudiant/Components/Rendezvous";
+import RendezVousGenrale from "./Components/enseignante/Components/RendezVousGenrale";
 
-import Rendezvous from './Components/enseignante/Components/Rendezvous';
+// import Rendezvous from './Components/enseignante/Components/Rendezvous';
 
 export const AppContext = createContext();
 
@@ -102,12 +115,16 @@ function App() {
                 <Route path="salles" element={<Salles />} />
                 <Route path="specialites" element={<Specialites />} />
                 <Route path="annees" element={<Annees />} />
+                <Route path="parametres-groupe" element={<ParametresGroupe />} />
+                <Route path="periodes" element={<Periodes />} />
+                <Route path="acdemic-annees" element={<AnneesAcademiques />} />
               </Route>
               <Route path="themes" element={<Themes />} />
               <Route path="themes/:id" element={<ThemeAdmin />} />
-              <Route path="groupes" element={<h1>groupes</h1>} />
-              <Route path="soutenances" element={<h1>soutenances</h1>} />
-              <Route path="profile" element={<h1>profile</h1>} />
+              <Route path="groupes" element={<GroupesAdmin />} />
+              <Route path="groupes/:id" element={<GroupeAdmin />} />
+              <Route path="soutenances" element={<SoutenancesAdmin />} />
+              <Route path="profile" element={<ProfileAdmin />} />
               <Route path="notifications" element={<Notifications />} />
             </Route>
 
@@ -115,27 +132,23 @@ function App() {
               <Route index element={<ThemesEnseignant />} />
               <Route path="groupes" element={<GroupesEnseignant />} />
               <Route path="groupes/:id" element={<GroupeDetail />} />
+              <Route path="groupes/:id/rendez-vous" element={<RendezVousPage />} />
               <Route path="themes/:id" element={<ThemeEnseignant link={'enseignant'} />} />
+              <Route path="rendez-vous" element={<RendezVousGenrale />} />
+              <Route path="profile" element={<ProfileEnseignant />} />
             </Route>
-            <Route path="/etudiant" element={<EtudiantLayout />} >
-              <Route index element={<Dashboard />} />
-              <Route path="groupes" element={<Groupes />} />
-              <Route path="invitations" element={<Invitations />} />
-              <Route path="themes" element={<Theme />} />
-            </Route>
-          <Route path="/enseignant" element={<EnseignantLayout />} >
-            <Route index element={<ThemesEnseignant />} />
-            <Route path="groupes" element={<GroupesEnseignant />} />
-            <Route path="groupes/:id" element={<GroupeDetail />} />
-            <Route path="themes/:id" element={<ThemeAdmin />} />
-            <Route path="rendezvous" element={<Rendezvous/>} />
-
-          </Route>
           <Route path="/etudiant" element={<EtudiantLayout />} >
             <Route index element={<Dashboard />} />
             <Route path="groupes" element={<Groupes />} />
+             <Route path="groupes/:id" element={<DetailGroupe />} />
             <Route path="invitations" element={<Invitations />} />
-            <Route path="themes" element={<Theme />} />
+            <Route path="themes" element={<ThemesEtudiant />} />         
+            <Route path="themes/:id" element={<ThemeEtudiant />} />          
+           <Route path="groupes/:groupId/fiche-vu" element={<Themeselectionform/>} /> 
+           <Route path="rendezvous" element={<RendezVousPage/>} />   
+           <Route path="profile" element={<ProfileEtudiant />} />       
+         
+            <Route path="soutenances" element={<DefenseInformation/>} />
           </Route>
 
             <Route path="/entreprise" element={<EntrepriseLayout />} >

@@ -77,6 +77,32 @@ const AdminsList = () => {
         );
     });
 
+      const exportToExcel = (e) => {
+        e.preventDefault();
+        axios({
+            url: `${process.env.REACT_APP_API_URL_SERVICE1}/export/admins/excel`,
+            method: 'GET',
+            responseType: 'blob',
+        })
+            .then((response) => {
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'admins.xlsx');
+                document.body.appendChild(link);
+                link.click();
+
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(link);
+            })
+            .catch((err) => {
+                console.error('Erreur de téléchargement:', err);
+                if (err.response) {
+                    console.error('Détails:', err.response.data);
+                }
+            });
+    };
+
 
     return (
         <AdminListContext.Provider value={{ setAdmins, setLoading }}>
@@ -85,6 +111,12 @@ const AdminsList = () => {
                     <div style={styles.header}>
                         <div style={styles.title}>Tous les Administrateurs <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>{admins.length}</span></div>
                         <div style={styles.btnGroup}>
+                            <button
+                                style={{ color: "#925FE2", fontWeight: "500", fontFamily: "Kumbh Sans, sans-serif", marginRight: "15px" }}
+                                onClick={(e) => exportToExcel(e)}
+                            >
+                                Export to Excel
+                            </button>
                             <button
                                 style={styles.button}
                                 onClick={() => setShowAddModal(true)}

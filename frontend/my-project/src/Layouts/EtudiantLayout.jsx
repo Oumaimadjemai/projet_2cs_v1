@@ -35,28 +35,33 @@ export const EtudiantLayout = () => {
     };
   }, [socket]);
 
-  const etudiatMenu = [
-    {
-      name: "Thèmes Projet",
-      icon: <ThemesIcon />,
-      path: "/etudiant",
-    },
-    {
-      name: "Groupes de Projet",
-      icon: <GroupesIcon />,
-      path: "/etudiant/groupes",
-    },
-    {
-      name: "Invitations",
-      icon: <NotificationsIcon />,
-      path: "/etudiant/invitations",
-    },
-    {
-      name: "Soutenances",
-      icon: <SoutenancesIcon />,
-      path: "/etudiant/soutenances",
-    },
-  ];
+    const etudiatMenu = [
+        {
+          name: "Thèmes Projet",
+          icon: <ThemesIcon />,
+          path: "/etudiant/themes",
+        },
+        {
+          name: "Groupes de Projet",
+          icon: <GroupesIcon />,
+          path: "/etudiant/groupes",
+        },
+        {
+            name: "Invitations",
+            icon: <NotificationsIcon />,
+            path: "/etudiant/invitations",
+          },
+           {
+          name: "Rendez-vous",
+          icon: <GroupesIcon />,
+          path: "/etudiant/rendezvous",
+        },
+        {
+          name: "Soutenances",
+          icon: <SoutenancesIcon />,
+          path: "/etudiant/soutenances",
+        },
+      ];
 
   return (
     <div className="admin-grid">

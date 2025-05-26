@@ -7,3 +7,363 @@
     width: 100%;
     height: 100%;
 }
+
+.dashboard-wrapper .dashboard-core{
+    width: 100%;
+    height: calc(100vh - 215px);
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    padding-right: 12px;
+    overflow-y: auto;
+    padding-left: 8px;
+    gap: 2rem;
+}
+
+.dashboard-wrapper .dashboard-core::-webkit-scrollbar{
+    display: none;
+}
+
+.dashboard-core .soutenances-table{
+    flex: 1;
+    max-width: 800px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-core .parametres-dashboard{
+    width: 300px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.parametres-dashboard .administration-box{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.administration-box .admins-line{
+    display: flex;
+    width: 100%;
+    gap: 1rem;
+}
+
+.administration-box .admins-line .admin{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2.5px solid #925FE2;
+    overflow: hidden;
+}
+
+.admins-line .admin img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.administration-box .link{
+    align-self: flex-end;
+}
+
+.progress-bar{
+    width: 100%;
+    position: relative;
+   display: flex;
+   flex-direction: column;
+   gap: 6px;
+}
+
+[role="progressbar"]{
+    padding: 0 6px !important;
+    margin-top: 5px;
+}
+
+[role="progressbar"] > div {
+    height: 10px !important;
+    background-color: #EAEAEA !important;
+    overflow: visible !important;
+}
+
+[role="progressbar"] > div > div{
+    background-color: #693CA8 !important;
+    height: 10px !important;
+    position: relative !important;
+}
+
+[role="progressbar"] > div > div > span{
+    /* position: absolute !important;
+    right: -10%;
+    top: -30px !important;
+    z-index: 20 !important;
+    color: #000 !important;
+    display: block !important;
+    background-color: var(--main-color) !important;
+    font-weight: 400 !important;
+    font-size: 0.8rem !important;
+    border-radius: 20px;
+    padding: 10px 8px;
+    width: auto !important; */
+    display: none;
+}
+
+.progress-bar .dates{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+/*----------Calendrier----------*/
+
+.container-calender{
+    border-radius: 8px;
+    padding: 0 1rem;
+    margin-top: 0.8rem;
+}
+
+.container-calender .react-calendar{
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    background-color: transparent !important;
+    border: none;
+    justify-content: space-evenly !important;
+    line-height: initial;
+    width: auto !important;
+    height: 100%;
+}
+
+.container-calender .react-calendar__navigation{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: auto;
+    margin-bottom: 0px;
+}
+
+.react-calendar__navigation .react-calendar__navigation__label{
+    text-align: left;
+    text-transform: capitalize;
+}
+
+.react-calendar .react-calendar__navigation button{
+    background-color: transparent;
+    border: none;
+    font-size: 25px;
+}
+
+.react-calendar__navigation .react-calendar__navigation__prev2-button {
+    display: none;
+}
+
+.react-calendar__navigation .react-calendar__navigation__next2-button{
+    display: none;
+}
+
+.react-calendar__navigation .react-calendar__navigation__prev-button{
+    order: 2;
+    width: 30px;
+}
+
+.react-calendar__navigation .react-calendar__navigation__next-button{
+    order: 3;
+    width: 30px;
+}
+
+.react-calendar__viewContainer .react-calendar__month-view__weekdays__weekday{
+    text-transform: capitalize;
+    text-decoration: none;
+    text-align: center;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr{
+    text-decoration: none;
+    color: #00000080;
+}
+
+.react-calendar__month-view__weekdays{
+    border-bottom: 1.5px solid #00000015;
+    margin-bottom: 6px;
+}
+
+.react-calendar__month-view__days button{
+    background-color: transparent !important;
+    border: none;
+    padding: 4px 0px;
+    border-radius:  8px;
+    margin-bottom: 10px !important;
+}
+
+.react-calendar__navigation{
+    margin-bottom: 6px !important;
+}
+
+[aria-label^="1"],
+[aria-label^="2"],
+[aria-label^="3"],
+[aria-label^="4"],
+[aria-label^="5"],
+[aria-label^="6"],
+[aria-label^="7"],
+[aria-label^="8"],
+[aria-label^="9"] {
+    /* Your styles here */
+    /* For example */
+    padding: 6px 10.3px;
+}
+[aria-label^="10"],
+[aria-label^="11"],
+[aria-label^="12"],
+[aria-label^="13"],
+[aria-label^="14"],
+[aria-label^="15"],
+[aria-label^="16"],
+[aria-label^="17"],
+[aria-label^="18"],
+[aria-label^="19"],
+[aria-label^="20"],
+[aria-label^="21"],
+[aria-label^="22"],
+[aria-label^="23"],
+[aria-label^="24"],
+[aria-label^="25"],
+[aria-label^="26"],
+[aria-label^="27"],
+[aria-label^="28"],
+[aria-label^="29"],
+[aria-label^="30"],
+[aria-label^="31"] {
+    /* Your styles here */
+    /* For example */
+    padding: 6px 7px;
+}
+
+.react-calendar__month-view__days__day--weekend abbr{
+    color: #693CA8 !important;
+    font-weight: 600 !important;
+}
+
+.react-calendar__month-view__days .react-calendar__tile--now{
+    background-color: transparent !important;
+}
+
+.react-calendar__month-view__days .react-calendar__tile--now abbr{
+    background-color: #693CA8 !important;
+    color: #fff !important;
+}
+
+.react-calendar__tile--active:enabled:hover, .react-calendar__tile--active:enabled:focus{
+    background: #B8CEF7 !important;
+}
+
+.react-calendar__year-view__months .react-calendar__year-view__months__month{
+   padding: 1em 0 !important;
+}
+
+.react-calendar__year-view__months__month abbr{
+    text-transform: capitalize;
+    font-weight: 500;
+}
+
+.react-calendar__tile abbr{
+    font-weight: 550 !important;
+}
+
+.react-calendar__year-view__months .react-calendar__tile--now, .react-calendar__decade-view__years .react-calendar__tile--now, .react-calendar__century-view__decades .react-calendar__tile--now {
+    background: var(--main-color) !important;
+}
+
+.react-calendar__year-view .react-calendar__tile, .react-calendar__decade-view .react-calendar__tile, .react-calendar__century-view .react-calendar__tile {
+    padding: 1em 0 !important;
+}
+
+@media screen and (max-width: 700px){
+    .infos-container{
+        flex-wrap: wrap
+    }
+
+    .infos-container > div{
+        width: 100%;
+        min-height: 180px;
+    }
+
+    .dashboard-container{
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .charts-container{
+        flex-wrap: wrap;
+    }
+
+    .charts-container .bar-chart{
+        width: 100%; 
+    }
+
+    .container-calender{
+        height: auto;
+        width: 100%;
+        padding: 2rem !important;
+    }
+
+    [role="progressbar"] > div > div > span{
+        right: 0;
+    }
+}
+
+/*---------Soutenances table------------*/
+
+.soutenances-table {
+    width: 100%;
+}
+
+.soutenances-table table {
+    width: 100%;
+    border-collapse: separate;
+    /* Allows border-radius to work */
+    border-spacing: 0 7px;
+}
+
+.soutenances-table tr {
+    margin: 5px 0;
+    width: 100%;
+}
+
+.soutenances-table table thead th {
+    font-weight: 450;
+    font-size: 0.9rem;
+    color: #424242;
+    padding: 0.5rem 0 !important;
+    border-left: none;
+    border-right: none;
+    width: 12.5%;
+}
+
+.soutenances-table table thead th:first-child {
+    text-indent: 1rem;
+    /* Moves text inside without affecting table structure */
+    text-align: left;
+}
+
+.soutenances-table table td {
+    font-weight: 400;
+    font-size: 12px;
+    color: #4F4F4F;
+    text-align: center;
+    border-left: none;
+    border-right: none;
+    padding: 0.6rem 0 !important;
+}
+
+.soutenances-table .last-td {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+}

@@ -25,6 +25,7 @@ const Groupes = () => {
   const [inviteUserId, setInviteUserId] = useState(null);
   const [currentGroup, setCurrentGroup] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
+  const [inviteError, setInviteError] = useState(null);
   const [loading, setLoading] = useState({
     groups: false,
     creating: false,
@@ -144,27 +145,133 @@ const Groupes = () => {
     fetchAllUsers();
   };
 
-  const handleInvite = async () => {
-    if (!inviteUserId) {
-      message.warning('Please select a user to invite');
-      return;
-    }
+  // const handleInvite = async () => {
+  //   if (!inviteUserId) {
+  //     message.warning('Please select a user to invite');
+  //     return;
+  //   }
 
-    try {
-      setLoading(prev => ({ ...prev, inviting: true }));
-      await nodeAxios.post(`/groups/${currentGroup._id}/invite/${inviteUserId}`);
+  //   try {
+  //     setLoading(prev => ({ ...prev, inviting: true }));
+  //     await nodeAxios.post(`/groups/${currentGroup._id}/invite/${inviteUserId}`);
 
-      message.success('Invitation sent successfully');
-      setIsInviteModalVisible(false);
-      setInviteUserId(null);
-    } catch (error) {
-      message.error(error.response?.data?.error || "Failed to send invitation");
-    } finally {
-      setLoading(prev => ({ ...prev, inviting: false }));
-    }
-  };
+  //     message.success('Invitation sent successfully');
+  //     setIsInviteModalVisible(false);
+  //     setInviteUserId(null);
+  //   } catch (error) {
+  //     message.error(error.response?.data?.error || "Failed to send invitation");
+  //   } finally {
+  //     setLoading(prev => ({ ...prev, inviting: false }));
+  //   }
+  // };
+// const handleInvite = async () => {
+//   if (!inviteUserId) {
+//     message.warning('Please select a user to invite');
+//     return;
+//   }
 
-  const getUserDisplay = (userId) => {
+//   try {
+//     setLoading(prev => ({ ...prev, inviting: true }));
+//     const response = await nodeAxios.post(`/groups/${currentGroup._id}/invite/${inviteUserId}`);
+    
+//     message.success('Invitation sent successfully');
+//     setIsInviteModalVisible(false);
+//     setInviteUserId(null);
+    
+//   } catch (error) {
+//     const errorResponse = error.response?.data;
+    
+//     // Handle specific error cases
+//     if (errorResponse) {
+//       switch (errorResponse.error) {
+//         case "Groupe non trouvé":
+//           message.error("Group not found");
+//           break;
+          
+//         case "Action réservée au chef de groupe":
+//           message.error("Only the group leader can invite members");
+//           break;
+          
+//         case "L'utilisateur est déjà membre du groupe":
+//           message.error("This user is already a group member");
+//           break;
+          
+//         case "L'année d'étude de l'utilisateur n'est pas définie":
+//           message.error("User's study year is not defined");
+//           break;
+          
+//         case "Configuration des groupes non définie pour cette année":
+//           message.error("Group configuration not defined for this study year");
+//           break;
+          
+//         case "Le groupe a atteint sa capacité maximale":
+//           message.error(`Group has reached maximum capacity (${errorResponse.max_members} members)`);
+//           break;
+          
+//         case "Incompatibilité d'année d'étude":
+//           message.error("Year of study mismatch between group and user");
+//           break;
+          
+//         case "Utilisateur non trouvé":
+//           message.error("User not found");
+//           break;
+          
+//         default:
+//           message.error(errorResponse.error || "Failed to send invitation");
+//       }
+      
+//       // Log additional details to console
+//       console.error('Invitation error:', errorResponse);
+//       if (errorResponse.details) {
+//         console.error('Details:', errorResponse.details);
+//       }
+//     } else {
+//       message.error("Failed to send invitation");
+//       console.error('Invitation error:', error.message);
+//     }
+//   } finally {
+//     setLoading(prev => ({ ...prev, inviting: false }));
+//   }
+// };
+
+const handleInvite = async () => {
+  if (!inviteUserId) {
+    setInviteError('Please select a user to invite');
+    return;
+  }
+
+  try {
+    setInviteError(null); // Réinitialiser les erreurs
+    setLoading(prev => ({ ...prev, inviting: true }));
+    
+    await nodeAxios.post(`/groups/${currentGroup._id}/invite/${inviteUserId}`);
+
+    message.success('Invitation sent successfully');
+    setIsInviteModalVisible(false);
+    setInviteUserId(null);
+    
+  } catch (error) {
+    const errorResponse = error.response?.data;
+    
+    // Traductions des erreurs (optionnel)
+    const errorTranslations = {
+      "Groupe non trouvé": "Group not found",
+      "Action réservée au chef de groupe": "Only group leader can invite members",
+      "L'utilisateur est déjà membre du groupe": "User is already a group member",
+      // Ajoutez d'autres traductions au besoin
+    };
+
+    const errorMessage = errorTranslations[errorResponse?.error] || 
+                       errorResponse?.error || 
+                       "Failed to send invitation";
+    
+    setInviteError(errorMessage);
+    
+  } finally {
+    setLoading(prev => ({ ...prev, inviting: false }));
+  }
+};
+const getUserDisplay = (userId) => {
     return userDetails[userId]?.name || `User ${userId}`;
   };
 
@@ -213,26 +320,28 @@ const Groupes = () => {
                     </div>
                   }
                   actions={[
-                    <Button
-                      type="primary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        showInviteModal(group);
-                      }}
-                      className="bg-mypurple hover:bg-purple-700 transition duration-200 rounded-full px-5"
-                    >
-                      Invite Member
-                    </Button>,
-                    <Button
-                      type="default"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`${group._id}/fiche-vu`);
-                      }}
-                      className="border-mypurple text-mypurple hover:bg-purple-50 transition duration-200 rounded-full px-5"
-                    >
-                      Fiche de Vue
-                    </Button>
+                                                                <Button
+                                                type="primary"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  showInviteModal(group);
+                                                }}
+                                                className="!bg-mypurple !border-mypurple hover:!bg-purple-700 focus:!bg-purple-700 active:!bg-purple-800 text-white transition duration-200 rounded-full px-5"
+                                              >
+                                                Invite Member
+                                              </Button>
+                                                ,
+                                              <Button
+                                                      type="default"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigate(`${group._id}/fiche-vu`);
+                                                      }}
+                                                      className="!border-mypurple !text-mypurple !bg-white hover:!bg-purple-50 focus:!bg-purple-50 active:!bg-purple-100 transition duration-200 rounded-full px-5"
+                                                    >
+                                                      Fiche de Vue
+                                              </Button>
+ 
                   ]}
                   className="max-w-sm w-full rounded-2xl shadow-[rgba(0,0,0,0.1)_0px_4px_12px] border border-gray-100 p-4 bg-white hover:shadow-[rgba(0,0,0,0.2)_0px_6px_15px] transition-all duration-300"
                 >
@@ -275,7 +384,8 @@ const Groupes = () => {
         )}
       </div>
 
-      <Modal
+      {/* <Modal
+
         title={`Invite to ${currentGroup?.name}`}
         visible={isInviteModalVisible}
         onOk={handleInvite}
@@ -321,7 +431,66 @@ const Groupes = () => {
             </p>
           )}
         </div>
-      </Modal>
+      </Modal> */}
+  <Modal
+  title={`Invite to ${currentGroup?.name}`}
+  visible={isInviteModalVisible}
+  onOk={handleInvite}
+  onCancel={() => {
+    setIsInviteModalVisible(false);
+    setInviteUserId(null);
+    setInviteError(null);
+  }}
+  okText={loading.inviting ? 'Sending...' : 'Send Invitation'}
+  cancelText="Cancel"
+  confirmLoading={loading.inviting}
+  okButtonProps={{
+    className:
+      '!bg-mypurple !border-mypurple text-white hover:!bg-purple-700 focus:!bg-purple-700 active:!bg-purple-800',
+  }}
+  cancelButtonProps={{
+    className:
+      '!border-mypurple !text-mypurple hover:!bg-purple-50 focus:!bg-purple-50 active:!bg-purple-100',
+  }}
+>
+  <div className="space-y-4">
+    <Select
+      showSearch
+      placeholder="Select a user to invite"
+      optionFilterProp="children"
+      loading={loading.users}
+      style={{ width: '100%' }}
+      onChange={(value) => {
+        setInviteUserId(value);
+        setInviteError(null);
+      }}
+      value={inviteUserId}
+      filterOption={(input, option) =>
+        option.children.toLowerCase().includes(input.toLowerCase())
+      }
+      notFoundContent={loading.users ? <Spin size="small" /> : null}
+    >
+      {allUsers.map((user) => (
+        <Option key={user.id} value={user.id}>
+          {`${user.prenom} ${user.nom} (${user.email})`}
+        </Option>
+      ))}
+    </Select>
+
+    {inviteError && (
+      <div className="text-red-500 p-2 bg-red-50 rounded-md">
+        {inviteError}
+      </div>
+    )}
+
+    {currentGroup && (
+      <p className="text-sm text-gray-500">
+        This will send an invitation to join "{currentGroup.name}"
+      </p>
+    )}
+  </div>
+</Modal>
+
     </div>
   );
 };

@@ -29,6 +29,7 @@ urlpatterns = [
     path('themes/<int:theme_id>/affecter-enseignant/<int:enseignant_id>/', AffecterEnseignantView.as_view(), name='affecter-enseignant'),
     path('themes/<int:theme_id>/convention/', ThemeConventionView.as_view(), name='get_theme_convention'),
     path('themes/upload-pdf/', ExtractThemeFromPDFView.as_view(), name='upload_theme_pdf'),
+    path('themes/create-group/', ThemeWithGroupCreateView.as_view(), name='theme-create-with-group'),
 
     path('themes/by-annee-academique/<int:annee_academique>/', ThemesByAnneeAcademiqueAPIView.as_view(), name='themes-by-annee-academique'),
     path('themes/<int:pk>/archived/', ArchiveThemeAPIView.as_view(), name='archive-theme'),

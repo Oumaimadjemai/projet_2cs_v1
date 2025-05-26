@@ -177,7 +177,7 @@ router.post('/notify-admins', async (req, res) => {
       throw new Error("WebSocket server not ready");
     }
 
-    const { idSender, message, title, type } = req.body;
+    const { idSender, message, title, type, metadata } = req.body;
 
     // 1. Get admin list
     const firstServiceUrl = await discoverDjangoService();
@@ -202,7 +202,8 @@ router.post('/notify-admins', async (req, res) => {
         idReceiver: admin.id,
         title: title || `Notification ${type}`,
         message: notificationData.message,
-        type: type
+        type: type,
+        metadata: metadata
       });
     });
 

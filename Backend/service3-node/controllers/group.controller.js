@@ -60,6 +60,166 @@ exports.createGroup = async (req, res) => {
     });
   }
 };
+exports.createGroupWithMembers = async (req, res) => {
+  try {
+    const { members } = req.body;
+
+    if (!Array.isArray(members) || members.length === 0) {
+      return res.status(400).json({ error: "Le tableau 'members' est requis et ne peut pas être vide." });
+    }
+
+    const chefId = members[0];
+
+    const djangoUrl = await discoverDjangoService();
+
+    // Vérifier que TOUS les membres sont bien des étudiants
+    const validMembers = [];
+    for (const id of members) {
+      try {
+        const response = await axios.get(`${djangoUrl}/etudiants/${id}/`, {
+          headers: { Authorization: req.headers.authorization },
+        });
+        validMembers.push(response.data);
+      } catch (err) {
+        return res.status(400).json({
+          error: `L'utilisateur avec l'ID ${id} n'est pas un étudiant ou n'existe pas.`,
+        });
+      }
+    }
+
+    // 🔄 Récupérer le nom du chef via /users/<chefId>/
+    let groupName = "Groupe";
+    try {
+      const chefUserResponse = await axios.get(`${djangoUrl}/users/${chefId}/`, {
+        headers: { Authorization: req.headers.authorization },
+      });
+      const chefUser = chefUserResponse.data;
+      groupName = `${chefUser.nom} ${chefUser.prenom}`.trim() || "Chef";
+    } catch (err) {
+      console.warn("Impossible de récupérer le nom complet via /users/:id, utilisation du nom partiel.");
+      const chefData = validMembers.find((e) => e.id === chefId);
+      groupName = chefData?.user?.nom || "Chef";
+    }
+
+    // Déterminer l'année académique
+    const currentYear = new Date().getFullYear();
+    const nextYear = currentYear + 1;
+    const month = new Date().getMonth();
+    const anneeAcademique = month >= 8 ? `${currentYear}-${nextYear}` : `${currentYear - 1}-${currentYear}`;
+
+    // 🟢 On NE vérifie plus si le chef a déjà un groupe cette année
+
+    // Création du groupe
+    const group = await Group.create({
+      name: groupName,
+      chef_id: chefId,
+      members,
+      annee_academique_id: anneeAcademique,
+      moyenne_groupe: null
+    });
+
+    // Marquer le chef comme chef d’équipe côté Django
+    await axios.patch(
+      `${djangoUrl}/etudiants/${chefId}/`,
+      { chef_equipe: true },
+      { headers: { Authorization: req.headers.authorization } }
+    );
+
+    // Calcul de la moyenne du groupe
+    const moyenne = await groupService.calculateGroupAverage(group._id, req.headers.authorization);
+    const updatedGroup = await Group.findByIdAndUpdate(
+      group._id,
+      { moyenne_groupe: moyenne },
+      { new: true }
+    );
+
+    res.status(201).json({
+      success: true,
+      group: updatedGroup,
+      message: `Groupe '${groupName}' créé avec succès pour l'année ${anneeAcademique}`,
+    });
+  } catch (error) {
+    console.error("Erreur création groupe avec membres:", error.message);
+    res.status(500).json({
+      error: "Erreur lors de la création du groupe",
+      details: process.env.NODE_ENV === 'development' ? error.message : null,
+    });
+  }
+};
+
+
+// exports.createGroupWithMembers = async (req, res) => {
+//   try {
+//     const { members } = req.body;
+
+//     if (!Array.isArray(members) || members.length === 0) {
+//       return res.status(400).json({ error: "Le tableau 'members' est requis et ne peut pas être vide." });
+//     }
+
+//     const chefId = members[0];
+
+//     const djangoUrl = await discoverDjangoService();
+
+//     // Récupérer le nom du chef pour nommer le groupe
+//     const chefResponse = await axios.get(`${djangoUrl}/etudiants/${chefId}/`, {
+//       headers: { Authorization: req.headers.authorization },
+//     });
+
+//     const chefName = chefResponse.data?.user?.last_name || "Chef";
+//     const groupName = `Groupe_${chefName}`;
+
+//     // Déterminer l'année académique
+//     const currentYear = new Date().getFullYear();
+//     const nextYear = currentYear + 1;
+//     const month = new Date().getMonth();
+//     const anneeAcademique = month >= 8 ? `${currentYear}-${nextYear}` : `${currentYear - 1}-${currentYear}`;
+
+//     // Vérifie que le chef n’a pas déjà créé de groupe cette année
+//     const existingGroup = await Group.findOne({ chef_id: chefId, annee_academique_id: anneeAcademique });
+//     if (existingGroup) {
+//       return res.status(400).json({
+//         error: `L'étudiant avec l'ID ${chefId} a déjà créé un groupe pour ${anneeAcademique}`,
+//       });
+//     }
+
+//     // Création du groupe
+//     const group = await Group.create({
+//       name: groupName,
+//       chef_id: chefId,
+//       members,
+//       annee_academique_id: anneeAcademique,
+//       moyenne_groupe: null
+//     });
+
+//     // Marquer le chef comme chef d’équipe côté Django
+//     await axios.patch(
+//       `${djangoUrl}/etudiants/${chefId}/`,
+//       { chef_equipe: true },
+//       { headers: { Authorization: req.headers.authorization } }
+//     );
+
+//     // Calcul de la moyenne du groupe
+//     const moyenne = await groupService.calculateGroupAverage(group._id, req.headers.authorization);
+//     const updatedGroup = await Group.findByIdAndUpdate(
+//       group._id,
+//       { moyenne_groupe: moyenne },
+//       { new: true }
+//     );
+
+//     res.status(201).json({
+//       success: true,
+//       group: updatedGroup,
+//       message: `Groupe '${groupName}' créé avec succès pour l'année ${anneeAcademique}`,
+//     });
+//   } catch (error) {
+//     console.error("Erreur création groupe avec membres:", error.message);
+//     res.status(500).json({
+//       error: "Erreur lors de la création du groupe",
+//       details: process.env.NODE_ENV === 'development' ? error.message : null,
+//     });
+//   }
+// };
+
 exports.getGroupMembers=async (req, res) => {
     try {
       const group = await Group.findById(req.params.id);
@@ -407,18 +567,28 @@ exports.inviteUser = async (req, res) => {
         if (group.members.includes(parseInt(userId))) {
             return res.status(400).json({
                 error: "L'utilisateur est déjà membre du groupe",
-                user_id: userId
+                user_id: userId,
+                group_id: groupId
             });
         }
 
-        // if (group.invitations.includes(parseInt(userId))) {
-        //     return res.status(400).json({
-        //         error: "L'utilisateur a déjà une invitation en attente",
-        //         user_id: userId
-        //     });
-        // }
+        // 4. Vérifier si l'utilisateur a déjà rejoint un autre groupe
+        const existingGroup = await Group.findOne({ 
+            members: { $in: [parseInt(userId)] } 
+        });
+        
+        if (existingGroup) {
+            return res.status(400).json({
+                error: "L'utilisateur a déjà rejoint un autre groupe",
+                user_id: userId,
+                existing_group_id: existingGroup._id,
+                existing_group_name: existingGroup.name
+            });
+        }
+       
 
-        // 4. Récupérer les infos de l'étudiant
+
+        // 5. Récupérer les infos de l'étudiant
         const djangoUrl = await discoverDjangoService();
         const userResponse = await axios.get(`${djangoUrl}/etudiants/${userId}/`, {
             headers: { Authorization: req.headers.authorization }
@@ -432,7 +602,7 @@ exports.inviteUser = async (req, res) => {
             });
         }
 
-        // 5. Récupérer les paramètres de groupe
+        // 6. Récupérer les paramètres de groupe
         const parametresResponse = await axios.get(`${djangoUrl}/parametre-groups/by-annee/?annee=${userAnneeEtude}`, {
             headers: { Authorization: req.headers.authorization }
         });
@@ -448,7 +618,7 @@ exports.inviteUser = async (req, res) => {
         const maxMembres = parseInt(parametres.nbr_max);
         const minMembres = parseInt(parametres.nbr_min);
 
-        // 6. Vérifier la capacité du groupe
+        // 7. Vérifier la capacité du groupe
         if (group.members.length >= maxMembres) {
             return res.status(400).json({ 
                 error: `Le groupe a atteint sa capacité maximale (${maxMembres} membres)`,
@@ -456,16 +626,16 @@ exports.inviteUser = async (req, res) => {
                 current_members: group.members.length
             });
         }
-
-        // 7. Vérifier la cohérence de l'année
+   
+        // 8. Vérifier la cohérence de l'année
         if (group.annee_etude && group.annee_etude !== userAnneeEtude) {
             return res.status(400).json({ 
                 error: "Incompatibilité d'année d'étude",
                 details: `Le groupe est pour l'année ${group.annee_etude} et l'utilisateur est en année ${userAnneeEtude}`
             });
         }
-
-        // 8. Envoyer l'invitation
+       
+        // 9. Envoyer l'invitation
         await Group.findByIdAndUpdate(
             groupId,
             { $addToSet: { invitations: parseInt(userId) } },
@@ -707,7 +877,8 @@ exports.recalculateAverage=async (req, res) => {
             chef: {
               id: chef.id,
               nom_complet: `${chef.prenom} ${chef.nom}`,
-              email: chef.email
+              email: chef.email,
+              annee_etude: chef.annee_etude || null             
             },
             specialite: chef.specialite || null,
             nombre_membres: membersDetails.length,
@@ -833,6 +1004,439 @@ exports.getGroupsByYearAndSpecialty=async (req, res) => {
       });
     }
   };
+// ta3 lamia s7i7a
+// exports.getAllGroups = async (req, res) => {
+//     try {
+//         // Récupérer tous les groupes avec les informations de base
+//         const groups = await Group.find({})
+//             .select('name chef_id members created_at moyenne_groupe annee_academique_id')
+//             .lean();
+
+//         res.json({
+//             success: true,
+//             count: groups.length,
+//             groups
+//         });
+//     } catch (error) {
+//         console.error("[ERROR] Getting all groups:", error);
+//         res.status(500).json({ 
+//             success: false,
+//             error: "Erreur serveur lors de la récupération des groupes"
+//         });
+//     }
+// };
+exports.assignUserToGroup = async (req, res) => {
+    try {
+        const { groupId, userId } = req.params;
+        const adminId = req.user.id;
+
+        // 1. Vérifier que l'utilisateur est admin
+        const djangoUrl = await discoverDjangoService();
+        const adminCheck = await axios.get(`${djangoUrl}/admins/${adminId}/`, {
+            headers: { Authorization: req.headers.authorization }
+        });
+
+        if (!adminCheck.data.isAdmin) {
+            return res.status(403).json({ 
+                error: "Action réservée aux administrateurs",
+                required_role: "admin"
+            });
+        }
+
+        // 2. Récupérer le groupe
+        const group = await Group.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ error: "Groupe non trouvé" });
+        }
+
+        // 3. Vérifier si l'utilisateur est déjà membre
+        if (group.members.includes(parseInt(userId))) {
+            return res.status(400).json({
+                error: "L'utilisateur est déjà membre du groupe",
+                user_id: userId,
+                group_id: groupId
+            });
+        }
+
+        // 4. Vérifier si l'utilisateur a déjà rejoint un autre groupe
+        const existingGroup = await Group.findOne({ 
+            members: { $in: [parseInt(userId)] },
+            _id: { $ne: groupId } // Exclure le groupe actuel
+        });
+        
+        if (existingGroup) {
+            return res.status(400).json({
+                error: "L'utilisateur a déjà rejoint un autre groupe",
+                user_id: userId,
+                existing_group_id: existingGroup._id,
+                existing_group_name: existingGroup.name
+            });
+        }
+
+        // 5. Récupérer les infos de l'étudiant
+        const userResponse = await axios.get(`${djangoUrl}/etudiants/${userId}/`, {
+            headers: { Authorization: req.headers.authorization }
+        });
+        
+        const userAnneeEtude = userResponse.data.annee_etude;
+        if (!userAnneeEtude) {
+            return res.status(400).json({ 
+                error: "L'année d'étude de l'utilisateur n'est pas définie",
+                user_id: userId
+            });
+        }
+
+        // 6. Récupérer les paramètres de groupe
+        const parametresResponse = await axios.get(`${djangoUrl}/parametre-groups/by-annee/?annee=${userAnneeEtude}`, {
+            headers: { Authorization: req.headers.authorization }
+        });
+
+        if (!parametresResponse.data || parametresResponse.data.length === 0) {
+            return res.status(400).json({ 
+                error: "Configuration des groupes non définie pour cette année",
+                annee: userAnneeEtude
+            });
+        }
+
+        const parametres = parametresResponse.data[0];
+        const maxMembres = parseInt(parametres.nbr_max);
+        const minMembres = parseInt(parametres.nbr_min);
+
+        // 7. Vérifier la capacité du groupe
+        if (group.members.length >= maxMembres) {
+            return res.status(400).json({ 
+                error: `Le groupe a atteint sa capacité maximale (${maxMembres} membres)`,
+                max_members: maxMembres,
+                current_members: group.members.length
+            });
+        }
+
+        // 8. Vérifier la cohérence de l'année
+        if (group.annee_etude && group.annee_etude !== userAnneeEtude) {
+            return res.status(400).json({ 
+                error: "Incompatibilité d'année d'étude",
+                details: `Le groupe est pour l'année ${group.annee_etude} et l'utilisateur est en année ${userAnneeEtude}`
+            });
+        }
+
+        // 9. Assigner l'utilisateur au groupe
+        group.members.push(parseInt(userId));
+        await group.save();
+
+        // 10. Calculer la nouvelle moyenne du groupe
+        const moyenne = await calculateGroupAverage(group._id, req);
+        await Group.findByIdAndUpdate(group._id, { moyenne_groupe: moyenne });
+
+        res.json({
+            success: true,
+            message: "Utilisateur assigné au groupe avec succès",
+            assignment: {
+                group: {
+                    id: group._id,
+                    name: group.name,
+                    annee_etude: group.annee_etude || userAnneeEtude
+                },
+                user: {
+                    id: userId,
+                    full_name: `${userResponse.data.prenom} ${userResponse.data.nom}`,
+                    email: userResponse.data.email,
+                    annee_etude: userAnneeEtude
+                },
+                constraints: {
+                    min_members: minMembres,
+                    max_members: maxMembres,
+                    current_members: group.members.length
+                },
+                assigned_by: adminId,
+                timestamp: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        console.error("Erreur assignation:", error);
+        
+        if (error.response?.status === 404) {
+            return res.status(404).json({ 
+                error: "Utilisateur ou groupe non trouvé",
+                details: error.response.data
+            });
+        }
+
+        res.status(500).json({ 
+            error: "Erreur lors de l'assignation de l'utilisateur au groupe",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
+
+exports.getGroupById = async (req, res) => {
+    const groupId = req.params.id;
+
+    try {
+        const group = await Group.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ error: 'Groupe non trouvé' });
+        }
+
+        return res.json(group);
+    } catch (err) {
+        return res.status(500).json({ error: 'Erreur serveur', details: err.message });
+    }
+};
+
+
+
+
+
+
+
+
+
+// exports.getAllGroups = async (req, res) => {
+//     try {
+//         // Récupérer tous les groupes avec les informations de base
+//         const groups = await Group.find({})
+//             .select('name chef_id members created_at moyenne_groupe annee_academique_id')
+//             .lean();
+
+//         res.json({
+//             success: true,
+//             count: groups.length,
+//             groups
+//         });
+//     } catch (error) {
+//         console.error("[ERROR] Getting all groups:", error);
+//         res.status(500).json({ 
+//             success: false,
+//             error: "Erreur serveur lors de la récupération des groupes"
+//         });
+//     }
+// };
+exports.assignUserToGroup = async (req, res) => {
+    try {
+        const { groupId, userId } = req.params;
+        const adminId = req.user.id;
+
+        // 1. Vérifier que l'utilisateur est admin
+        const djangoUrl = await discoverDjangoService();
+        const adminCheck = await axios.get(`${djangoUrl}/admins/${adminId}/`, {
+            headers: { Authorization: req.headers.authorization }
+        });
+
+        if (!adminCheck.data.isAdmin) {
+            return res.status(403).json({ 
+                error: "Action réservée aux administrateurs",
+                required_role: "admin"
+            });
+        }
+
+        // 2. Récupérer le groupe
+        const group = await Group.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ error: "Groupe non trouvé" });
+        }
+
+        // 3. Vérifier si l'utilisateur est déjà membre
+        if (group.members.includes(parseInt(userId))) {
+            return res.status(400).json({
+                error: "L'utilisateur est déjà membre du groupe",
+                user_id: userId,
+                group_id: groupId
+            });
+        }
+
+        // 4. Vérifier si l'utilisateur a déjà rejoint un autre groupe
+        const existingGroup = await Group.findOne({ 
+            members: { $in: [parseInt(userId)] },
+            _id: { $ne: groupId } // Exclure le groupe actuel
+        });
+        
+        if (existingGroup) {
+            return res.status(400).json({
+                error: "L'utilisateur a déjà rejoint un autre groupe",
+                user_id: userId,
+                existing_group_id: existingGroup._id,
+                existing_group_name: existingGroup.name
+            });
+        }
+
+        // 5. Récupérer les infos de l'étudiant
+        const userResponse = await axios.get(`${djangoUrl}/etudiants/${userId}/`, {
+            headers: { Authorization: req.headers.authorization }
+        });
+        
+        const userAnneeEtude = userResponse.data.annee_etude;
+        if (!userAnneeEtude) {
+            return res.status(400).json({ 
+                error: "L'année d'étude de l'utilisateur n'est pas définie",
+                user_id: userId
+            });
+        }
+
+        // 6. Récupérer les paramètres de groupe
+        const parametresResponse = await axios.get(`${djangoUrl}/parametre-groups/by-annee/?annee=${userAnneeEtude}`, {
+            headers: { Authorization: req.headers.authorization }
+        });
+
+        if (!parametresResponse.data || parametresResponse.data.length === 0) {
+            return res.status(400).json({ 
+                error: "Configuration des groupes non définie pour cette année",
+                annee: userAnneeEtude
+            });
+        }
+
+        const parametres = parametresResponse.data[0];
+        const maxMembres = parseInt(parametres.nbr_max);
+        const minMembres = parseInt(parametres.nbr_min);
+
+        // 7. Vérifier la capacité du groupe
+        if (group.members.length >= maxMembres) {
+            return res.status(400).json({ 
+                error: `Le groupe a atteint sa capacité maximale (${maxMembres} membres)`,
+                max_members: maxMembres,
+                current_members: group.members.length
+            });
+        }
+
+        // 8. Vérifier la cohérence de l'année
+        if (group.annee_etude && group.annee_etude !== userAnneeEtude) {
+            return res.status(400).json({ 
+                error: "Incompatibilité d'année d'étude",
+                details: `Le groupe est pour l'année ${group.annee_etude} et l'utilisateur est en année ${userAnneeEtude}`
+            });
+        }
+
+        // 9. Assigner l'utilisateur au groupe
+        group.members.push(parseInt(userId));
+        await group.save();
+
+        // 10. Calculer la nouvelle moyenne du groupe
+        const moyenne = await calculateGroupAverage(group._id, req);
+        await Group.findByIdAndUpdate(group._id, { moyenne_groupe: moyenne });
+
+        res.json({
+            success: true,
+            message: "Utilisateur assigné au groupe avec succès",
+            assignment: {
+                group: {
+                    id: group._id,
+                    name: group.name,
+                    annee_etude: group.annee_etude || userAnneeEtude
+                },
+                user: {
+                    id: userId,
+                    full_name: `${userResponse.data.prenom} ${userResponse.data.nom}`,
+                    email: userResponse.data.email,
+                    annee_etude: userAnneeEtude
+                },
+                constraints: {
+                    min_members: minMembres,
+                    max_members: maxMembres,
+                    current_members: group.members.length
+                },
+                assigned_by: adminId,
+                timestamp: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        console.error("Erreur assignation:", error);
+        
+        if (error.response?.status === 404) {
+            return res.status(404).json({ 
+                error: "Utilisateur ou groupe non trouvé",
+                details: error.response.data
+            });
+        }
+
+        res.status(500).json({ 
+            error: "Erreur lors de l'assignation de l'utilisateur au groupe",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
+// const Group = require('../models/group.model'); // adapte selon ton chemin
+
+exports.getGroupById = async (req, res) => {
+    const groupId = req.params.id;
+
+    try {
+        const group = await Group.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ error: 'Groupe non trouvé' });
+        }
+
+        return res.json(group);
+    } catch (err) {
+        return res.status(500).json({ error: 'Erreur serveur', details: err.message });
+    }
+};
+
+exports.getAllGroups = async (req, res) => {
+  try {
+    const allGroups = await Group.find({}).lean();
+
+    if (!allGroups.length) return res.json({ success: true, data: [] });
+
+    const djangoUrl = await discoverDjangoService();
+    if (!djangoUrl) throw new Error("Django service unavailable");
+
+    const result = [];
+
+    for (const group of allGroups) {
+      try {
+        const membersDetails = await getMembersDetails(
+          group.members,
+          djangoUrl,
+          req.headers.authorization
+        );
+
+        if (!membersDetails.length) continue;
+
+        const chef = membersDetails.find(m => m.id === group.chef_id) || membersDetails[0];
+        const year = typeof chef.annee_etude === 'number' ? chef.annee_etude : null;
+
+        const moyenne = await calculateGroupAverage2(
+          group.members,
+          djangoUrl,
+          req.headers.authorization
+        );
+
+        result.push({
+          id: group._id,
+          nom: group.name,
+          chef: {
+            id: chef.id,
+            nom_complet: `${chef.prenom} ${chef.nom}`,
+            email: chef.email
+          },
+          specialite: chef.specialite || null,
+          nombre_membres: membersDetails.length,
+          moyenne_groupe: moyenne,
+          annee_etude: year,
+          date_creation: group.created_at
+        });
+
+      } catch (error) {
+        console.error(`Error processing group ${group._id}:`, error.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      data: result
+    });
+
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
 
 
 

@@ -1,5 +1,4 @@
 
-
 from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -164,7 +163,11 @@ class ThemeAPIView(APIView):
                     "idSender": user_data['user_id'],
                     "title": "Nouveau thème créé",
                     "message": f"Nouveau thème créé : {theme.titre}",
-                    "type": "CREATION_THEME"
+                    "type": "CREATION_THEME",
+                    "metadata": {
+                        "resume": theme.resume,
+                        "themeId": theme.id
+                    }
                 },
                 timeout=3  # 3 seconds timeout
             )
@@ -174,6 +177,166 @@ class ThemeAPIView(APIView):
 
         return Response(ThemeSerializer(theme).data, status=status.HTTP_201_CREATED)
     
+        if serializer.is_valid():
+            theme = serializer.save()
+
+            # ✅ Génère automatiquement le PDF après la création du thème
+            return generate_pdf(request, theme.id)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+import requests
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.conf import settings
+from .models import Theme
+from .serializers import ThemeSerializer
+
+
+def get_service3_url():
+    try:
+        res = requests.get("http://localhost:8761/eureka/apps/SERVICE3-NODE", headers={'Accept': 'application/json'})
+        res.raise_for_status()
+        instances = res.json()['application']['instance']
+        instance = instances[0] if isinstance(instances, list) else instances
+        host = instance['hostName']
+        port = instance['port']['$']
+        return f"http://{host}:{port}"
+    except Exception as e:
+        print("❌ Erreur découverte service 3 via Eureka:", e)
+        return "http://localhost:3000"  
+
+
+import os
+import requests
+from django.conf import settings
+from django.template.loader import render_to_string
+from django.core.files.base import ContentFile
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from weasyprint import HTML
+
+
+def resolve_eureka_service_url(service_name, fallback_url):
+    try:
+        res = requests.get(f"http://localhost:8761/eureka/apps/{service_name.upper()}", timeout=3)
+        res.raise_for_status()
+        app = res.json()['application']['instance'][0]
+        return f"http://{app['ipAddr']}:{app['port']['$']}"
+    except Exception as e:
+        print(f"[Eureka] Erreur de résolution pour {service_name}: {e}")
+        return fallback_url
+
+def get_service4_url():
+    return resolve_eureka_service_url("SERVICE4-CLIENT", "http://localhost:8003")
+
+
+import os
+import requests
+from django.conf import settings
+from django.template.loader import render_to_string
+from django.core.files.base import ContentFile
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from weasyprint import HTML
+
+
+
+class ThemeWithGroupCreateView(APIView):
+    permission_classes = []  # À adapter selon besoin (ex: IsAuthenticated)
+
+    def post(self, request):
+        # Vérification utilisateur et rôle enseignant
+        user_data = verify_user(request, role=["enseignant"])
+        if not user_data or not user_data.get("is_enseignant"):
+            return Response({"detail": "Accès refusé."}, status=status.HTTP_403_FORBIDDEN)
+
+        data = request.data.copy()
+        data['enseignant_id'] = user_data['user_id']
+
+        # Création du thème
+        serializer = ThemeSerializer(data=data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        theme = serializer.save()
+
+        # Validation champ members
+        members = data.get('members')
+        if not isinstance(members, list) or not members:
+            theme.delete()
+            return Response({"detail": "Le champ 'members' est requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Création du groupe via SERVICE3
+        group_payload = {
+            "members": members,
+            "theme_id": str(theme.id)  # Convertir en string si besoin
+        }
+
+        try:
+            service3_url = get_service3_url()
+            group_response = requests.post(
+                f"{service3_url}/api/groups/create-group-with-members",
+                json=group_payload,
+                headers={"Authorization": request.headers.get("Authorization")},
+                timeout=10
+            )
+            group_response.raise_for_status()
+            group_data = group_response.json()
+            group_id = group_data.get("group", {}).get("_id")
+
+            # group_id = group_data.get("id") or group_data.get("_id")  # selon format de réponse
+        except requests.RequestException as e:
+            theme.delete()
+            return Response({
+                "detail": "Erreur lors de la création du groupe via SERVICE3.",
+                "error": str(e)
+            }, status=status.HTTP_502_BAD_GATEWAY)
+
+        # Génération du PDF
+        try:
+            logo_abspath = os.path.abspath(os.path.join(settings.BASE_DIR, 'static', 'logo.png'))
+            logo_path = f'file:///{logo_abspath.replace(os.sep, "/")}'
+            context = {
+                'theme': theme,
+                'encadreur': get_nom_enseignant(theme.enseignant_id),
+                'logo_path': logo_path
+            }
+            html_string = render_to_string('theme_pdf_template.html', context)
+            pdf_content = HTML(string=html_string).write_pdf()
+            theme.option_pdf.save(f'fiche_projet_{theme.titre}.pdf', ContentFile(pdf_content))
+        except Exception as e:
+            print("❌ Erreur lors de la génération du PDF:", e)
+
+        # Affectation manuelle via SERVICE4 (avec token admin fixe)
+        try:
+            service4_url = get_service4_url()
+            assign_payload = {
+                "group_id": str(group_id),
+                "theme_id": str(theme.id)
+            }
+            admin_auth_header = {"Authorization": settings.SERVICE4_ADMIN_TOKEN}
+
+            assign_response = requests.post(
+                f"{service4_url}/assign-manual/",
+                json=assign_payload,
+                headers=admin_auth_header,
+                timeout=10
+            )
+            assign_response.raise_for_status()
+            assignment_data = assign_response.json()
+        except requests.RequestException as e:
+            print("❌ Erreur lors de l'affectation manuelle (SERVICE4):", e)
+            assignment_data = None
+
+        return Response({
+            "theme": ThemeSerializer(theme).data,
+            "group": group_data,
+            "assignment": assignment_data,
+            "message": "Thème, groupe, PDF et assignation créés avec succès."
+        }, status=status.HTTP_201_CREATED)
+
 # 📄 Retrieve, Update, Delete single theme
 class ThemeDetailAPIView(APIView):
 

@@ -98,7 +98,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
@@ -108,16 +108,17 @@ const upload = multer({
 // ======================
 const DocumentSchema = new mongoose.Schema({
   title: { type: String, required: false },
+  title: { type: String, required: false },
   description: String,
   fileUrl: { type: String, required: true },
-  status: { 
-    type: String, 
+  status: {
+    type: String,
     default: 'en attente',
     enum: ['en attente', 'valide', 'refuse']
   },
   createdAt: { type: Date, default: Date.now },
   createdBy: { type: mongoose.Schema.Types.Mixed, required: true },
-  
+
   teacherId: { type: String, required: true },
   note: { type: String, default: '' }
 });
@@ -127,10 +128,13 @@ const rendezVousSchema = new mongoose.Schema({
   groupeId: { type: String, required: true },
   salle: { type: String, required: true },
   heure: { type: String, required: true },
-  minutes: { type: String, required: true },
-  ampm: { type: String, required: true },
+  minutes: { type: String, required: false },
+  ampm: { type: String, required: false },
+  minutes: { type: String, required: false },
+  ampm: { type: String, required: false },
   date: { type: String, required: true },
-  jour: { type: String, required: true },
+  jour: { type: String, required: false },
+  jour: { type: String, required: false },
   enseignantId: { type: Number, required: true } 
 
 }, { timestamps: true });
@@ -155,9 +159,12 @@ const authenticateJWT = (req, res, next) => {
 };
 const authenticateEtudiant = async (req, res, next) => {
   try {
-////c quoi api/is-etudiant
-    const service1Url = await discoverService(SERVICE1_NAME); 
-    const verify = await axios.get(`${service1Url}/api/is-etudiant/`, {
+    // Découverte dynamique du Service 1 (DRF)
+    const service1Url = await discoverService(process.env.SERVICE1_NAME); // SERVICE1-CLIENT
+
+    const verifyUrl = `${service1Url}/api/is-etudiant/`;
+
+    const verify = await axios.get(verifyUrl, {
       headers: { Authorization: `Bearer ${req.token}` }
     });
 
@@ -167,14 +174,34 @@ const authenticateEtudiant = async (req, res, next) => {
 
     next();
   } catch (err) {
-    console.error("Erreur middleware authenticateEtudiant:", err);
+    console.error("Erreur middleware authenticateEtudiant:", err.message);
     const message = err.response?.data?.error || err.message;
     res.status(500).json({ error: "Erreur de vérification étudiant", detail: message });
   }
 };
 
 module.exports = authenticateEtudiant;
+// const authenticateEtudiant = async (req, res, next) => {
+//   try {
 
+
+//     const verify = await axios.get('http://localhost:8000/api/is-etudiant/', {
+//       headers: { Authorization: `Bearer ${req.token}` }
+//     });
+
+//     if (!verify.data.is_etudiant) {
+//       return res.status(403).json({ error: "Vérification externe échouée : accès refusé" });
+//     }
+
+//     next();
+//   } catch (err) {
+//     console.error("Erreur middleware authenticateEtudiant:", err);
+//     const message = err.response?.data?.error || err.message;
+//     res.status(500).json({ error: "Erreur de vérification étudiant", detail: message });
+//   }
+// };
+
+// module.exports = authenticateEtudiant;
 const authenticateTeacherJWT = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
@@ -187,9 +214,13 @@ const authenticateTeacherJWT = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Appel à Service 1 pour vérifier si c'est un enseignant
-    const service1Url = await discoverService(SERVICE1_NAME); 
-    const response = await axios.get(`${service1Url}/api/verify-enseignant/`, {
+    // Découverte dynamique de Service 1 (DRF)
+    const service1Url = await discoverService(process.env.SERVICE1_NAME); // SERVICE1-CLIENT
+
+    const verifyUrl = `${service1Url}/api/verify-enseignant/`;
+
+    // Vérification auprès du Service 1
+    const response = await axios.get(verifyUrl, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
@@ -208,6 +239,39 @@ const authenticateTeacherJWT = async (req, res, next) => {
     return res.status(403).json({ error: "Invalid or expired token" });
   }
 };
+
+// const authenticateTeacherJWT = async (req, res, next) => {
+//   const authHeader = req.headers.authorization;
+//   if (!authHeader) {
+//     return res.status(401).json({ error: "Authorization header missing" });
+//   }
+
+//   const token = authHeader.split(' ')[1];
+//   req.token = token;
+
+//   try {
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+//     // Appel à Service 1 pour vérifier si c'est un enseignant
+//     const response = await axios.get('http://localhost:8000/api/verify-enseignant/', {
+//       headers: { Authorization: `Bearer ${token}` }
+//     });
+
+//     if (!response.data.is_enseignant) {
+//       return res.status(403).json({ error: "Only teachers can access this resource" });
+//     }
+
+//     req.user = {
+//       ...decoded,
+//       user_id: response.data.user_id,
+//     };
+
+//     next();
+//   } catch (err) {
+//     console.error("Authentication error:", err.message);
+//     return res.status(403).json({ error: "Invalid or expired token" });
+//   }
+// };
 
 
 // ======================
@@ -244,8 +308,11 @@ app.post('/api/create-document', authenticateJWT, upload.single('document'), asy
 
     const groupId = userGroups[0]._id;
 
-    // Service 4 est encore en localhost ici (tu peux aussi le rendre dynamique plus tard)
-    const encadrantResponse = await axios.get(`http://localhost:8003/encadrant-by-group/${groupId}`);
+    
+    // const encadrantResponse = await axios.get(`http://localhost:8003/encadrant-by-group/${groupId}`);
+    // const encadrantId = encadrantResponse.data.encadrant_id;
+    const service4Url = await discoverService(SERVICE4_NAME);
+    const encadrantResponse = await axios.get(`${service4Url}/encadrant-by-group/${groupId}`);
     const encadrantId = encadrantResponse.data.encadrant_id;
 
     if (!encadrantId) {
@@ -260,6 +327,7 @@ app.post('/api/create-document', authenticateJWT, upload.single('document'), asy
       status: 'en attente',
       createdBy: req.user.user_id,
       teacherId: encadrantId,
+      groupId: groupId,
       note: req.body.note || '',
     });
 
@@ -272,6 +340,74 @@ app.post('/api/create-document', authenticateJWT, upload.single('document'), asy
     res.status(500).json({ error: "Failed to create document", detail: message });
   }
 });
+app.post('/api/create-document/:groupId', authenticateJWT, upload.single('document'), async (req, res) => {
+  try {
+    const { SERVICE1_NAME, SERVICE3_NAME, SERVICE4_NAME } = process.env;
+    const groupId = req.params.groupId;
+
+    if (!groupId) {
+      return res.status(400).json({ error: "groupId is required in the URL" });
+    }
+
+    // Vérifier si l'utilisateur est un étudiant
+    const service1Url = await discoverService(SERVICE1_NAME);
+    const verifyEtudiant = await axios.get(`${service1Url}/api/is-etudiant/`, {
+      headers: { Authorization: `Bearer ${req.token}` }
+    });
+
+    if (!verifyEtudiant.data.is_etudiant) {
+      return res.status(403).json({ error: "Only students can submit documents" });
+    }
+
+    // Vérifier si l'utilisateur appartient au groupe
+    const service3Url = await discoverService(SERVICE3_NAME);
+    const groupsResponse = await axios.get(`${service3Url}/api/groups/user`, {
+      headers: { Authorization: `Bearer ${req.token}` }
+    });
+
+    const userGroups = groupsResponse.data;
+    const belongsToGroup = userGroups.some(group => group._id === groupId);
+
+    if (!belongsToGroup) {
+      return res.status(403).json({ error: "User does not belong to this group" });
+    }
+
+    // Vérification du fichier
+    if (!req.file || !req.body.title) {
+      return res.status(400).json({ error: "File and title are required" });
+    }
+
+    // Récupération de l'encadrant via Service 4
+    const service4Url = await discoverService(SERVICE4_NAME);
+    const encadrantResponse = await axios.get(`${service4Url}/encadrant-by-group/${groupId}`);
+    const encadrantId = encadrantResponse.data.encadrant_id;
+
+    if (!encadrantId) {
+      return res.status(400).json({ error: "No encadrant found for the group" });
+    }
+
+    // Création du document
+    const newDoc = new Document({
+      title: req.body.title,
+      description: req.body.description || '',
+      fileUrl: `/uploads/${req.file.filename}`,
+      status: 'en attente',
+      createdBy: req.user.user_id,
+      teacherId: encadrantId,
+      groupId: groupId,
+      note: req.body.note || '',
+    });
+
+    await newDoc.save();
+    res.status(201).json(newDoc);
+
+  } catch (error) {
+    console.error("Error in document creation:", error);
+    const message = error.response?.data?.error || error.message;
+    res.status(500).json({ error: "Failed to create document", detail: message });
+  }
+});
+
 
 // app.post('/api/create-document', authenticateJWT, upload.single('document'), async (req, res) => {
 //   try {
@@ -386,6 +522,23 @@ app.post('/api/create-document', authenticateJWT, upload.single('document'), asy
 //     res.status(500).json({ error: err.message });
 //   }
 // });
+app.get('/api/documents/:id', authenticateJWT, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const document = await Document.findById(id).lean(); // lean() returns a plain JS object
+
+    if (!document) {
+      return res.status(404).json({ success: false, error: 'Document non trouvé' });
+    }
+
+    res.json({ success: true, document });
+  } catch (error) {
+    console.error('Erreur récupération document par ID:', error.message);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
+  }
+});
+
 app.get('/api/groups/:group_id/documents', authenticateJWT, async (req, res) => {
   try {
     const { group_id } = req.params;
@@ -419,7 +572,11 @@ app.get('/api/groups/:group_id/documents', authenticateJWT, async (req, res) => 
       fileUrl: doc.fileUrl,
       createdBy: doc.createdBy,
       etudiantNom: idToNomPrenom[doc.createdBy] || 'Étudiant inconnu',
+       
+    
     }));
+
+
 
     res.json({ success: true, documents: documentsWithCreator });
   } catch (error) {
@@ -589,26 +746,78 @@ app.post('/api/enseignant/document/:id/note', authenticateTeacherJWT, async (req
     return res.status(500).json({ error: "Erreur serveur", detail: err.message });
   }
 });
+app.get('/api/groups/:group_id/documents', authenticateJWT, async (req, res) => {
+  try {
+    const { group_id } = req.params;
+
+    // URL du service groupe
+    const groupServiceUrl = 'http://localhost:3000';
+
+    // Appel pour récupérer les membres
+    const membersResponse = await axios.get(`${groupServiceUrl}/api/groups/${group_id}/members`, {
+      headers: { Authorization: req.headers.authorization },
+    });
+
+    if (!membersResponse.data.success) {
+      return res.status(404).json({ error: 'Membres du groupe non trouvés' });
+    }
+
+    const members = membersResponse.data.members;
+    const memberIds = members.map(m => m.id);
+
+    // Rechercher documents dont createdBy est dans memberIds
+    const documents = await Document.find({ createdBy: { $in: memberIds } }).lean();
+
+    // Construire map id -> "nom prenom"
+    const idToNomPrenom = {};
+    members.forEach(m => {
+      idToNomPrenom[m.id] =`${m.nom} ${m.prenom}`;
+    });
+
+    const documentsWithCreator = documents.map(doc => ({
+      _id: doc._id,
+      title: doc.title,
+      status: doc.status,
+      fileUrl: doc.fileUrl,
+      createdBy: doc.createdBy,
+      etudiantNom: idToNomPrenom[doc.createdBy] || 'Étudiant inconnu',
+      createdAt: doc.createdAt ? doc.createdAt.toISOString().slice(0, 10) : null,
+    }));
+
+    res.json({ success: true, documents: documentsWithCreator });
+  } catch (error) {
+    console.error('Erreur récupération documents du groupe:', error.message);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 
 
 
 app.post('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (req, res) => {
-  const { salle, heure, minutes, ampm, date, jour } = req.body;
+  const { salle, heure, date } = req.body;
   const { groupId } = req.params;
   const enseignantId = req.user.user_id;
 
-  if (!salle || !heure || !minutes || !ampm || !date || !jour) {
+  if (!salle || !heure || !date) {
     return res.status(400).json({ error: "Tous les champs sont requis." });
   }
 
   try {
     console.log('Token envoyé à Service 4:', req.token);
     
-    const verifyUrl = `http://localhost:8003/encadreur/group/${groupId}`;
+    // const verifyUrl = `http://localhost:8003/encadreur/group/${groupId}`;
+    // const response = await axios.get(verifyUrl, {
+    //   headers: { Authorization: `Bearer ${req.token}` }
+    // });
+    const { SERVICE4_NAME } = process.env;
+    const service4Url = await discoverService(SERVICE4_NAME);
+
+    const verifyUrl = `${service4Url}/encadreur/group/${groupId}`;
     const response = await axios.get(verifyUrl, {
       headers: { Authorization: `Bearer ${req.token}` }
     });
-
+    
     if (!response.data.authorized) {
       return res.status(403).json({ error: "Vous n'êtes pas l'encadrant de ce groupe." });
     }
@@ -616,11 +825,8 @@ app.post('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (
     const rdv = new RendezVous({
       groupeId: groupId,
       salle,
-      heure,
-      minutes,
-      ampm,
       date,
-      jour,
+      heure,
       enseignantId
     });
 
@@ -636,14 +842,20 @@ app.post('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (
     res.status(500).json({ error: "Erreur lors de la création du rendez-vous." });
   }
 });
-// GET /api/enseignant/rendez-vous/:groupId
 app.get('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (req, res) => {
   const { groupId } = req.params;
   const enseignantId = req.user.user_id;
 
   try {
     // Vérifier que l'enseignant encadre ce groupe via Service 4
-    const verifyUrl = `http://localhost:8003/encadreur/group/${groupId}`;
+    // const verifyUrl = `http://localhost:8003/encadreur/group/${groupId}`;
+    // const response = await axios.get(verifyUrl, {
+    //   headers: { Authorization: `Bearer ${req.token}` }
+    // });
+    const { SERVICE4_NAME } = process.env;
+    const service4Url = await discoverService(SERVICE4_NAME);
+
+    const verifyUrl = `${service4Url}/encadreur/group/${groupId}`;
     const response = await axios.get(verifyUrl, {
       headers: { Authorization: `Bearer ${req.token}` }
     });
@@ -662,6 +874,19 @@ app.get('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (r
     if (error.response) {
       return res.status(error.response.status).json({ error: error.response.data });
     }
+    res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous." });
+  }
+});
+// GET /api/enseignant/rendez-vous
+app.get('/api/enseignant/rendez-vous', authenticateTeacherJWT, async (req, res) => {
+  const enseignantId = req.user.user_id;
+
+  try {
+    const rdvs = await RendezVous.find({ enseignantId });
+
+    res.status(200).json({ rendezvous: rdvs });
+  } catch (error) {
+    console.error(error.message);
     res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous." });
   }
 });
@@ -694,28 +919,78 @@ app.get('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (r
 //     res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous." });
 //   }
 // });
+// app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
+//   try {
+//     // Découverte dynamique de SERVICE3-NODE
+//     const service3Url = await discoverService(process.env.SERVICE3_NAME); // SERVICE3-NODE
+
+//     // Appel vers /api/groups/user pour cet étudiant
+//     const groupsResponse = await axios.get(`${service3Url}/api/groups/user`, {
+//       headers: { Authorization: `Bearer ${req.token}` }
+//     });
+
+//     const userGroups = groupsResponse.data;
+//     if (!userGroups.length) {
+//       return res.status(404).json({ error: "Vous n'appartenez à aucun groupe." });
+//     }
+
+//     const groupIds = userGroups.map(g => g._id);
+
+//     const rendezvous = await RendezVous.find({ groupeId: { $in: groupIds } });
+
+//     res.json({ rendezvous });
+
+//   } catch (error) {
+//     console.error("Erreur récupération rendez-vous:", error.message);
+//     if (error.response) {
+//       return res.status(error.response.status).json({ error: error.response.data });
+//     }
+//     res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous." });
+//   }
+// });
+
 app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
   try {
-    // Découverte dynamique de SERVICE3-NODE
-    const service3Url = await discoverService(process.env.SERVICE3_NAME); // SERVICE3-NODE
+    const token = req.token;
 
-    // Appel vers /api/groups/user pour cet étudiant
+    // Découverte dynamique de SERVICE3-NODE
+    const service3Url = await discoverService(process.env.SERVICE3_NAME);
+
+    // Appel pour récupérer les groupes de l'étudiant
     const groupsResponse = await axios.get(`${service3Url}/api/groups/user`, {
-      headers: { Authorization: `Bearer ${req.token}` }
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     const userGroups = groupsResponse.data;
+
+
     if (!userGroups.length) {
       return res.status(404).json({ error: "Vous n'appartenez à aucun groupe." });
     }
 
+    // Map des _id => name pour tous les groupes
+    const groupMap = {};
+    userGroups.forEach(group => {
+      groupMap[group._id] = group.name;
+    });
+
+
     const groupIds = userGroups.map(g => g._id);
 
+    // Récupération des rendez-vous pour ces groupes
+    // Récupération des rendez-vous pour ces groupes
     const rendezvous = await RendezVous.find({ groupeId: { $in: groupIds } });
 
-    res.json({ rendezvous });
+    // Ajouter group_name à chaque rendez-vous
+    const enrichedRendezvous = rendezvous.map(rdv => ({
+      ...rdv.toObject(),
+      group_name: groupMap[rdv.groupeId] || null
+    }));
+
+    res.json({ rendezvous: enrichedRendezvous });
 
   } catch (error) {
+    console.error("Erreur récupération rendez-vous:", error.message);
     console.error("Erreur récupération rendez-vous:", error.message);
     if (error.response) {
       return res.status(error.response.status).json({ error: error.response.data });
@@ -723,6 +998,85 @@ app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
     res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous." });
   }
 });
+app.put('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (req, res) => {
+  const { groupId } = req.params;
+  const enseignantId = req.user.user_id;
+  const { date, heure, salle } = req.body;
+
+  try {
+    // Vérifier que l’enseignant encadre ce groupe via SERVICE4
+    const { SERVICE4_NAME } = process.env;
+    const service4Url = await discoverService(SERVICE4_NAME);
+    const verifyUrl = `${service4Url}/encadreur/group/${groupId}`;
+    
+    const response = await axios.get(verifyUrl, {
+      headers: { Authorization: `Bearer ${req.token}` }
+    });
+
+    if (!response.data.authorized) {
+      return res.status(403).json({ error: "Vous n'êtes pas l'encadrant de ce groupe." });
+    }
+
+    // Trouver le rendez-vous existant pour ce groupe et cet enseignant
+    const rdv = await RendezVous.findOne({ groupeId: groupId, enseignantId: enseignantId });
+    if (!rdv) {
+      return res.status(404).json({ error: "Aucun rendez-vous trouvé pour ce groupe." });
+    }
+
+    // Mettre à jour les champs si fournis
+    if (date) rdv.date = date;
+    if (heure) rdv.heure = heure;
+    if (salle) rdv.salle = salle;
+
+    await rdv.save();
+
+    res.status(200).json({ message: "Rendez-vous mis à jour avec succès.", rendezvous: rdv });
+
+  } catch (error) {
+    console.error(error.message);
+    if (error.response) {
+      return res.status(error.response.status).json({ error: error.response.data });
+    }
+    res.status(500).json({ error: "Erreur lors de la mise à jour du rendez-vous." });
+  }
+});
+app.delete('/api/enseignant/rendez-vous/:rendezVousId', authenticateTeacherJWT, async (req, res) => {
+  const { rendezVousId } = req.params;
+  const enseignantId = req.user.user_id;
+
+  try {
+    const rdv = await RendezVous.findById(rendezVousId);
+
+    if (!rdv) {
+      return res.status(404).json({ error: "Rendez-vous introuvable." });
+    }
+
+    // Vérifier que l’enseignant encadre ce groupe via SERVICE4
+    const { SERVICE4_NAME } = process.env;
+    const service4Url = await discoverService(SERVICE4_NAME);
+    const verifyUrl = `${service4Url}/encadreur/group/${rdv.groupeId}`;
+
+    const response = await axios.get(verifyUrl, {
+      headers: { Authorization: `Bearer ${req.token}` }
+    });
+
+    if (!response.data.authorized) {
+      return res.status(403).json({ error: "Vous n'êtes pas l'encadrant de ce groupe." });
+    }
+
+    await rdv.deleteOne();
+
+    res.status(200).json({ message: "Rendez-vous supprimé avec succès." });
+
+  } catch (error) {
+    console.error("Erreur complète :", error.message);
+    if (error.response) {
+      return res.status(error.response.status).json({ error: error.response.data });
+    }
+    res.status(500).json({ error: "Erreur lors de la suppression du rendez-vous." });
+  }
+});
+
 
 // Health Check Endpoints (Required for Eureka)
 app.get('/health', (req, res) => {
@@ -742,7 +1096,7 @@ app.get('/info', (req, res) => {
 // ======================
 app.listen(PORT, async () => {
   console.log(`Service 5 running on port ${PORT}`);
-  
+
   // Start Eureka Client
   eurekaClient.start(error => {
     if (error) {

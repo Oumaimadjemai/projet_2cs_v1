@@ -3,28 +3,33 @@ import '../Styles/GroupDetail.css';
 import { ReactComponent as SearchIcon } from '../../../Assets/Icons/Search.svg';
 import { ReactComponent as ArrowIcon } from '../../../Assets/Icons/Arrow.svg';
 import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/notFound.svg';
-import { ReactComponent as CloseIcon } from '../../../Assets/Icons/close.svg'
 import { AppContext } from '../../../App';
 import '../../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { nodeAxios } from '../../../axios';
-
+import { nodeAxios,nodeAxios2} from '../../../axios';
+import { AjouterDocument } from './AjouterDocument';
+import { NavLink } from 'react-router-dom';
 function DetailGroupe() {
-    const documents = [
-        { id: 1, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
-        { id: 2, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Refuser" },
-        { id: 3, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
-        { id: 1, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "En Attente" },
+    // const documents = [
+    //     { id: 1, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
+    //     { id: 2, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Refuser" },
+    //     { id: 3, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
+    //     { id: 1, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "En Attente" },
      
-    ];
+    // ];
      const { id: groupId } = useParams();
     const [groupName, setGroupName] = useState(''); // Déclaration du state
     const [members, setMembers] = useState([]);
     const [chefId, setChefId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+ 
+    const [documents, setDocuments] = useState([]);
 
+    const [loadingDocuments, setLoadingDocuments] = useState(false);
+
+    
     useEffect(() => {
         const fetchGroupMembers = async () => {
             try {
@@ -46,19 +51,40 @@ function DetailGroupe() {
             fetchGroupMembers();
         }
     }, [groupId]);
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case "Validé":
-                return "#6FCF97"
-            case "En Attente":
-                return "#925FE2"
-            case "Refuser":
-                return "#D42803"
-            default:
-                return "black";
+     const fetchGroupDocuments = async () => {
+        try {
+            setLoadingDocuments(true);
+            const response = await nodeAxios2.get(`/groups/${groupId}/documents`);
+            setDocuments(response.data.documents);
+        } catch (err) {
+            setError(err.response?.data?.message || err.message || 'Erreur serveur');
+        } finally {
+            setLoadingDocuments(false);
         }
     };
+
+useEffect(() => {
+   
+    if (groupId) {
+        fetchGroupDocuments();
+    }
+}, [groupId]);
+    const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case "validé":
+      case "accepté":
+        return "#6FCF97";
+      case "en attente":
+      case "pending":
+        return "#925FE2";
+      case "refusé":
+      case "refuser":
+      case "rejeté":
+        return "#D42803";
+      default:
+        return "black";
+    }
+  };
 
     const [isVisible, setIsVisible] = useState(false);
     const dynamicListRef = useRef(null);
@@ -101,6 +127,8 @@ function DetailGroupe() {
 
     const [groupeDetailClicked, setGroupeClicked] = useState(false)
 
+    const [ajouterDocument, setAjouterDocument] = useState(false)
+
     return (
         <div className='groupes-liste-container' id='dynamic-liste' ref={dynamicListRef}>
             <div className="groupes-liste-wrapper" style={{ paddingRight: isRtl ? "0" : "12px", paddingLeft: isRtl ? "12px" : "0" }}>
@@ -109,12 +137,26 @@ function DetailGroupe() {
                         Mes Groupes  &gt; <span style={{ color: "#925FE2" }}>{groupName}</span>
                     </h1>
                     <div style={{ display: "flex", gap: "1.1rem", alignItems: "center", marginRight: "1rem" }}>
-                        <button>
+                        <button onClick={() => setAjouterDocument(true)} className='ajout-btn'>
                             <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M11 13.5H6C5.71667 13.5 5.47934 13.404 5.288 13.212C5.09667 13.02 5.00067 12.7827 5 12.5C4.99934 12.2173 5.09534 11.98 5.288 11.788C5.48067 11.596 5.718 11.5 6 11.5H11V6.5C11 6.21667 11.096 5.97934 11.288 5.788C11.48 5.59667 11.7173 5.50067 12 5.5C12.2827 5.49934 12.5203 5.59534 12.713 5.788C12.9057 5.98067 13.0013 6.218 13 6.5V11.5H18C18.2833 11.5 18.521 11.596 18.713 11.788C18.905 11.98 19.0007 12.2173 19 12.5C18.9993 12.7827 18.9033 13.0203 18.712 13.213C18.5207 13.4057 18.2833 13.5013 18 13.5H13V18.5C13 18.7833 12.904 19.021 12.712 19.213C12.52 19.405 12.2827 19.5007 12 19.5C11.7173 19.4993 11.48 19.4033 11.288 19.212C11.096 19.0207 11 18.7833 11 18.5V13.5Z" fill="white" />
                             </svg>
                             Déposer un Document
                         </button>
+                        
+
+
+{/* <NavLink 
+  to={`/etudiant/groupes/${groupId}/rendezvous`}
+  className={({ isActive }) => isActive ? "active-link" : ""}
+>
+  <button className='ajout-btn'>
+    <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 13.5H6C5.71667 13.5 5.47934 13.404 5.288 13.212C5.09667 13.02 5.00067 12.7827 5 12.5C4.99934 12.2173 5.09534 11.98 5.288 11.788C5.48067 11.596 5.718 11.5 6 11.5H11V6.5C11 6.21667 11.096 5.97934 11.288 5.788C11.48 5.59667 11.7173 5.50067 12 5.5C12.2827 5.49934 12.5203 5.59534 12.713 5.788C12.9057 5.98067 13.0013 6.218 13 6.5V11.5H18C18.2833 11.5 18.521 11.596 18.713 11.788C18.905 11.98 19.0007 12.2173 19 12.5C18.9993 12.7827 18.9033 13.0203 18.712 13.213C18.5207 13.4057 18.2833 13.5013 18 13.5H13V18.5C13 18.7833 12.904 19.021 12.712 19.213C12.52 19.405 12.2827 19.5007 12 19.5C11.7173 19.4993 11.48 19.4033 11.288 19.212C11.096 19.0207 11 18.7833 11 18.5V13.5Z" fill="white" />
+    </svg>
+    Rendezvous
+  </button>
+</NavLink> */}
                         <span style={{ display: "flex", gap: "10px", alignItems: "center", fontFamily: "Kumbh Sans, sans-serif", fontWeight: "600", color: "#925FE2", cursor: "pointer" }} onClick={() => setGroupeClicked(true)}>
                             Sur le Groupe
                             <svg width="8" height="12" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -138,153 +180,147 @@ function DetailGroupe() {
                         </button>
                         <div className="input-line">
                             <SearchIcon />
-                            <input type="text" placeholder="Rechercher un groupe par N° groupe ou nom" />
+                            <input type="text" placeholder="Rechercher un document par nom" />
                         </div>
                     </div>
                 </div>
 
-                <div className="groupes-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th
-                                    style={{
-                                        borderTopLeftRadius: isRtl ? "0" : "8px",
-                                        borderTopRightRadius: isRtl ? "8px" : "0",
-                                        borderBottomLeftRadius: isRtl ? "0" : "8px",
-                                        borderBottomRightRadius: isRtl ? "8px" : "0",
-                                        borderLeft: isRtl ? undefined : "1px solid #E4E4E4",
-                                        borderRight: isRtl ? "1px solid #E4E4E4" : undefined,
-                                        width: "20%",
-                                        paddingLeft: isRtl ? undefined : "1rem",
-                                        paddingRight: isRtl ? "0.5rem" : undefined,
-                                        textAlign: isRtl ? "right" : "left"
-                                    }}
-                                >
-                                    Document
-                                </th>
-                                <th style={{ width: "16%" }}>Date</th>
-                                <th style={{ width: "25%" }}>Déposer Par</th>
-                                <th style={{ width: "100% !important" }}>Status</th>
-                                <th
-                                    style={{
-                                        width: "15%",
-                                        borderTopRightRadius: isRtl ? "0" : "8px",
-                                        borderTopLeftRadius: isRtl ? "8px" : "0",
-                                        borderBottomRightRadius: isRtl ? "0" : "8px",
-                                        borderBottomLeftRadius: isRtl ? "8px" : "0",
-                                        borderRight: isRtl ? "none" : "1px solid #E4E4E4",
-                                        borderLeft: isRtl ? "1px solid #E4E4E4" : "none",
-                                        textAlign: "center"
-                                    }}
-                                >
-                                    Options
-                                </th>
-                            </tr>
-                        </thead>
-                        {
-                            documents.length !== 0 && (
-                                <tbody>
-                                    {
-                                        documents.map((document) => (
-                                            <tr>
-                                                <td
-                                                    style={{
-                                                        borderTopLeftRadius: isRtl ? "0" : "8px",
-                                                        borderTopRightRadius: isRtl ? "8px" : "0",
-                                                        borderBottomLeftRadius: isRtl ? "0" : "8px",
-                                                        borderBottomRightRadius: isRtl ? "8px" : "0",
-                                                        borderLeft: isRtl ? undefined : "1px solid #E4E4E4",
-                                                        borderRight: isRtl ? "1px solid #E4E4E4" : undefined,
-                                                        width: "20%",
-                                                        paddingLeft: "1rem",
-                                                        textAlign: isRtl ? "right" : "left",
-                                                        whiteSpace: "nowrap",
-                                                        overflow: "hidden",
-                                                        textOverflow: "ellipsis"
-                                                    }}
-                                                >
-                                                    <span style={{ display: "flex", alignItems: "flex-end", gap: "0" }}>
-                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: "1rem" }}>
-                                                            <path d="M19.5 10.3711V19.5C19.5 20.0967 19.2629 20.669 18.841 21.091C18.419 21.5129 17.8467 21.75 17.25 21.75H6.75C6.15326 21.75 5.58097 21.5129 5.15901 21.091C4.73705 20.669 4.5 20.0967 4.5 19.5V4.5C4.5 3.90326 4.73705 3.33097 5.15901 2.90901C5.58097 2.48705 6.15326 2.25 6.75 2.25H11.3789C11.7766 2.25006 12.158 2.40804 12.4392 2.68922L19.0608 9.31078C19.342 9.59202 19.4999 9.97341 19.5 10.3711Z" stroke="black" stroke-linejoin="round" />
-                                                            <path d="M12 2.625V8.25C12 8.64782 12.158 9.02936 12.4393 9.31066C12.7206 9.59196 13.1022 9.75 13.5 9.75H19.125" stroke="black" stroke-linecap="round" stroke-linejoin="round" />
-                                                        </svg>
-                                                        {document.name}
-                                                    </span>
-                                                </td>
-                                                <td style={{ width: "23%", color: "#3A3541", fontSize: "0.7rem", paddingTop: "10px" }}>
-                                                    {document.date}
-                                                </td>
-                                                <td style={{ width: "30%" }}>
-                                                    {document.chef}
-                                                </td>
-                                                <td className='grade-td' style={{ width: "100%" }}>
-                                                    <div
-                                                        style={{
-                                                            color: getStatusColor(document.status),
-                                                            fontSize: "1.1rem",
-                                                            fontWeight: "650",
-                                                            fontFamily: "Nunito, sans-serif"
-                                                        }}
-                                                    >
-                                                        {document.status}
-                                                    </div>
-                                                </td>
-                                                <td
-                                                    className='last-td'
-                                                    style={{
-                                                        borderTopRightRadius: isRtl ? "0" : "8px",
-                                                        borderTopLeftRadius: isRtl ? "8px" : "0",
-                                                        borderBottomRightRadius: isRtl ? "0" : "8px",
-                                                        borderBottomLeftRadius: isRtl ? "8px" : "0",
-                                                        borderRight: isRtl ? "none" : "1px solid #E4E4E4",
-                                                        borderLeft: isRtl ? "1px solid #E4E4E4" : "none",
-
-                                                    }}
-                                                >
-                                                    <div
-                                                        className="line-btns"
-                                                        style={{
-                                                            marginLeft: isRtl ? "1rem" : "auto",
-                                                            marginRight: isRtl ? "auto" : "1rem"
-                                                        }}
-                                                    >
-                                                        <button style={{ display: "flex", flexDirection: "column" }} className='download-btn'>
-                                                            <svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <path fill-rule="evenodd" clip-rule="evenodd" d="M12.1069 4.50353C14.076 4.55028 15.7042 5.92388 16.1525 7.75088C16.2422 8.11622 16.537 8.39455 16.9054 8.46414C18.6978 8.8028 20.0338 10.3997 19.989 12.283C19.9557 13.6861 19.1654 14.8946 18.0133 15.525C17.5536 15.7765 17.3849 16.3531 17.6364 16.8127C17.8879 17.2724 18.4645 17.4411 18.9242 17.1896C20.6461 16.2474 21.836 14.4357 21.8861 12.328C21.9484 9.70505 20.227 7.4558 17.8293 6.73865C17.0068 4.38406 14.7941 2.66924 12.152 2.60651C8.77349 2.5263 5.9652 5.17857 5.84263 8.5459C4.15033 9.23777 2.93956 10.8804 2.89335 12.8262C2.84606 14.8179 4.03321 16.5499 5.75281 17.294C6.23373 17.502 6.79226 17.2809 7.00035 16.8C7.20843 16.3191 6.98727 15.7605 6.50637 15.5525C5.47184 15.1048 4.76205 14.0638 4.79037 12.8712C4.82199 11.54 5.76358 10.4419 7.00763 10.1617C7.4719 10.0572 7.7933 9.62531 7.7519 9.14461C7.53745 6.65458 9.59463 4.44388 12.1069 4.50353ZM12.4235 11.1543C12.9474 11.1668 13.3619 11.6015 13.3495 12.1254L13.2012 18.3701L14.4571 17.1743C14.8366 16.813 15.4371 16.8277 15.7985 17.2072C16.1598 17.5867 16.1451 18.1872 15.7656 18.5486L13.0241 21.1588C12.7784 21.3928 12.5399 21.5966 12.1757 21.5879C11.8116 21.5793 11.5831 21.3644 11.3487 21.119L8.73419 18.3817C8.37228 18.0027 8.38606 17.4022 8.765 17.0402C9.14393 16.6783 9.74449 16.6921 10.1064 17.071L11.3042 18.3251L11.4525 12.0803C11.4649 11.5565 11.8996 11.1419 12.4235 11.1543Z" fill="black" />
-                                                            </svg>
-                                                            Télécharger
-                                                        </button>
-                                                        <span style={{ display: "flex", gap: "8px", alignItems: "center", color: "#884DFF", marginRight: "1rem" }}>
-                                                            <svg width="10" height="16" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M1.5 1L8.5 8L1.5 15" stroke="#925FE2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                                            </svg>
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    }
-                                </tbody>
-                            )
-                        }
-                    </table>
-                    {
-                        documents.length === 0 && (
-                            <div className="no-enseignants-available">
-                                <EmptyIcon className='empty-icon' />
-                                <div className="lines-box">
-                                    <h1 style={{ fontSize: "1.45rem", fontWeight: "650" }}>
-                                        {t('enseignantsPage.noEnseignants')}
-                                    </h1>
-                                    <span style={{ width: "600px", textAlign: "center", color: "#4F4F4F", fontWeight: "500" }}>
-                                        {t('enseignantsPage.startAdd')}
-                                    </span>
-                                </div>
-                            </div>
-                        )
-                    }
+  <div className="groupes-table">
+      <table>
+        <thead>
+          <tr>
+            <th style={{
+              borderTopLeftRadius: isRtl ? "0" : "8px",
+              borderTopRightRadius: isRtl ? "8px" : "0",
+              borderBottomLeftRadius: isRtl ? "0" : "8px",
+              borderBottomRightRadius: isRtl ? "8px" : "0",
+              borderLeft: isRtl ? undefined : "1px solid #E4E4E4",
+              borderRight: isRtl ? "1px solid #E4E4E4" : undefined,
+              width: "20%",
+              paddingLeft: isRtl ? undefined : "1rem",
+              paddingRight: isRtl ? "0.5rem" : undefined,
+              textAlign: isRtl ? "right" : "left"
+            }}>
+              Document
+            </th>
+            <th style={{ width: "16%" }}>Date</th>
+            <th style={{ width: "25%" }}>Déposé Par</th>
+            <th style={{ width: "100% !important" }}>Statut</th>
+            <th style={{
+              width: "15%",
+              borderTopRightRadius: isRtl ? "0" : "8px",
+              borderTopLeftRadius: isRtl ? "8px" : "0",
+              borderBottomRightRadius: isRtl ? "0" : "8px",
+              borderBottomLeftRadius: isRtl ? "8px" : "0",
+              borderRight: isRtl ? "none" : "1px solid #E4E4E4",
+              borderLeft: isRtl ? "1px solid #E4E4E4" : "none",
+              textAlign: "center"
+            }}>
+              Options
+            </th>
+          </tr>
+        </thead>
+        
+        {documents.length > 0 ? (
+          <tbody>
+            {documents.map((document) => (
+              <tr key={document._id}>
+                <td style={{
+                  borderTopLeftRadius: isRtl ? "0" : "8px",
+                  borderTopRightRadius: isRtl ? "8px" : "0",
+                  borderBottomLeftRadius: isRtl ? "0" : "8px",
+                  borderBottomRightRadius: isRtl ? "8px" : "0",
+                  borderLeft: isRtl ? undefined : "1px solid #E4E4E4",
+                  borderRight: isRtl ? "1px solid #E4E4E4" : undefined,
+                  width: "20%",
+                  paddingLeft: "1rem",
+                  textAlign: isRtl ? "right" : "left",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
+                }}>
+                  <span style={{ display: "flex", alignItems: "flex-end", gap: "0" }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: "1rem" }}>
+                      <path d="M19.5 10.3711V19.5C19.5 20.0967 19.2629 20.669 18.841 21.091C18.419 21.5129 17.8467 21.75 17.25 21.75H6.75C6.15326 21.75 5.58097 21.5129 5.15901 21.091C4.73705 20.669 4.5 20.0967 4.5 19.5V4.5C4.5 3.90326 4.73705 3.33097 5.15901 2.90901C5.58097 2.48705 6.15326 2.25 6.75 2.25H11.3789C11.7766 2.25006 12.158 2.40804 12.4392 2.68922L19.0608 9.31078C19.342 9.59202 19.4999 9.97341 19.5 10.3711Z" stroke="black" strokeLinejoin="round" />
+                      <path d="M12 2.625V8.25C12 8.64782 12.158 9.02936 12.4393 9.31066C12.7206 9.59196 13.1022 9.75 13.5 9.75H19.125" stroke="black" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    {document.title}
+                  </span>
+                </td>
+                
+                <td style={{ width: "23%", color: "#3A3541", fontSize: "0.7rem", paddingTop: "10px" }}>
+                  {document.createdAt}
+                </td>
+                
+                <td style={{ width: "30%" }}>
+                  {document.etudiantNom || "N/A"}
+                </td>
+                
+                <td className='grade-td' style={{ width: "100%" }}>
+                  <div style={{
+                    color: getStatusColor(document.status),
+                    fontSize: "1.1rem",
+                    fontWeight: "650",
+                    fontFamily: "Nunito, sans-serif"
+                  }}>
+                    {document.status}
+                  </div>
+                </td>
+                
+                <td className='last-td' style={{
+                  borderTopRightRadius: isRtl ? "0" : "8px",
+                  borderTopLeftRadius: isRtl ? "8px" : "0",
+                  borderBottomRightRadius: isRtl ? "0" : "8px",
+                  borderBottomLeftRadius: isRtl ? "8px" : "0",
+                  borderRight: isRtl ? "none" : "1px solid #E4E4E4",
+                  borderLeft: isRtl ? "1px solid #E4E4E4" : "none",
+                }}>
+                  <div className="line-btns" style={{
+                    marginLeft: isRtl ? "1rem" : "auto",
+                    marginRight: isRtl ? "auto" : "1rem"
+                  }}>
+                    <a 
+                      href={`http://localhost:5005${document.fileUrl}`} 
+                      download 
+                      style={{ display: "flex", flexDirection: "column" }} 
+                      className='download-btn'
+                    >
+                      <svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" clipRule="evenodd" d="M12.1069 4.50353C14.076 4.55028 15.7042 5.92388 16.1525 7.75088C16.2422 8.11622 16.537 8.39455 16.9054 8.46414C18.6978 8.8028 20.0338 10.3997 19.989 12.283C19.9557 13.6861 19.1654 14.8946 18.0133 15.525C17.5536 15.7765 17.3849 16.3531 17.6364 16.8127C17.8879 17.2724 18.4645 17.4411 18.9242 17.1896C20.6461 16.2474 21.836 14.4357 21.8861 12.328C21.9484 9.70505 20.227 7.4558 17.8293 6.73865C17.0068 4.38406 14.7941 2.66924 12.152 2.60651C8.77349 2.5263 5.9652 5.17857 5.84263 8.5459C4.15033 9.23777 2.93956 10.8804 2.89335 12.8262C2.84606 14.8179 4.03321 16.5499 5.75281 17.294C6.23373 17.502 6.79226 17.2809 7.00035 16.8C7.20843 16.3191 6.98727 15.7605 6.50637 15.5525C5.47184 15.1048 4.76205 14.0638 4.79037 12.8712C4.82199 11.54 5.76358 10.4419 7.00763 10.1617C7.4719 10.0572 7.7933 9.62531 7.7519 9.14461C7.53745 6.65458 9.59463 4.44388 12.1069 4.50353ZM12.4235 11.1543C12.9474 11.1668 13.3619 11.6015 13.3495 12.1254L13.2012 18.3701L14.4571 17.1743C14.8366 16.813 15.4371 16.8277 15.7985 17.2072C16.1598 17.5867 16.1451 18.1872 15.7656 18.5486L13.0241 21.1588C12.7784 21.3928 12.5399 21.5966 12.1757 21.5879C11.8116 21.5793 11.5831 21.3644 11.3487 21.119L8.73419 18.3817C8.37228 18.0027 8.38606 17.4022 8.765 17.0402C9.14393 16.6783 9.74449 16.6921 10.1064 17.071L11.3042 18.3251L11.4525 12.0803C11.4649 11.5565 11.8996 11.1419 12.4235 11.1543Z" fill="black" />
+                      </svg>
+                      Télécharger
+                    </a>
+                    <span style={{ display: "flex", gap: "8px", alignItems: "center", color: "#884DFF", marginRight: "1rem" }}>
+                      <svg width="10" height="16" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1.5 1L8.5 8L1.5 15" stroke="#925FE2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        ) : (
+          <tbody>
+            <tr>
+              <td colSpan="5">
+                <div className="no-enseignants-available">
+                  <EmptyIcon className='empty-icon' />
+                  <div className="lines-box">
+                    <h1 style={{ fontSize: "1.45rem", fontWeight: "650" }}>
+                      Aucun document disponible
+                    </h1>
+                    <span style={{ width: "600px", textAlign: "center", color: "#4F4F4F", fontWeight: "500" }}>
+                      Aucun document n'a été déposé pour le moment
+                    </span>
+                  </div>
                 </div>
+              </td>
+            </tr>
+          </tbody>
+        )}
+      </table>
+    </div>
                 {
                     isVisible && (
                         <button
@@ -314,51 +350,7 @@ function DetailGroupe() {
                 }
             </div>
            
-                {/* {groupeDetailClicked && (
-                <div className={`about-groupe ${groupeDetailClicked ? "open" : ""}`}>
-                    <div className="about-title">
-                        <h1> Les Membres de group : {groupName || `Groupe ${groupId}`}</h1>
-                    </div>
-
-                    <div className="groupes-table">
-                        {loading ? (
-                            <div className="loading-indicator">Chargement en cours...</div>
-                        ) : error ? (
-                            <div className="error-message">Erreur: {error}</div>
-                        ) : members.length === 0 ? (
-                            <div className="no-members">Aucun membre dans ce groupe</div>
-                        ) : (
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Nom & Prénom</th>
-                                        <th>Email</th>
-                                        <th>Matricule</th>
-                                        <th>Rôle</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {members.map(member => (
-                                        <tr key={member.id}>
-                                            <td>
-                                                {member.chef_equipe && (
-                                                    <span className="chef-badge">👑</span>
-                                                )}
-                                                {member.prenom} {member.nom}
-                                            </td>
-                                            <td>{member.email}</td>
-                                            <td>{member.matricule || 'N/A'}</td>
-                                            <td className={member.id === chefId ? 'chef-role' : 'member-role'}>
-                                                {member.id === chefId ? 'Chef' : 'Membre'}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                </div>
-            )} */}
+           
 {groupeDetailClicked && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
     <div className="relative w-full max-w-4xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden animate-fadeIn">
@@ -469,6 +461,17 @@ function DetailGroupe() {
     </div>
   </div>
 )}
+{
+    ajouterDocument && (
+      <AjouterDocument
+        annulerAjouter={() => setAjouterDocument(false)}
+        onSuccess={() => {
+            fetchGroupDocuments();     // refresh list
+            setAjouterDocument(false); // close modal
+        }}
+    />
+    )
+}
  
         </div >
     )

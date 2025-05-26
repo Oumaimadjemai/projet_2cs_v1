@@ -325,6 +325,7 @@ class SoutenanceCreateView(APIView):
 def soutenances_par_annee(request, annee_id):
     soutenances = Soutenance.objects.filter(annee=annee_id)
     serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
+    serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
     return Response(serializer.data)
 
 
@@ -332,12 +333,15 @@ def soutenances_par_annee(request, annee_id):
 def soutenances_par_annee_specialite(request, annee_id, specialite_id):
     soutenances = Soutenance.objects.filter(annee=annee_id, specialite=specialite_id)
     serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
+    serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
     return Response(serializer.data)
+
 
 
 @api_view(['GET'])
 def soutenances_par_groupe(request, groupe_id):
     soutenances = Soutenance.objects.filter(groupe=groupe_id)
+    serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
     serializer = SoutenanceSerializer(soutenances, many=True, context={'request': request})
     return Response(serializer.data)
 
@@ -423,44 +427,182 @@ class SoutenanceArchiverView(APIView):
             return Response({"detail": "Soutenance archivée."}, status=status.HTTP_200_OK)
         except Soutenance.DoesNotExist:
             return Response({"detail": "Soutenance non trouvée."}, status=status.HTTP_404_NOT_FOUND)
-        
-from rest_framework.permissions import IsAuthenticated
-class SoutenanceParEtudiantView(APIView):
+    
+# class SoutenanceParEtudiantView(APIView):
 
+#     def get(self, request):
+#         user_id = request.user.id
+#         headers = {
+#             'Authorization': request.headers.get('Authorization')
+#         }
+
+#         try:
+#             # Appel au service 3
+#             service3url=discover_service("SERVICE3-NODE")
+#             service3_url = f'{service3url}/api/groups/user'
+#             response = requests.get(service3_url, headers=headers)
+
+#             if response.status_code != 200:
+#                 return Response({'error': 'Erreur lors de la récupération des groupes'}, status=response.status_code)
+
+#             groupes = response.json()
+#             if not groupes:
+#                 return Response({'error': 'Aucun groupe trouvé'}, status=status.HTTP_404_NOT_FOUND)
+
+#         except requests.RequestException:
+#             return Response({'error': 'Service 3 inaccessible'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+#         # Récupération des soutenances pour chaque groupe
+#         soutenances = []
+#         for groupe in groupes:
+#             group_id = groupe['_id']
+#             try:
+#                 soutenance = Soutenance.objects.get(groupe=group_id)
+#                 serializer = SoutenanceSerializer(soutenance, context={'request': request})
+#                 soutenances.append(serializer.data)
+#             except Soutenance.DoesNotExist:
+#                 continue
+
+#         if not soutenances:
+#             return Response({'error': 'Aucune soutenance trouvée pour vos groupes'}, status=status.HTTP_404_NOT_FOUND)
+
+#         return Response(soutenances)
+    
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Soutenance
+from .serializers import SoutenanceSerializer
+import requests
+from .discovery import discover_service
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+import requests
+from .models import Soutenance
+from .serializers import SoutenanceSerializer
+class SoutenanceParEtudiantView(APIView):
     def get(self, request):
-        user_id = request.user.id
         headers = {
             'Authorization': request.headers.get('Authorization')
         }
 
+        # 1. Récupérer les groupes de l'étudiant depuis Service 3
         try:
-            # Appel au service 3
-            service3url=discover_service("SERVICE3-NODE")
-            service3_url = f'{service3url}/api/groups/user'
-            response = requests.get(service3_url, headers=headers)
+            service3_url = discover_service("SERVICE3-NODE")
+            if not service3_url:
+                return Response({'error': 'Service 3 non trouvé'}, status=500)
 
+            response = requests.get(f'{service3_url}/api/groups/user', headers=headers)
             if response.status_code != 200:
                 return Response({'error': 'Erreur lors de la récupération des groupes'}, status=response.status_code)
 
             groupes = response.json()
             if not groupes:
                 return Response({'error': 'Aucun groupe trouvé'}, status=status.HTTP_404_NOT_FOUND)
-
         except requests.RequestException:
             return Response({'error': 'Service 3 inaccessible'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-        # Récupération des soutenances pour chaque groupe
-        soutenances = []
+        # 2. Initialiser la liste de soutenances
+        soutenances_data = []
+
+        # Découvrir l'URL de service1
+        service1_url = discover_service("SERVICE1-CLIENT")
+
         for groupe in groupes:
-            group_id = groupe['_id']
+            group_id = groupe.get('_id')
+
             try:
                 soutenance = Soutenance.objects.get(groupe=group_id)
-                serializer = SoutenanceSerializer(soutenance, context={'request': request})
-                soutenances.append(serializer.data)
             except Soutenance.DoesNotExist:
                 continue
 
-        if not soutenances:
+            serializer = SoutenanceSerializer(soutenance, context={'request': request})
+            soutenance_data = serializer.data
+
+            # 3. Récupérer le nom du groupe depuis Service 3
+            try:
+                group_response = requests.get(f'{service3_url}/api/groups/{group_id}', headers=headers)
+                if group_response.status_code == 200:
+                    group_details = group_response.json()
+                    soutenance_data['nom_groupe'] = group_details.get('name')
+                else:
+                    soutenance_data['nom_groupe'] = None
+            except requests.RequestException:
+                soutenance_data['nom_groupe'] = None
+
+            # 4. Récupérer l'année académique + département concaténés depuis Service 1
+            try:
+                if service1_url:
+                    annee_id = soutenance_data.get("annee")
+                    annee_response = requests.get(f'{service1_url}/annees/{annee_id}/', headers=headers)
+                    if annee_response.status_code == 200:
+                        annee_data = annee_response.json()
+                        annee_title = annee_data.get('title') or ''
+                        departement_title = annee_data.get('departement_title') or ''
+                        if annee_title or departement_title:
+                            soutenance_data['annee'] = f"{annee_title} - {departement_title}".strip(" -")
+                        else:
+                            soutenance_data['annee'] = None
+                    else:
+                        soutenance_data['annee'] = None
+                else:
+                    soutenance_data['annee'] = None
+            except requests.RequestException:
+                soutenance_data['annee'] = None
+
+            # 5. Récupérer le titre de la spécialité depuis Service 1
+            try:
+                specialite_id = soutenance_data.get("specialite")
+                if specialite_id and service1_url:
+                    specialite_response = requests.get(f'{service1_url}/specialites/{specialite_id}/', headers=headers)
+                    if specialite_response.status_code == 200:
+                        specialite_data = specialite_response.json()
+                        soutenance_data['specialite'] = specialite_data.get('title')
+                    else:
+                        soutenance_data['specialite'] = None
+                else:
+                    soutenance_data['specialite'] = None
+            except requests.RequestException:
+                soutenance_data['specialite'] = None
+
+            # 6. Récupérer nom_salle + département concaténés depuis Service 1
+            try:
+                salle_id = soutenance_data.get("salle")
+                if salle_id and service1_url:
+                    salle_response = requests.get(f'{service1_url}/salles/{salle_id}/', headers=headers)
+                    if salle_response.status_code == 200:
+                        salle_data = salle_response.json()
+                        nom_salle = salle_data.get('nom_salle') or ''
+                        departement_id = salle_data.get('departement')
+
+                        # Récupérer le nom du département si id fourni
+                        departement_title = ''
+                        if departement_id:
+                            departement_response = requests.get(f'{service1_url}/departements/{departement_id}/', headers=headers)
+                            if departement_response.status_code == 200:
+                                departement_data = departement_response.json()
+                                departement_title = departement_data.get('title') or ''
+
+                        if nom_salle or departement_title:
+                            soutenance_data['nom_salle'] = f"{nom_salle} - {departement_title}".strip(" -")
+                        else:
+                            soutenance_data['nom_salle'] = None
+                    else:
+                        soutenance_data['nom_salle'] = None
+                else:
+                    soutenance_data['nom_salle'] = None
+            except requests.RequestException:
+                soutenance_data['nom_salle'] = None
+
+            soutenances_data.append(soutenance_data)
+
+        if not soutenances_data:
             return Response({'error': 'Aucune soutenance trouvée pour vos groupes'}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response(soutenances)
+        return Response(soutenances_data)
+
