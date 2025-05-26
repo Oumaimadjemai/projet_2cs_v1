@@ -54,10 +54,10 @@ class ApiConfig(AppConfig):
         
         # Initialize Eureka client
         eureka_client.init(
-            eureka_server=settings.EUREKA_URL,           # e.g., "http://localhost:8761/eureka/"
-            app_name=settings.EUREKA_APP_NAME,          # e.g., "DJANGO-CLIENT"
-            instance_port=settings.PORT,                # e.g., 8000
-            instance_host="localhost",         # Use local hostname
-            instance_ip="127.0.0.1",  # Use local IP
-            data_center_name="MyOwn"                   # Match your previous dataCenterInfo
+          eureka_server=settings.EUREKA_URL,
+          app_name=settings.EUREKA_APP_NAME,
+          instance_port=settings.PORT,
+          instance_host="service2-depot",  # Use Docker service name
+          instance_ip="service2-depot",    # Use Docker service name
+          data_center_name="MyOwn"
         )

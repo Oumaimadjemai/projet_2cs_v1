@@ -20,10 +20,10 @@ const eurekaClient = new Eureka({
   instance: {
     app: 'SERVICE5',
     instanceId: `SERVICE5:${PORT}`,
-    hostName: 'localhost',
-    ipAddr: '127.0.0.1',
-    statusPageUrl: `http://localhost:${PORT}/info`,
-    healthCheckUrl: `http://localhost:${PORT}/health`,
+    hostName: 'service5_node', // must match container_name or service name in Docker
+    ipAddr: 'service5_node',   // Docker internal DNS name
+    statusPageUrl: `http://service5:${PORT}/info`,
+    healthCheckUrl: `http://service5:${PORT}/health`,
     port: {
       '$': PORT,
       '@enabled': true,
@@ -37,7 +37,7 @@ const eurekaClient = new Eureka({
     fetchRegistry: true,
   },
   eureka: {
-    host: process.env.EUREKA_HOST || 'localhost',
+    host: process.env.EUREKA_HOST || 'registry', // match Eureka service name
     port: process.env.EUREKA_PORT || 8761,
     servicePath: '/eureka/apps/',
     maxRetries: 10,
@@ -81,7 +81,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // ======================
 // 3. MongoDB Connection
 // ======================
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/service5_db')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/service5_db')
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -155,9 +155,9 @@ const authenticateJWT = (req, res, next) => {
 };
 const authenticateEtudiant = async (req, res, next) => {
   try {
-
-
-    const verify = await axios.get('http://localhost:8000/api/is-etudiant/', {
+////c quoi api/is-etudiant
+    const service1Url = await discoverService(SERVICE1_NAME); 
+    const verify = await axios.get(`${service1Url}/api/is-etudiant/`, {
       headers: { Authorization: `Bearer ${req.token}` }
     });
 
@@ -188,7 +188,8 @@ const authenticateTeacherJWT = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Appel à Service 1 pour vérifier si c'est un enseignant
-    const response = await axios.get('http://localhost:8000/api/verify-enseignant/', {
+    const service1Url = await discoverService(SERVICE1_NAME); 
+    const response = await axios.get(`${service1Url}/api/verify-enseignant/`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 

@@ -125,7 +125,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 import os
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-EUREKA_URL = os.getenv('EUREKA_URL', 'http://localhost:8761/eureka/')
+EUREKA_URL = os.getenv('EUREKA_URL', 'http://registry:8761/eureka/')
 EUREKA_APP_NAME = os.getenv('EUREKA_APP_NAME', 'SERVICE8-CLIENT')
 PORT = int(os.getenv('PORT', '8005'))
 

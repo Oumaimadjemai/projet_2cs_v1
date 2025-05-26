@@ -128,7 +128,7 @@ function App() {
             <Route path="groupes" element={<GroupesEnseignant />} />
             <Route path="groupes/:id" element={<GroupeDetail />} />
             <Route path="themes/:id" element={<ThemeAdmin />} />
-            <Route path="rendez-vous" element={<Rendezvous/>} />
+            <Route path="rendezvous" element={<Rendezvous/>} />
 
           </Route>
           <Route path="/etudiant" element={<EtudiantLayout />} >

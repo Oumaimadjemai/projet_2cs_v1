@@ -1,7 +1,7 @@
 import requests
 import xmltodict
 
-EUREKA_BASE = 'http://localhost:8761/eureka/apps/'
+EUREKA_BASE = 'http://registry:8761/eureka/apps/'
 
 def discover_service(app_name: str) -> str:
     """

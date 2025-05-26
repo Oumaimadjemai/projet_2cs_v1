@@ -1,6 +1,11 @@
 import requests
 from django.core.exceptions import PermissionDenied
-SERVICE_1_URL = "http://localhost:8000"
+from .discovery import discover_service
+
+def get_service_1_url():
+    return discover_service('SERVICE1-CLIENT')
+
+SERVICE_1_URL = get_service_1_url()
 from .discovery import discover_service
 from django.utils import timezone
 
@@ -45,7 +50,7 @@ def verify_user(request, role):
     return user_data  # Retourne les données de l'utilisateur si valide
 
 def find_annee_academique_id(soumission_date=None):
-    base = discover_service("SERVICE1-CLIENT")  # SERVICE1 = name in Eureka
+    base = get_service_1_url()  # SERVICE1 = name in Eureka
     now = soumission_date or timezone.now().date()
 
     try:

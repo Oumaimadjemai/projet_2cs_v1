@@ -81,7 +81,7 @@ DATABASES = {
         'NAME': 'service6',
         'USER': 'root',  # Ou un autre utilisateur
         'PASSWORD': 'root',
-        'HOST': 'localhost',
+        'HOST': 'mysql',
         'PORT': '3306',  # Port par défaut de MySQL
     }
 }
@@ -133,7 +133,7 @@ import os
 # EUREKA_URL = 'http://localhost:8761/eureka/apps/'
 # EUREKA_APP_NAME = 'SERVICE1-CLIENT'
 # Eureka settings
-EUREKA_URL = os.getenv('EUREKA_URL', 'http://localhost:8761/eureka/')
+EUREKA_URL = os.getenv('EUREKA_URL', 'http://registry:8761/eureka/')
 EUREKA_APP_NAME = os.getenv('EUREKA_APP_NAME', 'SERVICE6-CLIENT')
 PORT = int(os.getenv('PORT', '8004'))
 

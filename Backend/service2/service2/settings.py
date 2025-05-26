@@ -147,7 +147,7 @@ DATABASES = {
         'NAME': 'service2',
         'USER': 'root',  # Ou un autre utilisateur
         'PASSWORD': 'root',
-        'HOST': 'localhost',
+        'HOST': 'mysql',
         'PORT': '3306',  # Port par défaut de MySQL
     }
 }
@@ -204,7 +204,7 @@ REST_FRAMEWORK = {
 # EUREKA_URL = 'http://localhost:8761/eureka/apps/'
 # EUREKA_APP_NAME = 'SERVICE2-CLIENT'
 
-EUREKA_URL = os.getenv('EUREKA_URL', 'http://localhost:8761/eureka/')
+EUREKA_URL = os.getenv('EUREKA_URL', 'http://registry:8761/eureka/')
 EUREKA_APP_NAME = os.getenv('EUREKA_APP_NAME', 'SERVICE2-CLIENT')
 PORT = int(os.getenv('PORT', '8001'))
 

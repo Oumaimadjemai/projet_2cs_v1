@@ -270,8 +270,8 @@ from .models import Assignment
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
-SERVICE2_URL = "http://localhost:8001"
-SERVICE1_URL = "http://localhost:8000"
+SERVICE2_URL = discover_service('SERVICE2-CLient')
+SERVICE1_URL = discover_service('SERVICE1-CLient')
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -285,79 +285,68 @@ def assignment_random(request, theme_id):
         "Content-Type": "application/json"
     }
 
-    # Vérifier que l'utilisateur est admin via Service 1
+    # Vérification admin
     try:
         verify_resp = requests.get(f"{SERVICE1_URL}/verify-admin/", headers=headers)
         verify_resp.raise_for_status()
-        verify_data = verify_resp.json()
-        if not verify_data.get("is_admin"):
+        if not verify_resp.json().get("is_admin"):
             return JsonResponse({"error": "Seul un administrateur peut effectuer cette action"}, status=403)
     except requests.RequestException as e:
-        print("Erreur de vérification admin:", e)
-        return JsonResponse({'error': 'Erreur communication avec le service d\'authentification'}, status=502)
+        print("Erreur vérification admin:", e)
+        return JsonResponse({"error": "Erreur lors de la vérification admin"}, status=502)
 
-    # Récupérer l'ID de l'admin
+    # ID admin
     try:
         admin_id = get_user_id_from_token(request)
     except Exception:
         return JsonResponse({'error': "Impossible d'extraire l'ID de l'administrateur"}, status=400)
 
-    # 1. Obtenir infos thème
+    # Récupération du thème
     try:
         theme_resp = requests.get(f"{SERVICE2_URL}/themes/{theme_id}/", headers=headers)
         theme_resp.raise_for_status()
-    except requests.exceptions.RequestException as e:
+        theme = theme_resp.json()
+    except requests.RequestException as e:
         print("Erreur thème:", e)
-        return JsonResponse({'error': 'Erreur communication service thèmes'}, status=502)
+        return JsonResponse({'error': 'Erreur communication avec service thèmes'}, status=502)
 
-    theme = theme_resp.json()
-    number_of_groups_to_assign = theme.get("numberOfGrp", 1)
-    if number_of_groups_to_assign < 1:
-        number_of_groups_to_assign = 1
-
-    # Vérifier combien de groupes sont déjà assignés à ce thème
-    existing_assignments_count = Assignment.objects.filter(theme_id=theme_id).count()
-    if existing_assignments_count >= number_of_groups_to_assign:
+    number_of_groups_to_assign = max(theme.get("numberOfGrp", 1), 1)
+    existing_assignments = Assignment.objects.filter(theme_id=theme_id)
+    if existing_assignments.count() >= number_of_groups_to_assign:
         return JsonResponse({
             "message": f"Ce thème a déjà atteint sa capacité maximale ({number_of_groups_to_assign} groupe(s))."
         }, status=400)
 
-    remaining_slots = number_of_groups_to_assign - existing_assignments_count
+    remaining_slots = number_of_groups_to_assign - existing_assignments.count()
 
-    # 2. Obtenir groupes
+    # Récupération des groupes éligibles
     try:
-        groupes_resp = requests.get(
-            f"{SERVICE2_URL}/themes/{theme_id}/groupes-par-annee/",
-            headers=headers
-        )
+        groupes_resp = requests.get(f"{SERVICE2_URL}/themes/{theme_id}/groupes-par-annee/", headers=headers)
         groupes_resp.raise_for_status()
-    except requests.exceptions.RequestException as e:
+        groupes_json = groupes_resp.json()
+    except requests.RequestException as e:
         print("Erreur groupes:", e)
         return JsonResponse({'error': 'Erreur communication service groupes'}, status=502)
 
-    groupes_json = groupes_resp.json()
     groupes = []
     if groupes_json.get("success") and "data" in groupes_json:
         for entry in groupes_json["data"]:
             groupes.extend(entry.get("groupes", []))
-
     if not groupes:
-        return JsonResponse({'error': 'Aucun groupe disponible pour cette année'}, status=404)
+        return JsonResponse({'error': 'Aucun groupe disponible'}, status=404)
 
-    # 3. Shuffle & assignation sans doublons
+    # Affectation aléatoire
     random.shuffle(groupes)
-
     assignments = []
     count_assigned = 0
 
     for groupe in groupes:
         if count_assigned >= remaining_slots:
             break
+
         group_id = str(groupe.get("id") or groupe.get("_id") or groupe.get("group_id"))
-        if not group_id:
+        if not group_id or Assignment.objects.filter(group_id=group_id).exists():
             continue
-        if Assignment.objects.filter(group_id=group_id).exists():
-            continue  # Ce groupe est déjà affecté
 
         assignment = Assignment.objects.create(
             group_id=group_id,
@@ -367,14 +356,32 @@ def assignment_random(request, theme_id):
             date_soumission=theme.get("date_soumission"),
             assigned_by_admin_id=admin_id,
         )
+
         assignments.append({
             "assignment_id": assignment.id,
-            "group_id": assignment.group_id,
+            "groupe": {
+                "id": group_id,
+                "nom": groupe.get("nom"),
+                "moyenne": groupe.get("moyenne_groupe"),
+                "specialite": groupe.get("specialite"),
+                "nombre_membres": groupe.get("nombre_membres"),
+                "chef": groupe.get("chef", {}),
+                "date_creation": groupe.get("date_creation"),
+            },
+            "theme": {
+                "id": theme.get("id"),
+                "titre": theme.get("titre"),
+                "annee_academique": theme.get("annee_academique"),
+                "enseignant_id": theme.get("enseignant_id"),
+                "date_soumission": theme.get("date_soumission"),
+            },
+            "assigned_by_admin_id": admin_id
         })
+
         count_assigned += 1
 
     if count_assigned == 0:
-        return JsonResponse({'error': 'Aucun groupe n’a pu être assigné (déjà assignés ou pas assez disponibles).'}, status=400)
+        return JsonResponse({'error': 'Aucun groupe assigné (déjà assignés ou indisponibles).'}, status=400)
 
     return JsonResponse({
         "message": f"{count_assigned} groupe(s) assigné(s) au thème {theme_id}.",

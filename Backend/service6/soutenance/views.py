@@ -6,16 +6,17 @@ from rest_framework.decorators import api_view
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.generics import ListAPIView
 
-
 class ValidateSoutenanceView(APIView):
     def post(self, request, group_id):
+        AUTH_SERVICE_URL = discover_service("SERVICE1-CLIENT")
+        AFFECTATION_SERVICE_URL = discover_service("SERVICE4-CLIENT")
         token = request.headers.get('Authorization')
         if not token:
             return Response({'error': 'Token requis'}, status=status.HTTP_401_UNAUTHORIZED)
 
         # 1. Récupérer l'utilisateur connecté (via Service 1)
         user_resp = requests.get(
-            "http://127.0.0.1:8000/user/me/",
+            f"{AUTH_SERVICE_URL}/user/me/",
             headers={"Authorization": token}
         )
 
@@ -31,7 +32,7 @@ class ValidateSoutenanceView(APIView):
 
         # 2. Récupérer l'affectation du groupe via Service 4
         assignment_resp = requests.get(
-            f"http://127.0.0.1:8003/assignments/{group_id}/"
+            f"{AFFECTATION_SERVICE_URL}/assignments/{group_id}/"
         )
 
         if assignment_resp.status_code != 200:
@@ -44,7 +45,7 @@ class ValidateSoutenanceView(APIView):
 
         # 3. Valider la soutenance
         update_resp = requests.patch(
-            f"http://127.0.0.1:8003/assignments/{group_id}/",
+            f"{AFFECTATION_SERVICE_URL}assignments/{group_id}/",
             json={"soutenance_valide": True}
         )
 
@@ -422,3 +423,44 @@ class SoutenanceArchiverView(APIView):
             return Response({"detail": "Soutenance archivée."}, status=status.HTTP_200_OK)
         except Soutenance.DoesNotExist:
             return Response({"detail": "Soutenance non trouvée."}, status=status.HTTP_404_NOT_FOUND)
+        
+from rest_framework.permissions import IsAuthenticated
+class SoutenanceParEtudiantView(APIView):
+
+    def get(self, request):
+        user_id = request.user.id
+        headers = {
+            'Authorization': request.headers.get('Authorization')
+        }
+
+        try:
+            # Appel au service 3
+            service3url=discover_service("SERVICE3-NODE")
+            service3_url = f'{service3url}/api/groups/user'
+            response = requests.get(service3_url, headers=headers)
+
+            if response.status_code != 200:
+                return Response({'error': 'Erreur lors de la récupération des groupes'}, status=response.status_code)
+
+            groupes = response.json()
+            if not groupes:
+                return Response({'error': 'Aucun groupe trouvé'}, status=status.HTTP_404_NOT_FOUND)
+
+        except requests.RequestException:
+            return Response({'error': 'Service 3 inaccessible'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        # Récupération des soutenances pour chaque groupe
+        soutenances = []
+        for groupe in groupes:
+            group_id = groupe['_id']
+            try:
+                soutenance = Soutenance.objects.get(groupe=group_id)
+                serializer = SoutenanceSerializer(soutenance, context={'request': request})
+                soutenances.append(serializer.data)
+            except Soutenance.DoesNotExist:
+                continue
+
+        if not soutenances:
+            return Response({'error': 'Aucune soutenance trouvée pour vos groupes'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(soutenances)
