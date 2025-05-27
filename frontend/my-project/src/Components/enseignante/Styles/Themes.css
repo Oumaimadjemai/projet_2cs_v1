@@ -286,9 +286,31 @@
     left: 50%;
     transform: translate(-50%, -50%);
     width: 900px;
-    height: 440px;
+    height: 460px;
     max-height: 510px;
     z-index: 20;
+}
+
+.ajouter-theme-container .ajouter-choice {
+    display: flex;
+    gap: 2rem;
+}
+
+.ajouter-theme-container .ajouter-choice span {
+    font-weight: 500;
+    font-size: 1rem;
+    color: #4F4F4F;
+    line-height: 1.6;
+    cursor: pointer;
+}
+
+.ajouter-theme-container .ajouter-choice span.current {
+    color: var(--main-color);
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    /* Makes the underline thicker */
+    text-underline-offset: 5px;
+    /* Moves the underline further down */
 }
 
 .ajouter-theme-container .ajouter-theme-wrapper {
@@ -326,7 +348,7 @@
 #ajouterFormTheme {
     margin-top: 1rem;
     width: 90%;
-    height: 400px;
+    height: 420px;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;

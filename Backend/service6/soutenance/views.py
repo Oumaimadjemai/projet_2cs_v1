@@ -403,11 +403,101 @@ class SoutenanceDetailView(RetrieveUpdateDestroyAPIView):
 
 
 class SoutenanceListView(ListAPIView):
-    queryset = Soutenance.objects.all()
     serializer_class = SoutenanceSerializer
+
+    def get_queryset(self):
+        return Soutenance.objects.all()
 
     def get_serializer_context(self):
         return {'request': self.request}
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        service1_url = discover_service("SERVICE1-CLIENT")
+        service3_url = discover_service("SERVICE3-NODE")
+        headers = {'Authorization': request.headers.get('Authorization')}
+        enriched_data = []
+
+        for soutenance in queryset:
+            serializer = self.get_serializer(soutenance)
+            data = serializer.data
+
+            group_id = data.get('groupe')
+            salle_id = data.get('salle')
+            annee_id = data.get('annee')
+            specialite_id = data.get('specialite')
+            annee_acad_id = data.get('annee_academique')
+
+            # 1. Nom du groupe depuis Service 3
+            try:
+                if group_id and service3_url:
+                    resp = requests.get(f'{service3_url}/api/groups/{group_id}', headers=headers)
+                    data['nom_groupe'] = resp.json().get('name') if resp.status_code == 200 else None
+                else:
+                    data['nom_groupe'] = None
+            except requests.RequestException:
+                data['nom_groupe'] = None
+
+            # 2. Annee + département depuis Service 1
+            try:
+                if annee_id and service1_url:
+                    resp = requests.get(f'{service1_url}/annees/{annee_id}/', headers=headers)
+                    if resp.status_code == 200:
+                        annee_data = resp.json()
+                        annee_title = annee_data.get('title') or ''
+                        dept_title = annee_data.get('departement_title') or ''
+                        data['annee'] = f"{annee_title} - {dept_title}".strip(" -")
+                    else:
+                        data['annee'] = None
+            except requests.RequestException:
+                data['annee'] = None
+
+            # 3. Année académique (year)
+            try:
+                if annee_acad_id and service1_url:
+                    resp = requests.get(f'{service1_url}/annees-academiques/{annee_acad_id}/', headers=headers)
+                    data['annee_academique_year'] = resp.json().get('year') if resp.status_code == 200 else None
+                else:
+                    data['annee_academique_year'] = None
+            except requests.RequestException:
+                data['annee_academique_year'] = None
+
+            # 4. Spécialité
+            try:
+                if specialite_id and service1_url:
+                    resp = requests.get(f'{service1_url}/specialites/{specialite_id}/', headers=headers)
+                    data['specialite'] = resp.json().get('title') if resp.status_code == 200 else None
+                else:
+                    data['specialite'] = None
+            except requests.RequestException:
+                data['specialite'] = None
+
+            # 5. Salle + département
+            try:
+                if salle_id and service1_url:
+                    salle_resp = requests.get(f'{service1_url}/salles/{salle_id}/', headers=headers)
+                    if salle_resp.status_code == 200:
+                        salle_data = salle_resp.json()
+                        nom_salle = salle_data.get('nom_salle') or ''
+                        dept_id = salle_data.get('departement')
+
+                        dept_title = ''
+                        if dept_id:
+                            dept_resp = requests.get(f'{service1_url}/departements/{dept_id}/', headers=headers)
+                            if dept_resp.status_code == 200:
+                                dept_title = dept_resp.json().get('title') or ''
+
+                        data['nom_salle'] = f"{nom_salle} - {dept_title}".strip(" -")
+                    else:
+                        data['nom_salle'] = None
+                else:
+                    data['nom_salle'] = None
+            except requests.RequestException:
+                data['nom_salle'] = None
+
+            enriched_data.append(data)
+
+        return Response(enriched_data)
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny

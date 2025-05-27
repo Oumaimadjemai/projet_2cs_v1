@@ -1,0 +1,207 @@
+.document-container {
+    width: 100%;
+    height: calc(100vh - 65px);
+    position: relative;
+}
+
+.document-wrapper {
+    width: 100%;
+    height: 100%;
+    padding-left: 12px;
+}
+
+.document-wrapper .document-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 6px;
+    padding-bottom: 1.4rem;
+}
+
+.about-document {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 400px;
+    height: calc(100vh - 65px);
+    background-color: #FCFAFA;
+    box-shadow: 2px 8px 30px rgba(0, 0, 0, 0.12);
+    z-index: 500;
+    border-left: 2px solid #D9E1E7;
+    border-top-left-radius: 20px;
+    border-top: 2px solid #D9E1E7;
+    display: flex;
+    flex-direction: column;
+    padding: 0 0.8rem;
+    padding-top: 1rem;
+    gap: 1rem;
+    overflow-y: auto;
+}
+
+.about-document .pas-encore-accepter {
+    width: 100%;
+    background-color: #F9F9F9;
+    border-radius: 10px;
+    border: 3px solid #E4E4E4;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: "Kumbh Sans", sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 0 5px;
+    padding-bottom: 1rem;
+}
+
+.about-document .flex-column button {
+    width: 120px;
+    padding: 6px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.about-document .flex-column form .field-flex {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+}
+
+.flex-column form .field-flex textarea {
+    width: 100%;
+    height: 80px;
+    padding: 10px 15px;
+    border-radius: 20px;
+    border: 1px solid #A7A7A7;
+    font-size: 0.9rem;
+    outline: none;
+    background-color: transparent;
+    font-weight: 400;
+    color: #060606;
+    resize: none;
+}
+
+.flex-column form .field-flex textarea::-webkit-scrollbar {
+    display: none;
+}
+
+.field-flex textarea::placeholder {
+    color: var(--recherche-font-color);
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+.about-document .add-theme-success {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 540px;
+    height: 220px;
+    border-radius: 40px;
+    background-color: #FCFAFA;
+    box-shadow: 2px 8px 30px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    z-index: 1000;
+}
+
+.about-document .add-theme-success .btns-line {
+    display: flex;
+    align-self: flex-end;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.about-document .add-theme-success button {
+    padding: 5px 0;
+    background: #A67EF2;
+    width: 110px;
+    border-radius: 20px;
+    color: #fff;
+    font-weight: 500;
+}
+
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 400px;
+    height: 150px;
+    border-radius: 30px;
+}
+
+.loader-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader-dot {
+    width: 12px;
+    height: 12px;
+    margin: 0 5px;
+    background-color: #925FE2;
+    border-radius: 50%;
+    display: inline-block;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loader-dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.loader-dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+.loader-text {
+    margin-top: 20px;
+    color: #333;
+    font-size: 19px;
+    font-weight: 600;
+    font-family: 'Kumbh Sans', sans-serif;
+}
+
+@keyframes bounce {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+
+    40% {
+        transform: scale(1);
+    }
+}
+
+.return-to-documents:hover{
+    text-decoration: underline;
+    color: #000;
+}

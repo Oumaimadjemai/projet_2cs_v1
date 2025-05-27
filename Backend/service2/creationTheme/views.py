@@ -790,6 +790,106 @@ from .models import Theme
 from .serializers import ThemeSerializer
 from .utils import verify_user  # Assure-toi que cette fonction existe
 
+# class ExtractThemeFromPDFView(APIView):
+#     def post(self, request):
+#         # ✅ Vérification de rôle
+#         user_data = verify_user(request, role=["enseignant", "entreprise"])
+#         if not user_data or not (user_data.get("is_enseignant") or user_data.get("is_entreprise")):
+#             return Response(
+#                 {"detail": "Accès refusé. Seuls les enseignants ou les entreprises peuvent extraire un thème depuis un PDF."},
+#                 status=status.HTTP_403_FORBIDDEN
+#             )
+
+#         # ✅ Vérification du fichier
+#         if 'file' not in request.FILES:
+#             return Response({"detail": "Fichier 'file' requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+#         file = request.FILES['file']
+
+#         try:
+#             # Lecture PDF
+#             pdf = PdfReader(file)
+#             full_text = "\n".join([p.extract_text() or "" for p in pdf.pages]).replace('\r', ' ').replace('\n', ' ').strip()
+#             print("Texte extrait du PDF:\n", full_text)
+
+#             def extract_between(text, start_marker, end_marker=None):
+#                 try:
+#                     start = text.lower().index(start_marker.lower()) + len(start_marker)
+#                     if end_marker:
+#                         end = text.lower().index(end_marker.lower(), start)
+#                         return text[start:end].strip()
+#                     return text[start:].strip()
+#                 except ValueError:
+#                     return ""
+
+#             def multi_extract(text, markers):
+#                 for m in markers:
+#                     result = extract_between(text, *m)
+#                     if result:
+#                         return result
+#                 return ""
+
+#             titre = multi_extract(full_text, [("titre complet", "encadreur")])
+#             resume = multi_extract(full_text, [("résumé", "outils et langages")])
+#             outils = multi_extract(full_text, [("outils et langages", "plan de travail")])
+#             plan_travail = multi_extract(full_text, [("plan de travail", "livrable"), ("plan de travail",)])
+#             livrable = multi_extract(full_text, [("livrable",)])
+
+#             # Validation des champs
+#             champs_vides = []
+#             champs_a_verifier = {
+#                 "titre": titre,
+#                 "resume": resume,
+#                 "outils_et_language": outils,
+#                 "plan_travail": plan_travail,
+#             }
+
+#             for champ, valeur in champs_a_verifier.items():
+#                 if not valeur.strip():
+#                     champs_vides.append(champ)
+
+#             if champs_vides:
+#                 return Response({
+#                     "detail": "Champs manquants dans le PDF.",
+#                     "champs_vides": champs_vides,
+#                     "text_debug": full_text
+#                 }, status=status.HTTP_400_BAD_REQUEST)
+
+#             # Préparation de l'objet
+#             theme = Theme(
+#                 titre=titre,
+#                 resume=resume,
+#                 outils_et_language=outils,
+#                 plan_travail=plan_travail,
+#                 livrable=livrable
+#             )
+
+#             if user_data.get("is_enseignant"):
+#                 theme.enseignant_id = user_data["user_id"]
+#             elif user_data.get("is_entreprise"):
+#                 theme.entreprise_id = user_data["user_id"]
+
+#             # Enregistrement du thème (sans fichier pour le moment)
+#             theme.save()
+
+#             # ✅ Sauvegarde du PDF dans 'pdfs/' avec nom personnalisé
+#             from django.core.files.base import ContentFile
+#             import os
+#             ext = os.path.splitext(file.name)[1] or ".pdf"
+#             safe_title = slugify(titre)[:40]
+#             random_suffix = get_random_string(6)
+#             filename = f"pdfs/fiche_projet_{safe_title}_{random_suffix}{ext}"
+
+#             theme.option_pdf.save(filename, file, save=True)
+
+#             serializer = ThemeSerializer(theme)
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+#         except Exception as e:
+#             return Response({"detail": f"Erreur lors de l'extraction : {str(e)}"},
+#                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class ExtractThemeFromPDFView(APIView):
     def post(self, request):
         # ✅ Vérification de rôle
@@ -805,9 +905,10 @@ class ExtractThemeFromPDFView(APIView):
             return Response({"detail": "Fichier 'file' requis."}, status=status.HTTP_400_BAD_REQUEST)
 
         file = request.FILES['file']
+        body_data = request.data  # contient JSON + fichiers
 
         try:
-            # Lecture PDF
+            # 🔹 Lecture PDF
             pdf = PdfReader(file)
             full_text = "\n".join([p.extract_text() or "" for p in pdf.pages]).replace('\r', ' ').replace('\n', ' ').strip()
             print("Texte extrait du PDF:\n", full_text)
@@ -835,7 +936,7 @@ class ExtractThemeFromPDFView(APIView):
             plan_travail = multi_extract(full_text, [("plan de travail", "livrable"), ("plan de travail",)])
             livrable = multi_extract(full_text, [("livrable",)])
 
-            # Validation des champs
+            # 🔸 Champs obligatoires
             champs_vides = []
             champs_a_verifier = {
                 "titre": titre,
@@ -855,7 +956,7 @@ class ExtractThemeFromPDFView(APIView):
                     "text_debug": full_text
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Préparation de l'objet
+            # ✅ Création de l'objet
             theme = Theme(
                 titre=titre,
                 resume=resume,
@@ -864,22 +965,34 @@ class ExtractThemeFromPDFView(APIView):
                 livrable=livrable
             )
 
+            # Associer utilisateur
             if user_data.get("is_enseignant"):
                 theme.enseignant_id = user_data["user_id"]
             elif user_data.get("is_entreprise"):
                 theme.entreprise_id = user_data["user_id"]
 
-            # Enregistrement du thème (sans fichier pour le moment)
+            # 🔹 Ajouter les autres champs JSON valides dynamiquement
+            champs_sup = [
+                "livrable","annee_id", "numberOfGrp", "priorities",
+                "valide", "reserve", "motif", "archived",
+                "annee_academique", "date_soumission"
+            ]
+
+            for champ in champs_sup:
+                if champ in body_data:
+                    setattr(theme, champ, body_data[champ])
+
+            # Enregistrement du thème (sans fichier encore)
             theme.save()
 
-            # ✅ Sauvegarde du PDF dans 'pdfs/' avec nom personnalisé
-            from django.core.files.base import ContentFile
+            # ✅ Sauvegarde du PDF
+            from django.utils.text import slugify
+            from django.utils.crypto import get_random_string
             import os
             ext = os.path.splitext(file.name)[1] or ".pdf"
             safe_title = slugify(titre)[:40]
             random_suffix = get_random_string(6)
             filename = f"pdfs/fiche_projet_{safe_title}_{random_suffix}{ext}"
-
             theme.option_pdf.save(filename, file, save=True)
 
             serializer = ThemeSerializer(theme)

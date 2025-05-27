@@ -63,14 +63,14 @@ function ThemeAdmin() {
     }, [id]);
 
     useEffect(() => {
-        
+
         axios.get(`${process.env.REACT_APP_API_URL_SERVICE4}/assign-manual/`, {
             headers: {
                 authorization: `Bearer ${localStorage.getItem('access_token')}`
             }
         })
             .then((res) => {
-                const groupesAffectes = res.data; 
+                const groupesAffectes = res.data;
                 const idsAffectes = new Set(groupesAffectes.map(g => g.group_id));
 
                 axios.get(`${process.env.REACT_APP_API_URL_SERVICE3}/api/groups/by-study-year?annee_etude=${theme.annee_id}`, {
@@ -82,12 +82,20 @@ function ThemeAdmin() {
                         const anneeData = response.data.data.find(item => item.annee_etude === theme.annee_id);
 
                         if (anneeData) {
-                            const groupesAvecAffectation = anneeData.groupes.map(groupe => ({
-                                ...groupe,
-                                affecte: idsAffectes.has(groupe.id)
-                            }));
+                            const groupesAvecAffectation = anneeData.groupes.map(groupe => {
+                                const isAffecte = idsAffectes.has(groupe.id);
+                                const themeAssocie = isAffecte
+                                    ? groupesAffectes.find(g => g.group_id === groupe.id)?.theme_id
+                                    : null;
 
-                            setGroupes(groupesAvecAffectation);
+                                return {
+                                    ...groupe,
+                                    affecte: isAffecte,
+                                    theme_id: themeAssocie 
+                                };
+                            });
+
+                            setGroupes(groupesAvecAffectation)
                             console.log(groupesAvecAffectation);
                         } else {
                             setGroupes([]);
@@ -101,8 +109,6 @@ function ThemeAdmin() {
             .catch(err => {
                 console.error("Erreur lors du chargement des groupes affectés :", err);
             });
-
-        console.log(groupes)
 
     }, [theme.annee_id])
 

@@ -1,15 +1,13 @@
 import React from 'react'
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import '../Styles/ParametresScolarite.css'
-import DecoEsi from '../../Partials/Components/DecoEsi'
 import { ReactComponent as UniversityIcon } from '../../../Assets/Icons/University_parametres.svg';
 import { ReactComponent as ChairIcon } from '../../../Assets/Icons/Chair_parametres.svg';
 import { ReactComponent as CapIcon } from '../../../Assets/Icons/Cap_parametres.svg';
 import { ReactComponent as CalenderIcon } from '../../../Assets/Icons/Calender_parametres.svg';
-import { ReactComponent as LeftArrowIcon } from '../../../Assets/Icons/left-arrow.svg';
 import { ReactComponent as GroupesIcon } from '../../../Assets/Icons/People.svg';
 import '../../Partials/Components/i18n'
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 export const ScolariteLayout = () => {
     return (
@@ -80,7 +78,7 @@ function ParametresScolarite() {
                         <div className='parametre-card'>
                             <div className="flex-column">
                                 <h2 style={{ fontSize: "1.1rem", fontWeight: "550", color: "#925FE2" }}>
-                                    Paramètres Groupe
+                                    {t('parametresPage.parametreGrp')}
                                 </h2>
                                 <button onClick={() => navigate('/admin/scolarite/parametres-groupe')}>
                                     {t('parametresPage.moreBtn')}
@@ -91,7 +89,7 @@ function ParametresScolarite() {
                         <div className='parametre-card'>
                             <div className="flex-column">
                                 <h2 style={{ fontSize: "1.1rem", fontWeight: "550", color: "#925FE2" }}>
-                                    Périodes
+                                    {t('parametresPage.periodes')}
                                 </h2>
                                 <button onClick={() => navigate('/admin/scolarite/periodes')}>
                                     {t('parametresPage.moreBtn')}
@@ -106,7 +104,7 @@ function ParametresScolarite() {
                         <div className='parametre-card'>
                             <div className="flex-column">
                                 <h2 style={{ fontSize: "1.1rem", fontWeight: "550", color: "#925FE2" }}>
-                                    Année Académiques
+                                    {t('parametresPage.anneeAcad')}
                                 </h2>
                                 <button onClick={() => navigate('/admin/scolarite/acdemic-annees')}>
                                     {t('parametresPage.moreBtn')}

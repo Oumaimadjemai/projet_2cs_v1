@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { RendezVousContexte } from './RendezVous';
+import { RendezVousContexte } from './RendezVousEnseignant';
 import axios from 'axios'
 
 const RendezVousForm = ({ onClose, getTodayDate, id }) => {

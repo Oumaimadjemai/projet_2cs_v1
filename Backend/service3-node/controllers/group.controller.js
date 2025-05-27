@@ -2,7 +2,7 @@ const Group = require('../models/Group');
 const axios = require('axios');
 const groupService = require('../services/group.service');
 const { calculateGroupAverage, getMembersDetails, calculateGroupAverage2 } = require('../services/group.service');
-const { discoverDjangoService } = require('../services/discovery.service');
+const { discoverDjangoService, discoverServiceNotification } = require('../services/discovery.service');
 
 exports.createGroup = async (req, res) => {
   try {
@@ -641,6 +641,33 @@ exports.inviteUser = async (req, res) => {
             { $addToSet: { invitations: parseInt(userId) } },
             { new: true }
         );
+
+        // Envoyer Notification
+        const notificationServiceUrl = await discoverServiceNotification();
+
+        const inviterResponse = await axios.get(`${djangoUrl}/etudiants/${inviterId}/`, {
+            headers: { Authorization: req.headers.authorization }
+        });
+
+        const notificationPayload = {
+            idSender: inviterId,
+            idReceiver: userId,
+            type: "STUDENT_INVITATION",
+            metadata: {
+                groupId: groupId,
+                groupName: group.name,
+                senderName: `${inviterResponse.data.prenom} ${inviterResponse.data.nom}`,
+            }
+        };
+
+        // Envoi de la notification
+        await axios.post(`${notificationServiceUrl}/notify`, notificationPayload, {
+            timeout: 2500
+        })
+        .catch(err => {
+            console.error('Échec notification (non bloquant):', err.message);      
+        });
+
 
         res.json({
             success: true,

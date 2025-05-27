@@ -6,11 +6,77 @@ const { discoverDjangoService } = require('../services/discovery.service');
 const axios = require('axios');
 const verifyJWTAnyUser = require('../middlewares/validateToken')
 
+// router.post('/notify', async (req, res) => {
+//   try {
+//     const { idSender, idReceiver, title, message, type, metadata } = req.body;
+
+//     if (!type) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "idSender and type are required"
+//       });
+//     }
+
+//     const notificationData = {
+//       idSender: idSender || null,
+//       idReceiver,
+//       title: title || getDefaultTitle(type),
+//       message: message || getDefaultMessage(type, metadata),
+//       type,
+//       metadata
+//     };
+
+//     switch (type) {
+//       case 'THEME_DECISION': // Admin → Enseignant
+//         notificationData.idReceiver = idReceiver;
+//         notificationData.message = `Votre thème "${metadata?.themeTitle}" a été ${metadata?.decision}`;
+//         await handleThemeDecision(notificationData);
+//         break;
+
+//       case 'THEME_ASSIGNMENT': // Admin → Étudiant
+//         notificationData.idReceiver = idReceiver;
+//         notificationData.message = `Thème assigné: "${metadata?.themeTitle}"`;
+//         await handleThemeAssignment(notificationData);
+//         break;
+
+//       // case 'GROUP_ASSIGNMENT': // Admin → Groupe
+//       //   await handleGroupAssignment(notificationData, metadata?.groupId);
+//       //   break;
+
+//       // case 'URGENT_NOTIFICATION': // Admin → Multiple rôles
+//       //   await handleUrgentNotification(notificationData, metadata?.roles);
+//       //   break;
+//       case 'NEW_ENTREPRISE': // Admin → Enseignant
+//         notificationData.idReceiver = idReceiver;
+//         notificationData.message = `Votre thème "${metadata?.themeTitle}" a été ${metadata?.decision}`;
+//         await handleThemeDecision(notificationData);
+//         break;
+
+//       default:
+//         throw new Error(`Type de notification non supporté: ${type}`);
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       type,
+//       receiver: idReceiver || 'multiple'
+//     });
+
+//   } catch (error) {
+//     console.error(`Notification error [${req.body.type}]:`, error);
+//     res.status(500).json({
+//       success: false,
+//       error: error.message,
+//       type: req.body?.type
+//     });
+//   }
+// });
+
 router.post('/notify', async (req, res) => {
   try {
     const { idSender, idReceiver, title, message, type, metadata } = req.body;
 
-    if (!type) {
+    if (!type || !idSender) {
       return res.status(400).json({
         success: false,
         error: "idSender and type are required"
@@ -18,7 +84,7 @@ router.post('/notify', async (req, res) => {
     }
 
     const notificationData = {
-      idSender: idSender || null,
+      idSender,
       idReceiver,
       title: title || getDefaultTitle(type),
       message: message || getDefaultMessage(type, metadata),
@@ -28,28 +94,14 @@ router.post('/notify', async (req, res) => {
 
     switch (type) {
       case 'THEME_DECISION': // Admin → Enseignant
-        notificationData.idReceiver = idReceiver;
         notificationData.message = `Votre thème "${metadata?.themeTitle}" a été ${metadata?.decision}`;
         await handleThemeDecision(notificationData);
         break;
 
-      case 'THEME_ASSIGNMENT': // Admin → Étudiant
-        notificationData.idReceiver = idReceiver;
-        notificationData.message = `Thème assigné: "${metadata?.themeTitle}"`;
-        await handleThemeAssignment(notificationData);
-        break;
-
-      // case 'GROUP_ASSIGNMENT': // Admin → Groupe
-      //   await handleGroupAssignment(notificationData, metadata?.groupId);
-      //   break;
-
-      // case 'URGENT_NOTIFICATION': // Admin → Multiple rôles
-      //   await handleUrgentNotification(notificationData, metadata?.roles);
-      //   break;
-      case 'NEW_ENTREPRISE': // Admin → Enseignant
-        notificationData.idReceiver = idReceiver;
-        notificationData.message = `Votre thème "${metadata?.themeTitle}" a été ${metadata?.decision}`;
-        await handleThemeDecision(notificationData);
+      case 'STUDENT_INVITATION': // Étudiant → Étudiant
+        notificationData.title = "Invitation à rejoindre un groupe";
+        notificationData.message = `${metadata?.senderName} vous invite à rejoindre son groupe ${metadata?.groupName}`;
+        await handleStudentInvitation(notificationData);
         break;
 
       default:
@@ -71,6 +123,18 @@ router.post('/notify', async (req, res) => {
     });
   }
 });
+
+async function handleStudentInvitation(notificationData) {
+  const notification = await NotificationModel.create(notificationData);
+  await notification.save();
+
+  sendNotification(notificationData.idReceiver, {
+    ...notificationData,
+    actionRequired: false
+  });
+
+  console.log(`Invitation envoyée de ${notificationData.idSender} à ${notificationData.idReceiver}`);
+}
 
 
 async function handleThemeDecision(data) {
@@ -303,7 +367,7 @@ router.post('/notify-entreprise-demand', async (req, res) => {
   }
 });
 
-router.patch('/mark-lus', verifyJWTAnyUser, async (req, res) => {
+router.patch('/mark-lus', async (req, res) => {
   try {
     const { idNotification, idReceiver } = req.body;
 
@@ -375,11 +439,35 @@ router.get('/get_unread_notifications', verifyJWTAnyUser, async (req, res) => {
   }
 });
 
-router.delete('/delete-notification', verifyJWTAnyUser, async (req, res) => {
+router.get('/get_notifications_without_receiver', async (req, res) => {
   try {
-    const { idNotification } = req.body;
+    const notificationsWithoutReceiver = await NotificationModel.find({
+      $or: [
+        { idReceiver: { $exists: false } }, // champ absent
+        { idReceiver: null }               // champ présent mais vide
+      ]
+    }).sort({ createdAt: -1 });
 
-    if (!idNotification || !idReceiver) {
+    res.status(200).json({
+      count: notificationsWithoutReceiver.length,
+      notifications: notificationsWithoutReceiver
+    });
+
+  } catch (error) {
+    console.error("Error fetching notifications without receiver:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch notifications without receiver"
+    });
+  }
+});
+
+
+router.delete('/delete-notification/:id', async (req, res) => {
+  try {
+    const idNotification = req.params.id;
+
+    if (!idNotification) {
       return res.status(400).json({
         success: false,
         message: 'Both idNotification and idReceiver are required'

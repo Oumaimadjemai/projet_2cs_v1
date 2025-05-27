@@ -28,7 +28,8 @@ const NotificationSchema = new mongoose.Schema({
       'GROUP_ASSIGNMENT',
       'URGENT_NOTIFICATION',
       'ENTREPRISE_DEMANDE',
-      'SYSTEM'
+      'SYSTEM',
+      'STUDENT_INVITATION'
     ],
     required: true
   },

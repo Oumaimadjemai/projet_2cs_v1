@@ -42,7 +42,7 @@ eurekaClient.start((err) => {
   }
 });
 
-app.use('', router);
+app.use('/', router);
 
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

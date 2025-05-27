@@ -342,15 +342,15 @@ export const Departements = () => {
             </button>
             {
                 addSuccess &&
-                <AddAlert addSuccess={() => setAddSuccess(false)} />
+                <AddAlert addSuccess={() => setAddSuccess(false)} phrase={t('parametresPage.departSucess')} />
             }
             {
                 confirmModifie &&
-                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} />
+                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} phrase={t('parametresPage.departModifie')} />
             }
             {
                 confirmDelete &&
-                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} />
+                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} phrase={t('parametresPage.departSupp')} />
             }
         </div>
     )
@@ -907,15 +907,15 @@ export const Salles = () => {
             </button>
             {
                 addSuccess &&
-                <AddAlert addSuccess={() => setAddSuccess(false)} />
+                <AddAlert addSuccess={() => setAddSuccess(false)} phrase={t('parametresPage.salleSucess')} />
             }
             {
                 confirmModifie &&
-                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} />
+                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} phrase={t('parametresPage.salleModifie')} />
             }
             {
                 confirmDelete &&
-                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} />
+                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} phrase={t('parametresPage.salleSupp')} />
             }
         </div>
     )
@@ -1255,15 +1255,15 @@ export const Specialites = () => {
             </button>
             {
                 addSuccess &&
-                <AddAlert addSuccess={() => setAddSuccess(false)} />
+                <AddAlert addSuccess={() => setAddSuccess(false)} phrase={t('parametresPage.specialiteSucess')} />
             }
             {
                 confirmModifie &&
-                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} />
+                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} phrase={t('parametresPage.specialiteModifie')} />
             }
             {
                 confirmDelete &&
-                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} />
+                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} phrase={t('parametresPage.specialiteSupp')} />
             }
         </div>
     )
@@ -1719,15 +1719,15 @@ export const Annees = () => {
             </button>
             {
                 addSuccess &&
-                <AddAlert addSuccess={() => setAddSuccess(false)} />
+                <AddAlert addSuccess={() => setAddSuccess(false)} phrase={t('parametresPage.anneeSucess')} />
             }
             {
                 confirmModifie &&
-                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} />
+                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} phrase={t('parametresPage.anneeModifie')} />
             }
             {
                 confirmDelete &&
-                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} />
+                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} phrase={t('parametresPage.anneeSupp')} />
             }
         </div>
     )
@@ -1994,7 +1994,7 @@ export const ParametresGroupe = () => {
                         <Trans i18nKey={"parametresPage.departementLink"}>
                             Paramètres &gt; <Link to={'/admin/scolarite'} className='return-to-scolarite' onClick={handleLinkClick}> Paramètres Scolarité </Link>
                         </Trans>
-                        <span style={{ color: "#925FE2" }}>Paramètres Groupe</span>
+                        <span style={{ color: "#925FE2" }}>{t('parametresPage.parametresGrpTitle')}</span>
                     </h3>
                     <button className="precedent-btn" onClick={handleLinkClick}>
                         <CircleArrowIcon className={`${isRtl ? "rtl-icon" : ""}`} />
@@ -2009,10 +2009,10 @@ export const ParametresGroupe = () => {
                     }}
                 >
                     <h1 style={{ fontSize: "1.85rem", color: "#000", fontWeight: "500" }}>
-                        Les Paramètres des Groupes
+                        {t('parametresPage.parametresGrpTitle')}
                     </h1>
                     <p style={{ color: "#5F5F5F", fontSize: "1.1rem", fontFamily: "Nunito, sans serif", width: "600px" }}>
-                        Ajoutez, supprimez ou modifiez les paramètres des groupes en toute simplicité.
+                        {t('parametresPage.paraGrpRemark')}
                     </p>
                     <div
                         className="form-table-container"
@@ -2045,7 +2045,7 @@ export const ParametresGroupe = () => {
                                         handleDisable(parseInt(e.target.value))
                                     }}
                                 >
-                                    <option value="default">Année</option>
+                                    <option value="default">{t('dashboard.soutTable.annee')}</option>
                                     {
                                         annees.map((annee) => (
                                             <option value={annee.id} style={{ padding: "0 6px" }}>
@@ -2089,7 +2089,7 @@ export const ParametresGroupe = () => {
                                     }}
 
                                 >
-                                    <option value="default">Type</option>
+                                    <option value="default">{t('parametresPage.type')}</option>
                                     <option value="startup">Startup</option>
                                     <option value="binome">Binôme</option>
                                     <option value="monome">Monôme</option>
@@ -2109,7 +2109,7 @@ export const ParametresGroupe = () => {
                                 type="number"
                                 className='common-input'
                                 style={{ flex: 1, boxSizing: "border-box" }}
-                                placeholder="Nombre minimum de membres du groupe"
+                                placeholder={t('parametresPage.minMembre')}
                                 min={1}
                                 onFocus={() => setFocusedInput("nom")}
                                 onBlur={() => setFocusedInput(null)}
@@ -2126,7 +2126,7 @@ export const ParametresGroupe = () => {
                                 type="number"
                                 className='common-input'
                                 style={{ flex: 1, boxSizing: "border-box" }}
-                                placeholder="Nombre maximum de membres du groupe"
+                                placeholder={t('parametresPage.maxMembre')}
                                 min={1}
                                 onFocus={() => setFocusedInput("max")}
                                 onBlur={() => setFocusedInput(null)}
@@ -2167,7 +2167,7 @@ export const ParametresGroupe = () => {
                                         }}
                                         onClick={(e) => { e.preventDefault(); setConfirmModifie(true) }}
                                     >
-                                        Modifier
+                                        {t('enseignantsPage.modifieBtn')}
                                     </button>
                             }
                         </form>
@@ -2293,15 +2293,15 @@ export const ParametresGroupe = () => {
             </button>
             {
                 addSuccess &&
-                <AddAlert addSuccess={() => setAddSuccess(false)} />
+                <AddAlert addSuccess={() => setAddSuccess(false)} phrase={t('parametresPage.parametreGrpSucess')} />
             }
             {
                 confirmModifie &&
-                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} />
+                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} phrase={t('parametresPage.parametreGrpModifie')} />
             }
             {
                 confirmDelete &&
-                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} />
+                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} phrase={t('parametresPage.parametreGrpSupp')} />
             }
         </div>
     )
@@ -2503,7 +2503,7 @@ export const Periodes = () => {
                         <Trans i18nKey={"parametresPage.departementLink"}>
                             Paramètres &gt; <Link to={'/admin/scolarite'} className='return-to-scolarite'> Paramètres Scolarité </Link>
                         </Trans>
-                        <span style={{ color: "#925FE2" }}>Périodes</span>
+                        <span style={{ color: "#925FE2" }}>{t('parametresPage.periodes')}</span>
                     </h3>
                     <button className="precedent-btn" onClick={() => navigate('/admin/scolarite')}>
                         <CircleArrowIcon className={`${isRtl ? "rtl-icon" : ""}`} />
@@ -2518,10 +2518,10 @@ export const Periodes = () => {
                     }}
                 >
                     <h1 style={{ fontSize: "1.85rem", color: "#000", fontWeight: "500" }}>
-                        Les Périodes
+                        {t('parametresPage.periodesTitle')}
                     </h1>
                     <p style={{ color: "#5F5F5F", fontSize: "1.1rem", fontFamily: "Nunito, sans serif", width: "630px" }}>
-                        Ajoutez, supprimez ou modifiez les périodes de Dépôt des Thèmes et Soutenances en toute simplicité.
+                        {t('parametresPage.preiodesRemark')}
                     </p>
                     <div className="form-table-container">
                         <form action="">
@@ -2547,7 +2547,7 @@ export const Periodes = () => {
                                         }
                                     }}
                                 >
-                                    <option value="default">Type</option>
+                                    <option value="default">{t('parametresPage.type')}</option>
                                     <option value="depot_theme">Dépôt des Thèmes</option>
                                     <option value="soutenance">Soutenance</option>
                                 </select>
@@ -2600,7 +2600,7 @@ export const Periodes = () => {
                                             fontWeight: "400",
                                         }}
                                     >
-                                        Entrer la Date Debut
+                                        {t('parametresPage.dateDebut')}
                                     </div>
                                 )}
                             </div>
@@ -2642,7 +2642,7 @@ export const Periodes = () => {
                                             fontWeight: "400",
                                         }}
                                     >
-                                        Entrer la Date Fin
+                                        {t('parametresPage.dateFin')}
                                     </div>
                                 )}
                             </div>
@@ -2798,15 +2798,15 @@ export const Periodes = () => {
             </button>
             {
                 addSuccess &&
-                <AddAlert addSuccess={() => setAddSuccess(false)} />
+                <AddAlert addSuccess={() => setAddSuccess(false)} phrase={t('parametresPage.periodeSucess')} />
             }
             {
                 confirmModifie &&
-                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} />
+                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} phrase={t('parametresPage.periodeModifie')} />
             }
             {
                 confirmDelete &&
-                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} />
+                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} phrase={t('parametresPage.periodeSupp')} />
             }
         </div >
     )
@@ -2955,7 +2955,7 @@ export const AnneesAcademiques = () => {
                         <Trans i18nKey={"parametresPage.departementLink"}>
                             Paramètres &gt; <Link to={'/admin/scolarite'} className='return-to-scolarite'> Paramètres Scolarité </Link>
                         </Trans>
-                        <span style={{ color: "#925FE2" }}>{t('parametresPage.annees')}</span>
+                        <span style={{ color: "#925FE2" }}>{t('parametresPage.anneeAcad')}</span>
                     </h3>
                     <button className="precedent-btn" onClick={() => navigate('/admin/scolarite')}>
                         <CircleArrowIcon className={`${isRtl ? "rtl-icon" : ""}`} />
@@ -2970,10 +2970,10 @@ export const AnneesAcademiques = () => {
                     }}
                 >
                     <h1 style={{ fontSize: "1.85rem", color: "#000", fontWeight: "500" }}>
-                        {t('parametresPage.anneesTitle')}
+                        {t('parametresPage.anneeAcad')}
                     </h1>
                     <p style={{ color: "#5F5F5F", fontSize: "1.1rem", fontFamily: "Nunito, sans serif", width: "630px" }}>
-                        {t('parametresPage.anneesRemark')}
+                        {t('parametresPage.anneAcadRemark')}
                     </p>
                     <div className="form-table-container">
                         <form action="">
@@ -3015,7 +3015,7 @@ export const AnneesAcademiques = () => {
                                             fontWeight: "400",
                                         }}
                                     >
-                                        Entrer la Date Debut
+                                        {t('parametresPage.dateDebut')}
                                     </div>
                                 )}
                             </div>
@@ -3057,7 +3057,7 @@ export const AnneesAcademiques = () => {
                                             fontWeight: "400",
                                         }}
                                     >
-                                        Entrer la Date Fin
+                                        {t('parametresPage.dateFin')}
                                     </div>
                                 )}
                             </div>
@@ -3150,28 +3150,28 @@ export const AnneesAcademiques = () => {
             </div>
             {
                 addSuccess &&
-                <AddAlert addSuccess={() => setAddSuccess(false)} />
+                <AddAlert addSuccess={() => setAddSuccess(false)} phrase={t('parametresPage.anneeAcadSucess')} />
             }
             {
                 confirmModifie &&
-                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} />
+                <ModifierAlert annulerModifier={annulerModifier} handlemodifie={handlemodifie} phrase={t('parametresPage.anneeAcadModifie')} />
             }
             {
                 confirmDelete &&
-                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} />
+                <DeleteAlert annulerDelete={annulerDelete} handleDelete={handleDelete} phrase={t('parametresPage.anneeAcadSupp')} />
             }
         </div>
     )
 }
 
-const AddAlert = ({ addSuccess }) => {
+const AddAlert = ({ addSuccess, phrase }) => {
     return (
         <div className="add-departement-success">
             <div className="img-container" style={{ height: "90px", width: "100px" }}>
                 <img src={doneImg} alt="done" style={{ height: "100%", width: "100%", objectFit: "cover", transform: "scale(1.2)" }} />
             </div>
             <span style={{ width: "95%", fontFamily: "Kumbh Sans, sans-serif", textAlign: "center", fontSize: "1.1rem", fontWeight: "500" }}>
-                ✨Sauvegarde effectuée ! Les nouveaux départements sont en place.✨
+                {`✨${phrase}✨`}
             </span>
             <button
                 style={{
@@ -3192,14 +3192,14 @@ const AddAlert = ({ addSuccess }) => {
     )
 }
 
-const ModifierAlert = ({ annulerModifier, handlemodifie }) => {
+const ModifierAlert = ({ annulerModifier, handlemodifie, phrase }) => {
     return (
         <div className="add-departement-success">
             <div className="img-container" style={{ height: "90px", width: "150px" }}>
                 <EmptyIcon style={{ height: "100%", width: "100%" }} />
             </div>
             <span style={{ width: "95%", fontFamily: "Kumbh Sans, sans-serif", textAlign: "center", fontSize: "1.1rem", fontWeight: "500" }}>
-                Êtes-vous certain(e) de vouloir apporter des modifications à ce département ?
+                {`${phrase}`}
             </span>
             <div
                 className="btns-line"
@@ -3226,7 +3226,7 @@ const ModifierAlert = ({ annulerModifier, handlemodifie }) => {
     )
 }
 
-const DeleteAlert = ({ handleDelete, annulerDelete }) => {
+const DeleteAlert = ({ handleDelete, annulerDelete, phrase }) => {
     return (
         <div className="add-departement-success">
             <div className="img-container" style={{ height: "90px", width: "150px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -3237,7 +3237,7 @@ const DeleteAlert = ({ handleDelete, annulerDelete }) => {
 
             </div>
             <span style={{ width: "95%", fontFamily: "Kumbh Sans, sans-serif", textAlign: "center", fontSize: "1.1rem", fontWeight: "500" }}>
-                Êtes-vous sûr(e) de vouloir supprimer ce département ? Cette action est irréversible.
+                {`${phrase}`}
             </span>
             <div
                 className="btns-line"
@@ -3258,44 +3258,6 @@ const DeleteAlert = ({ handleDelete, annulerDelete }) => {
                     onClick={(e) => handleDelete(e)}
                 >
                     Supprimer
-                </button>
-            </div>
-        </div>
-    )
-}
-
-const SaveAlert = ({ handleSave, annulerSave }) => {
-    return (
-        <div className="add-departement-success">
-            <div className="img-container" style={{ height: "90px", width: "150px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="30" cy="30" r="30" fill="#FFD21E" />
-                    <path d="M29.5001 15.75V34.0833M29.6147 43.25V43.4792H29.3855V43.25H29.6147Z" stroke="white" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-
-            </div>
-            <span style={{ width: "95%", fontFamily: "Kumbh Sans, sans-serif", textAlign: "center", fontSize: "1.1rem", fontWeight: "500" }}>
-                ⚠️ Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter sans enregistrer ?
-            </span>
-            <div
-                className="btns-line"
-            >
-                <button
-                    style={{
-                        color: "#000",
-                        background: "#E2E4E5"
-                    }}
-                    onClick={(e) => annulerSave(e)}
-                >
-                    Annuler
-                </button>
-                <button
-                    style={{
-                        background: "#925FE2"
-                    }}
-                    onClick={(e) => handleSave(e)}
-                >
-                    Sauvegarder
                 </button>
             </div>
         </div>
