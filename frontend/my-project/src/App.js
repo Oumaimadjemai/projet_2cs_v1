@@ -3,6 +3,8 @@ import { Route, Routes } from "react-router";
 import './App.css';
 // import Enseignanteinterface from './Components/enseignante/Components/enseignanteinterface';
 import Entrepriseinterface from './Components/entreprise/Components/entrepriseinterface';
+import ResetPassword from './Components/Login/ResetPassword';
+import ForgotPassword from './Components/Login/ForgotPassword';
 import Login from './Components/Login/Login';
 import Pagedacceuille from './Components/Login/Pagedacceuille';
 import  DemandeEntreprise  from "./Components/entreprise/Pages/listdemande";
@@ -25,6 +27,8 @@ import { Annees, Departements, Salles, Specialites } from "./Components/admin/Co
 import { EnseignantLayout } from "./Layouts/EnseignantLayout";
 import Themes from "./Components/admin/Components/Themes";
 import Notifications from "./Components/admin/Components/Notifications";
+import Archive from "./Components/admin/Components/Archivage/Archivage";
+
 // import IntroPage from "./Components/Login/IntroPage";
 import EntrepriseList, {EntrepriseListLayout} from "./Components/entreprise/Pages/ListEntreprise";
 import ThemesEnseignant from "./Components/enseignante/Components/ThemesEnseignant";
@@ -83,8 +87,9 @@ function App() {
       <SocketProvider token={token}>
         <div className='App'>
           <Routes>
-
-            <Route index element={<Pagedacceuille />} />
+          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+<Route path="/reset/:uid/:token" element={<ResetPassword />} />
+          <Route index element={<Pagedacceuille />} />
             <Route path="/login" element={<Login />} />
             <Route path="/login/entreprise" element={< InscriptionEntreprise />} />
             <Route path="*" element={<NotFound />} />
@@ -93,6 +98,8 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="enseignants" element={<EnseignantsListe />} />
               <Route path="etudiants" element={<EtudiantsListe />} />
+              <Route path="archive" element={<Archive />} />
+
               <Route path="entreprises" element={<EntrepriseListLayout />} >
                 <Route index element={<EntrepriseList />} />
                 <Route path="demandes" element={<DemandeEntreprise />} />

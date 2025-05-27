@@ -843,7 +843,7 @@ class RequestPasswordResetView(APIView):
             user = User.objects.get(email=email)
             token = PasswordResetTokenGenerator().make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
-            reset_url = f"http://127.0.0.1:8000/password-reset-confirm/?uid={uid}&token={token}"
+            reset_url = f"http://localhost:3001/reset/{uid}/{token}"
             
             subject = "Réinitialisation de votre mot de passe"
             message = f"""
