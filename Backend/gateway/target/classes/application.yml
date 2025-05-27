@@ -1,0 +1,75 @@
+server:
+  port: 8080
+
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: gateway-service
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: service1-client-route
+          uri: lb://SERVICE1-CLIENT
+          predicates:
+            - Path=/service1/**
+          filters:
+            - StripPrefix=1
+        - id: service2-client-route
+          uri: lb://SERVICE2-CLIENT
+          predicates:
+            - Path=/service2/**
+          filters:
+            - StripPrefix=1
+        - id: service3-client-route
+          uri: lb://SERVICE3-NODE
+          predicates:
+            - Path=/service3/**
+          filters:
+            - StripPrefix=1
+
+        - id: service4-client-route
+          uri: lb://SERVICE4-CLIENT
+          predicates:
+            - Path=/service4/**
+          filters:
+            - StripPrefix=1
+
+        - id: service5-client-route
+          uri: lb://SERVICE5
+          predicates:
+            - Path=/service5/**
+          filters:
+            - StripPrefix=1
+        - id: service6-client-route
+          uri: lb://SERVICE6-CLIENT
+          predicates:
+            - Path=/service6/**
+          filters:
+            - StripPrefix=1
+
+        - id: service7-client-route
+          uri: lb://SERVICE6-NOTIFICATIONS
+          predicates:
+            - Path=/notification/**
+          filters:
+            - StripPrefix=1
+
+        - id: service8-client-route
+          uri: lb://SERVICE8-CLIENT
+          predicates:
+            - Path=/service8/**
+          filters:
+            - StripPrefix=1
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
