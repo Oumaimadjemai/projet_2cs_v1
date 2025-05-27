@@ -8,6 +8,7 @@ import '../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
 import { AppContext } from "../../App";
 import axios from "axios";
+import { IoIosArrowBack } from "react-icons/io";
 
 export const InscriContext = createContext();
 
@@ -55,7 +56,10 @@ const InscriptionEntreprise = () => {
     representant_email: "",
     representant_telephone: ""
   })
-
+  const handleBack = () => {
+  
+    window.history.back();
+  };
   const handleNext = (e) => {
     e.preventDefault();
   
@@ -131,20 +135,29 @@ const InscriptionEntreprise = () => {
           {step < 3 && (
             <div style={styles.buttonContainer}>
               {
-                step === 2 &&
-                <button style={styles.previousButton} onClick={returnStep}>
-                  <svg width="20" height="20" viewBox="0 0 32 32" style={{ transform: isRtl ? "" : "scaleX(-1)" }} fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M10.4393 5.93934C11.0251 5.35355 11.9749 5.35355 12.5607 5.93934L21.5607 14.9393C22.1464 15.5251 22.1464 16.4749 21.5607 17.0607L12.5607 26.0607C11.9749 26.6464 11.0251 26.6464 10.4393 26.0607C9.85355 25.4749 9.85355 24.5251 10.4393 23.9393L18.3787 16L10.4393 8.06066C9.85355 7.47487 9.85355 6.52513 10.4393 5.93934Z" fill="#00000070" />
+                step === 2 && 
+                  <button style={{...styles.baseButton, ...styles.previousButton}} onClick={returnStep}>
+                    <IoIosArrowBack style={styles.buttonIcon} />
+                    {t('login.revenir')}
+                  </button>
+                }
+                
+                {step === 1 && 
+                  <button 
+                    onClick={handleBack}
+                    style={{...styles.baseButton, ...styles.backButton}}
+                  >
+                    <IoIosArrowBack style={styles.buttonIcon} />
+                    {t('previous')}
+                  </button>
+                }
+                
+                <button style={{...styles.baseButton, ...styles.nextButton}} onClick={handleNext}>
+                  {t('login.suivant')}
+                  <svg style={styles.buttonIcon} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M10.4393 5.93934C11.0251 5.35355 11.9749 5.35355 12.5607 5.93934L21.5607 14.9393C22.1464 15.5251 22.1464 16.4749 21.5607 17.0607L12.5607 26.0607C11.9749 26.6464 11.0251 26.6464 10.4393 26.0607C9.85355 25.4749 9.85355 24.5251 10.4393 23.9393L18.3787 16L10.4393 8.06066C9.85355 7.47487 9.85355 6.52513 10.4393 5.93934Z" fill="white" />
                   </svg>
-                  {t('login.revenir')}
                 </button>
-              }
-              <button style={styles.nextButton} onClick={handleNext}>
-                {t('login.suivant')}
-                <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: isRtl ? "scaleX(-1)" : "" }}>
-                  <path fill-rule="evenodd" clip-rule="evenodd" d="M10.4393 5.93934C11.0251 5.35355 11.9749 5.35355 12.5607 5.93934L21.5607 14.9393C22.1464 15.5251 22.1464 16.4749 21.5607 17.0607L12.5607 26.0607C11.9749 26.6464 11.0251 26.6464 10.4393 26.0607C9.85355 25.4749 9.85355 24.5251 10.4393 23.9393L18.3787 16L10.4393 8.06066C9.85355 7.47487 9.85355 6.52513 10.4393 5.93934Z" fill="white" />
-                </svg>
-              </button>
             </div>
           )}
         </div>
@@ -158,7 +171,6 @@ export default InscriptionEntreprise;
 const styles = {
   errorMessage: { color: "red", textAlign: "center", fontSize: "14px", marginTop: "10px" },
   completedStep: { background: "#925FE2", color: "white", borderColor: "#925FE2" },
-
   container: { display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", width: "100%", background: "white", borderRadius: "15px", overflow: "hidden", boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)" },
   formLeft: { height: "100vh", width: "40%", background: "#D3D3D3", display: "flex", justifyContent: "center", alignItems: "center" },
   imageText: { color: "#925FE2", fontSize: "18px", fontWeight: "bold" },
@@ -173,9 +185,49 @@ const styles = {
   activeLabel: { color: "#925FE2", fontWeight: "550", fontSize: "1.1rem" },
   formContent: { flexGrow: 1, width: "80%", alignSelf: "center" },
   buttonContainer: { display: "flex", justifyContent: "flex-end", marginTop: "20px", gap: "0.5rem" },
-  nextButton: { display: "flex", marginBottom: "40px", alignItems: "center", justifyContent: "center", gap: "10px", background: "linear-gradient(to right, #925FE2, #693CA8)", color: "white", fontSize: "16px", fontWeight: "bold", border: "none", borderRadius: "25px", padding: "12px", cursor: "pointer", width: "30%", transition: "0.3s", boxShadow: "0 5px 10px rgba(146, 95, 226, 0.3)", fontFamily: "'Nunito', sans-serif" },
   circle: { width: "14px", height: "14px", borderRadius: "50%", backgroundColor: "#A098AE" },
   activateCircle: { width: "14px", height: "14px", borderRadius: "50%", backgroundColor: "#A67EF2" },
-  previousButton: { display: "flex", marginBottom: "40px", alignItems: "center", justifyContent: "center", gap: "10px", background: "linear-gradient(to right, #E2E4E5, #DFCFF7)", color: "#00000080", fontSize: "16px", fontWeight: "bold", border: "none", borderRadius: "25px", padding: "12px", cursor: "pointer", width: "30%", transition: "0.3s", fontFamily: "'Nunito', sans-serif" },
-  label: { fontFamily: "Nunito, sans-serif", fontSize: "1rem", color: "#A098AE" }
+  label: { fontFamily: "Nunito, sans-serif", fontSize: "1rem", color: "#A098AE" },
+  baseButton: {
+    display: "flex",
+    marginBottom: "50px",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px", 
+    fontSize: "16px",
+    fontWeight: "bold",
+    border: "none",
+    borderRadius: "25px",
+    padding: "8px 15px", 
+    cursor: "pointer",
+    width: "auto", 
+    minWidth: "120px", 
+    transition: "0.3s",
+    fontFamily: "'Nunito', sans-serif"
+  },
+  
+  nextButton: { 
+    background: "linear-gradient(to right, #925FE2, #693CA8)",
+    color: "white",
+    boxShadow: "0 5px 10px rgba(146, 95, 226, 0.3)",
+  },
+  
+  previousButton: {
+    background: "linear-gradient(to right, rgb(231, 231, 245), rgb(240, 239, 239))",
+    color: "#925FE2",
+    boxShadow: "0 5px 10px rgba(146, 95, 226, 0.3)",
+  },
+  
+  backButton: {
+    background: "linear-gradient(to right, rgb(231, 231, 245), rgb(240, 239, 239))",
+    color: "#925FE2",
+    boxShadow: "0 5px 10px rgba(146, 231, 226, 0.3)",
+  },
+
+  // Style pour les icônes
+  buttonIcon: {
+    width: "16px", 
+    height: "16px", 
+    flexShrink: 0 }
+
 };

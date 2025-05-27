@@ -29,7 +29,8 @@
         "merciNote": "Votre demande a été transmise!",
         "merciDetail": "Votre demande a été envoyée avec succès. Nous la traiterons dans les plus brefs délais. Vous recevrez une réponse par e-mail prochainement.",
         "nomRep": "Entrez votre nom",
-        "prenomRep": "Entrez votre prénom"
+        "prenomRep": "Entrez votre prénom",
+        "emailPlaceholder": "Entrez votre e-mail"
     },
     "navElements": {
         "dashaboard": "Tableau de Bord",
@@ -164,6 +165,17 @@
         "french": "Français",
         "english": "Anglais",
         "arabic": "Arabe"
+    },
+    
+    "forgotPassword": {
+          "title": "Mot de passe oublié",
+          "successMessage": "Veuillez vérifier le lien dans votre e-mail.",
+          "errorMessage": "Une erreur s'est produite. Veuillez réessayer.",
+          "backButton": "Retour",
+          "submitButton": "Envoyer",
+          "loading": "Traitement en cours..."
+        }
+      
     },
     "dashboard": {
         "admin": "Administaration",

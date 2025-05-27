@@ -29,7 +29,8 @@
         "merciNote": "Your request has been sent!",
         "merciDetail": "Your request has been sent successfully. We will process it as soon as possible. You will receive a response by email shortly.",
         "nomRep": "Enter your first name",
-        "prenomRep": "Enter your last name"
+        "prenomRep": "Enter your last name",
+         "emailPlaceholder": "Enter your email"
     },
     "navElements": {
         "dashaboard": "Dashboard",
@@ -164,6 +165,29 @@
         "french": "French",
         "english": "English",
         "arabic": "Arabic"
+    },
+        "forgotPassword": {
+          "title": "Forgot Password",
+          "successMessage": "Please check your email for the reset link",
+          "errorMessage": "An error occurred. Please try again",
+          "backButton": "Back",
+          "submitButton": "Submit",
+          "loading": "Processing..."
+        },
+            "resetPassword": {
+              "title": "Reset Password",
+              "newPassword": "New Password",
+              "confirmPassword": "Confirm Password",
+              "submit": "Reset Password",
+              "success": "Password reset successfully! Redirecting to login...",
+              "error": "Failed to reset password. Please try again."
+            },
+            "Password": {
+              "tooShort": "Password must be at least 8 characters",
+              "mismatch": "Passwords do not match"
+            }
+          
+      
     },
     "dashboard": {
         "admin": "Administration",
