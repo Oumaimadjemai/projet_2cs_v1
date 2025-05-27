@@ -35,7 +35,7 @@ function Login() {
          localStorage.setItem('user_nom', user_info.nom);
          localStorage.setItem('user_prenom', user_info.prenom);
          localStorage.setItem('annee_etude', user_info.annee_etude);
-
+         localStorage.setItem('photo_profil', user_info.photo_profil || '');
          localStorage.setItem('user_grade', user_info.grade || '');
 
 

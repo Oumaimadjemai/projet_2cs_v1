@@ -19,6 +19,7 @@ import { AppContext } from '../../../App';
 import franceFlag from '../../../Assets/Images/la-france.png';
 import ukFlag from '../../../Assets/Images/royaume-uni.png';
 import saudiFlag from '../../../Assets/Images/saudi-arabia.png'
+import axiosInstance from '../../../axios';
 
 
 function NavBar({ menuItems, racinePath }) {
@@ -84,6 +85,31 @@ function NavBar({ menuItems, racinePath }) {
         setLanguesClicked(true);
         setSettingsClicked(false);
     }
+    const handleLogout = async () => {
+    try {
+        const refresh = localStorage.getItem('refresh_token');
+
+        if (!refresh) {
+            alert("Aucun refresh token trouvé.");
+            return;
+        }
+
+        await axiosInstance.post('logout/', {
+            refresh: refresh
+        });
+
+       
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+
+       
+        window.location.href = '/login';
+
+    } catch (error) {
+        console.error('Erreur lors de la déconnexion :', error);
+        alert("Erreur de déconnexion. Veuillez réessayer.");
+    }
+};
 
     return (
         <div className='navbar-container'>
@@ -175,7 +201,8 @@ function NavBar({ menuItems, racinePath }) {
                         </li>
                     </ul>
                     <ul className='logout-ul'>
-                        <li className='list-item'>
+
+                        <li className='list-item' onClick={handleLogout}>
                             <LogoutIcon />
                             {t('navElements.logout')}
                         </li>

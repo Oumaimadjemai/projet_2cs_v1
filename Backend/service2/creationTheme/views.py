@@ -916,3 +916,42 @@ class ArchiveThemeAPIView(APIView):
             return Response({"message": "Theme archivé avec succès."}, status=status.HTTP_200_OK)
         except Theme.DoesNotExist:
             return Response({"error": "Thème non trouvé."}, status=status.HTTP_404_NOT_FOUND)
+        
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+SERVICE3_APP = "SERVICE3-NODE"
+
+def get_service3_url():
+    return discover_service(SERVICE3_APP)
+
+def get_groups_by_theme_annee(request, theme_id):
+    theme = get_object_or_404(Theme, id=theme_id)
+
+    if not theme.annee_id:
+        return JsonResponse({'error': "Ce thème n'a pas de champ 'annee_id'."}, status=400)
+
+    service3_url = get_service3_url()  # doit retourner http://localhost:3000 ou http://service3-node
+    auth_header = request.headers.get('Authorization')
+
+    if not auth_header:
+        return JsonResponse({'error': 'Token JWT manquant dans les headers.'}, status=401)
+
+    headers = {
+        'Authorization': auth_header,
+        'Content-Type': 'application/json'
+    }
+
+    try:
+        # 👇 Ajouter le bon chemin complet
+        response = requests.get(
+            f"{service3_url}/api/groups/by-study-year",
+            params={'annee_etude': theme.annee_id},
+            headers=headers
+        )
+    except requests.exceptions.RequestException:
+        return JsonResponse({'error': 'Erreur de communication avec le service 3'}, status=502)
+
+    if response.status_code != 200:
+        return JsonResponse({'error': 'Erreur lors de la récupération des groupes.'}, status=response.status_code)
+
+    return JsonResponse(response.json(), safe=False)

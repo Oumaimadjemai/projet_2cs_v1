@@ -11,6 +11,10 @@ import { AppContext } from '../../../App';
 function TopBar() {
 
     const { lang } = useContext(AppContext)
+    const userNom = localStorage.getItem('user_nom') || '';
+    const userPrenom = localStorage.getItem('user_prenom') || '';
+    const userType = localStorage.getItem('role') || '';
+    const profilePicture = localStorage.getItem('photo_profil');
 
     return (
         <div className='topbar-container'>
@@ -24,11 +28,12 @@ function TopBar() {
                     </div>
                     <div className="user-line-box">
                         <div className="user-account">
-                            <img src={defaultAccountPicture} alt="" />
+                           <img src={profilePicture || defaultAccountPicture} alt="" />
+
                         </div>
                         <div className="user-props">
-                            <span style={{ fontSize: "0.9rem", fontWeight: "550" }}>Derki Ayet</span>
-                            <span style={{ fontSize: "0.75rem", fontWeight: "430", color:"#00000050" }}>Admin</span>
+                            <span style={{ fontSize: "0.9rem", fontWeight: "550" }}>{userNom} {userPrenom}</span>
+                            <span style={{ fontSize: "0.75rem", fontWeight: "430", color:"#00000050" }}>{userType}</span>
                         </div>
                     </div>
                 </div>

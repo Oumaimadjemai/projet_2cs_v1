@@ -17,9 +17,13 @@ router.get('/by-study-year-specialty', verifyJWTAnyUser, groupController.getGrou
 router.get('/invitations', verifyJWT, groupController.getUserInvitations);
 router.get('/all-groupes', groupController.getAllGroups);
 router.get('/', verifyJWTAnyUser, groupController.getAllGroups);
-router.post('/:groupId/assign/:userId', verifyAdmin,groupController.assignUserToGroup);
 
 router.get('/:id', verifyJWTAnyUser, groupController.getGroupById);
+
+
 router.get('/:id/members', verifyJWTAnyUser, groupController.getGroupMembers);
+router.post('/:groupId/assign/:userId', verifyJWTAnyUser, groupController.adminAssignUserToGroup);
+router.get('/without-group/:annee_id', verifyJWTAnyUser ,groupController.getUsersWithoutGroup);
+
 
 module.exports = router;

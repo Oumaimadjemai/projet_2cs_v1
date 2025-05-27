@@ -7,7 +7,7 @@ import '../../Partials/Components/i18n';
 import '../../admin/Styles/EnseignantsListe.css';
 import axios from 'axios'
 
-export const AjouterDocument = ({ annulerAjouter,onSuccess }) => {
+export const AjouterDocument = ({ annulerAjouter,onSuccess,groupId }) => {
     const [file, setFile] = useState(null);
     const [title, setTitle] = useState('');
     const [error, setError] = useState("");
@@ -78,7 +78,7 @@ const handleSubmit = async (e) => {
   formData.append('document', file); // 🔥 Important: 'document' = champ attendu par Multer
 
   try {
-    const response = await axios.post('http://localhost:5005/api/create-document', formData, {
+    const response = await axios.post(`http://localhost:5005/api/create-document/${groupId}`, formData, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('access_token')}`
       }

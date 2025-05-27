@@ -45,13 +45,13 @@ import ProfileEtudiant from "./Components/Etudiant/pages/ProfileEtudiant";
 import GroupesAdmin from "./Components/admin/Components/Groupes";
 import GroupeAdmin from "./Components/admin/Components/Groupe";
 import SoutenancesAdmin from "./Components/admin/Components/Soutenances";
-import RendezVousPage from "./Components/enseignante/Components/RendezVous";
 import DetailGroupe from "./Components/Etudiant/pages/DetailGroupe";
 import ThemesEtudiant from "./Components/Etudiant/pages/Themes";
 import ThemeEtudiant from "./Components/Etudiant/pages/Theme";
 import DefenseInformation from "./Components/Etudiant/pages/DefenseInformation";
-import RendezVousPage from "./Components/Etudiant/Components/Rendezvous";
+import RendezVousEtudiant from "./Components/Etudiant/Components/RendezvousEtudiant";
 import RendezVousGenrale from "./Components/enseignante/Components/RendezVousGenrale";
+import RendezVousPage from "./Components/enseignante/Components/RendezVousEnseignant";
 
 // import Rendezvous from './Components/enseignante/Components/Rendezvous';
 
@@ -91,7 +91,7 @@ function App() {
       {/* {showIntro ? (
         <IntroPage onTimeout={handleIntroTimeout} />
       ) : ( */}
-      <SocketProvider token={token}>
+      {/* <SocketProvider token={token}> */}
         <div className='App'>
           <Routes>
 
@@ -145,7 +145,7 @@ function App() {
             <Route path="themes" element={<ThemesEtudiant />} />         
             <Route path="themes/:id" element={<ThemeEtudiant />} />          
            <Route path="groupes/:groupId/fiche-vu" element={<Themeselectionform/>} /> 
-           <Route path="rendezvous" element={<RendezVousPage/>} />   
+           <Route path="rendezvous" element={<RendezVousEtudiant/>} />   
            <Route path="profile" element={<ProfileEtudiant />} />       
          
             <Route path="soutenances" element={<DefenseInformation/>} />
@@ -159,7 +159,7 @@ function App() {
           </Routes>
           <ToastContainer position="top-right" autoClose={10000} />
         </div>
-      </SocketProvider>
+      {/* </SocketProvider> */}
     </AppContext.Provider>
   );
 }

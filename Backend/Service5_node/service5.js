@@ -279,7 +279,7 @@ const authenticateTeacherJWT = async (req, res, next) => {
 // ======================
 app.post('/api/create-document', authenticateJWT, upload.single('document'), async (req, res) => {
   try {
-    const { SERVICE1_NAME, SERVICE3_NAME } = process.env;
+    const { SERVICE1_NAME, SERVICE3_NAME,SERVICE4_NAME } = process.env;
 
     // Découvrir le Service 1 (Django)
     const service1Url = await discoverService(SERVICE1_NAME); // SERVICE1-CLIENT
@@ -878,16 +878,113 @@ app.get('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (r
   }
 });
 // GET /api/enseignant/rendez-vous
-app.get('/api/enseignant/rendez-vous', authenticateTeacherJWT, async (req, res) => {
-  const enseignantId = req.user.user_id;
+// app.get('/api/enseignant/rendez-vous', authenticateTeacherJWT, async (req, res) => {
+//   const enseignantId = req.user.user_id;
 
+//   try {
+//     const rdvs = await RendezVous.find({ enseignantId });
+
+//     res.status(200).json({ rendezvous: rdvs });
+//   } catch (error) {
+//     console.error(error.message);
+//     res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous." });
+//   }
+// });
+app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
   try {
-    const rdvs = await RendezVous.find({ enseignantId });
+    const token = req.token;
 
-    res.status(200).json({ rendezvous: rdvs });
+    // 1. Découverte des services en parallèle
+    const [service1Url, service3Url] = await Promise.all([
+      discoverService(process.env.SERVICE1_NAME),
+      discoverService(process.env.SERVICE3_NAME)
+    ]);
+
+    // 2. Récupération des groupes de l'étudiant
+    const groupsResponse = await axios.get(`${service3Url}/api/groups/user`, {
+      headers: { Authorization: `Bearer ${token}` },
+      timeout: 5000
+    });
+
+    const userGroups = groupsResponse.data;
+    if (!userGroups?.length) {
+      return res.status(404).json({ error: "Aucun groupe trouvé pour cet étudiant" });
+    }
+
+    // 3. Préparation des données des groupes
+    const groupMap = Object.fromEntries(
+      userGroups.map(group => [group._id, group.name])
+    );
+
+    // 4. Récupération des rendez-vous
+    const rendezvous = await RendezVous.find({
+      groupeId: { $in: userGroups.map(g => g._id) }
+    }).lean();
+
+    // 5. Récupération des enseignants
+    const enseignantIds = [...new Set(
+      rendezvous.map(rdv => rdv.enseignantId).filter(Boolean)
+    )];
+
+    const enseignantMap = {};
+    await Promise.all(enseignantIds.map(async id => {
+      try {
+        const { data } = await axios.get(
+          `${service1Url}/enseignants/${id}/`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 3000 // Timeout réduit pour meilleure réactivité
+          }
+        );
+        enseignantMap[id] = {
+          nom_complet: `${data.prenom} ${data.nom}`,
+          nom: data.nom,
+          prenom: data.prenom
+        };
+      } catch (error) {
+        console.error(`Erreur récupération enseignant ${id}:`, error.message);
+        enseignantMap[id] = {
+          nom_complet: "Nom inconnu",
+          nom: "Inconnu",
+          prenom: ""
+        };
+      }
+    }));
+
+    // 6. Enrichissement des données
+    const result = rendezvous.map(rdv => ({
+      ...rdv,
+      group_name: groupMap[rdv.groupeId] || "Groupe inconnu",
+      enseignant: {
+        id: rdv.enseignantId,
+        nom_complet: enseignantMap[rdv.enseignantId]?.nom_complet || "Nom inconnu",
+        nom: enseignantMap[rdv.enseignantId]?.nom || "Inconnu",
+        prenom: enseignantMap[rdv.enseignantId]?.prenom || ""
+      }
+    }));
+
+    res.json({ rendezvous: result });
+
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous." });
+    console.error("Erreur dans /api/etudiant/rendezvous:", error.message);
+    
+    if (error.code === 'ECONNABORTED') {
+      return res.status(504).json({ error: "Timeout du service externe" });
+    }
+    
+    if (error.response) {
+      return res.status(error.response.status).json({
+        error: error.response.data.error || "Erreur de service externe"
+      });
+    }
+    
+    res.status(500).json({
+      error: "Erreur interne du serveur",
+      ...(process.env.NODE_ENV === 'development' && {
+        details: error.message,
+        stack: error.stack
+      })
+    });
   }
 });
 

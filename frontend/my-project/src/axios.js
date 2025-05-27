@@ -30,7 +30,7 @@ const baseURL = 'http://127.0.0.1:8000/'; // URL de base Django
 const nodeAPI = 'http://localhost:3000/api'; // URL de votre serveur Node
  const nodeAPI5 = 'http://localhost:5005/api'; // URL de votre serveur Node5
 
-const axiosInstance = axios.create({
+export const axiosInstance = axios.create({
   baseURL: baseURL,
   timeout: 60000,
   headers:{
@@ -47,10 +47,11 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
   if (token) {
-    config.headers.Authorization = `JWT ${token}`;
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
 
 // Intercepteur pour les réponses
 axiosInstance.interceptors.response.use(

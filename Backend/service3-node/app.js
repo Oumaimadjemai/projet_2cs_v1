@@ -29,7 +29,7 @@ app.use('/api', routes);
 app.use(errorHandler);
 
 // MongoDB Connection
-mongoose.connect("mongodb://localhost:27017/groupsApp", {
+mongoose.connect("mongodb://localhost:27017/groupApp", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })

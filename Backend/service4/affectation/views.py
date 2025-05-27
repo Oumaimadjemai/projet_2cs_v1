@@ -164,13 +164,104 @@ class IsEncadrantOfGroupView(APIView):
 
 
 class AssignmentDetailView(APIView):
+    authentication_classes = []
+
     def get(self, request, group_id):
         try:
             assignment = Assignment.objects.get(group_id=group_id)
             serializer = AssignmentSerializer(assignment)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            data = serializer.data
+
+            # Auth headers (token transmis au service)
+            auth_header = request.headers.get('Authorization')
+            headers = {'Authorization': auth_header} if auth_header else {}
+
+            # === SERVICE2 === Get theme title
+            SERVICE2_URL = discover_service('SERVICE2-CLIENT')
+            theme_url = f'{SERVICE2_URL}/themes/{data.get("theme_id")}/'
+            try:
+                r = requests.get(theme_url, headers=headers, timeout=5)
+                data['theme_title'] = r.json().get('titre') if r.status_code == 200 else None
+            except requests.RequestException:
+                data['theme_title'] = None
+
+            # === SERVICE3 === Get group name
+            SERVICE3_URL = discover_service('SERVICE3-NODE')
+            group_url = f'{SERVICE3_URL}/api/groups/{group_id}/'
+            try:
+               r = requests.get(group_url, headers=headers, timeout=5)
+               if r.status_code == 200:
+                  group_data = r.json().get('group', {})
+                  data['group_name'] = group_data.get('name')
+               else:
+                 data['group_name'] = None
+            except requests.RequestException:
+                 data['group_name'] = None
+            # === Get group members (only nom and prenom)
+            members_url = f'{SERVICE3_URL}/api/groups/{group_id}/members'
+            try:
+               r = requests.get(members_url, headers=headers, timeout=5)
+               if r.status_code == 200:
+                  members_data = r.json()
+                  members_list = members_data.get('members', [])
+                  simplified_members = [
+                      {'nom': m.get('nom'), 'prenom': m.get('prenom')} for m in members_list
+                  ]
+                  data['group_members'] = simplified_members
+               else:
+                  data['group_members'] = []
+            except requests.RequestException:
+                 data['group_members'] = []
+
+
+            # === SERVICE1 === Get encadrant nom & prénom
+            SERVICE1_URL = discover_service('SERVICE1-CLIENT')
+            enseignant_url = f'{SERVICE1_URL}/enseignants/{data.get("encadrant")}/'
+            try:
+                r = requests.get(enseignant_url, headers=headers, timeout=5)
+                if r.status_code == 200:
+                    json_data = r.json()
+                    data['encadrant_nom'] = json_data.get('nom')
+                    data['encadrant_prenom'] = json_data.get('prenom')
+                else:
+                    data['encadrant_nom'] = data['encadrant_prenom'] = None
+            except requests.RequestException:
+                data['encadrant_nom'] = data['encadrant_prenom'] = None
+
+            # === SERVICE1 === Get année académique
+            annee_url = f'{SERVICE1_URL}/annees-academiques/{data.get("annee_academique")}/'
+            try:
+                r = requests.get(annee_url, headers=headers, timeout=5)
+                data['annee_academique_year'] = r.json().get('year') if r.status_code == 200 else None
+            except requests.RequestException:
+                data['annee_academique_year'] = None
+
+            # === SERVICE3 === Get group theme choices
+            choices_url = f'{SERVICE3_URL}/api/themes/{group_id}/choices/'
+            try:
+                r = requests.get(choices_url, headers=headers, timeout=5)
+                if r.status_code == 200:
+                    choices_data = r.json()
+                    data['theme_choices'] = choices_data.get('data', {}).get('theme_selections', [])
+                else:
+                   data['theme_choices'] = []
+            except requests.RequestException:
+                data['theme_choices'] = []
+            return Response(data, status=status.HTTP_200_OK)
+
         except Assignment.DoesNotExist:
             return Response({'error': 'Affectation non trouvée'}, status=status.HTTP_404_NOT_FOUND)
+    def patch(self, request, group_id):
+        try:
+            assignment = Assignment.objects.get(group_id=group_id)
+            serializer = AssignmentSerializer(assignment, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Assignment.DoesNotExist:
+            return Response({'error': 'Affectation non trouvée'}, status=status.HTTP_404_NOT_FOUND)
+
 
     def patch(self, request, group_id):
         try:
@@ -262,3 +353,128 @@ def archive_assignments_by_annee(request, annee_id):
     assignments = Assignment.objects.filter(annee_academique=annee_id, archived=False)
     count = assignments.update(archived=True)
     return Response({"archived_count": count}, status=status.HTTP_200_OK)
+
+import random
+import requests
+from django.http import JsonResponse
+from .models import Assignment
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+
+SERVICE2_URL = discover_service('SERVICE2-CLIENT')
+SERVICE1_URL = discover_service('SERVICE1-CLIENT')
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def assignment_random(request, theme_id):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return JsonResponse({"error": "Token d'authentification manquant"}, status=401)
+
+    headers = {
+        "Authorization": auth_header,
+        "Content-Type": "application/json"
+    }
+
+    # Vérification admin
+    try:
+        verify_resp = requests.get(f"{SERVICE1_URL}/verify-admin/", headers=headers)
+        verify_resp.raise_for_status()
+        if not verify_resp.json().get("is_admin"):
+            return JsonResponse({"error": "Seul un administrateur peut effectuer cette action"}, status=403)
+    except requests.RequestException as e:
+        print("Erreur vérification admin:", e)
+        return JsonResponse({"error": "Erreur lors de la vérification admin"}, status=502)
+
+    # ID admin
+    try:
+        admin_id = get_user_id_from_token(request)
+    except Exception:
+        return JsonResponse({'error': "Impossible d'extraire l'ID de l'administrateur"}, status=400)
+
+    # Récupération du thème
+    try:
+        theme_resp = requests.get(f"{SERVICE2_URL}/themes/{theme_id}/", headers=headers)
+        theme_resp.raise_for_status()
+        theme = theme_resp.json()
+    except requests.RequestException as e:
+        print("Erreur thème:", e)
+        return JsonResponse({'error': 'Erreur communication avec service thèmes'}, status=502)
+
+    number_of_groups_to_assign = max(theme.get("numberOfGrp", 1), 1)
+    existing_assignments = Assignment.objects.filter(theme_id=theme_id)
+    if existing_assignments.count() >= number_of_groups_to_assign:
+        return JsonResponse({
+            "message": f"Ce thème a déjà atteint sa capacité maximale ({number_of_groups_to_assign} groupe(s))."
+        }, status=400)
+
+    remaining_slots = number_of_groups_to_assign - existing_assignments.count()
+
+    # Récupération des groupes éligibles
+    try:
+        groupes_resp = requests.get(f"{SERVICE2_URL}/themes/{theme_id}/groupes-par-annee/", headers=headers)
+        groupes_resp.raise_for_status()
+        groupes_json = groupes_resp.json()
+    except requests.RequestException as e:
+        print("Erreur groupes:", e)
+        return JsonResponse({'error': 'Erreur communication service groupes'}, status=502)
+
+    groupes = []
+    if groupes_json.get("success") and "data" in groupes_json:
+        for entry in groupes_json["data"]:
+            groupes.extend(entry.get("groupes", []))
+    if not groupes:
+        return JsonResponse({'error': 'Aucun groupe disponible'}, status=404)
+
+    # Affectation aléatoire
+    random.shuffle(groupes)
+    assignments = []
+    count_assigned = 0
+
+    for groupe in groupes:
+        if count_assigned >= remaining_slots:
+            break
+
+        group_id = str(groupe.get("id") or groupe.get("_id") or groupe.get("group_id"))
+        if not group_id or Assignment.objects.filter(group_id=group_id).exists():
+            continue
+
+        assignment = Assignment.objects.create(
+            group_id=group_id,
+            theme_id=theme_id,
+            encadrant=theme.get("enseignant_id"),
+            annee_academique=theme.get("annee_academique"),
+            date_soumission=theme.get("date_soumission"),
+            assigned_by_admin_id=admin_id,
+        )
+
+        assignments.append({
+            "assignment_id": assignment.id,
+            "groupe": {
+                "id": group_id,
+                "nom": groupe.get("nom"),
+                "moyenne": groupe.get("moyenne_groupe"),
+                "specialite": groupe.get("specialite"),
+                "nombre_membres": groupe.get("nombre_membres"),
+                "chef": groupe.get("chef", {}),
+                "date_creation": groupe.get("date_creation"),
+            },
+            "theme": {
+                "id": theme.get("id"),
+                "titre": theme.get("titre"),
+                "annee_academique": theme.get("annee_academique"),
+                "enseignant_id": theme.get("enseignant_id"),
+                "date_soumission": theme.get("date_soumission"),
+            },
+            "assigned_by_admin_id": admin_id
+        })
+
+        count_assigned += 1
+
+    if count_assigned == 0:
+        return JsonResponse({'error': 'Aucun groupe assigné (déjà assignés ou indisponibles).'}, status=400)
+
+    return JsonResponse({
+        "message": f"{count_assigned} groupe(s) assigné(s) au thème {theme_id}.",
+        "assignments": assignments
+    })
