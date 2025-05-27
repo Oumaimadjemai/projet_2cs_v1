@@ -57,7 +57,7 @@ import ProfileEtudiant from "./Components/Etudiant/pages/ProfileEtudiant";
 import GroupesAdmin from "./Components/admin/Components/Groupes";
 import GroupeAdmin from "./Components/admin/Components/Groupe";
 import SoutenancesAdmin from "./Components/admin/Components/Soutenances";
-import RendezVousPage from "./Components/enseignante/Components/RendezVous";
+import RendezVousPage from "./Components/enseignante/Components/RendezVousEnseignant";
 import DetailGroupe from "./Components/Etudiant/pages/DetailGroupe";
 import ThemesEtudiant from "./Components/Etudiant/pages/Themes";
 import ThemeEtudiant from "./Components/Etudiant/pages/Theme";
@@ -65,7 +65,7 @@ import DefenseInformation from "./Components/Etudiant/pages/DefenseInformation";
 // import RendezVousPage from "./Components/Etudiant/Components/Rendezvous";
 import RendezVousGenrale from "./Components/enseignante/Components/RendezVousGenrale";
 
-import RendezVous from "./Components/Etudiant/Components/Rendezvous";
+import RendezVousEtudiant from "./Components/Etudiant/Components/RendezvousEtudiant";
 
 export const AppContext = createContext();
 
@@ -169,7 +169,7 @@ function App() {
                 path="groupes/:groupId/fiche-vu"
                 element={<Themeselectionform />}
               />
-              <Route path="rendezvous" element={<RendezVousPage />} />
+              <Route path="rendezvous" element={<RendezVousEtudiant />} />
               <Route path="profile" element={<ProfileEtudiant />} />
 
               <Route path="soutenances" element={<DefenseInformation />} />
