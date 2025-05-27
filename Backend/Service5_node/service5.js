@@ -88,20 +88,44 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/service5_
 // ======================
 // 4. Multer Configuration
 // ======================
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'uploads/');
+//   },
+//   filename: (req, file, cb) => {
+//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+//     cb(null, uniqueSuffix + path.extname(file.originalname));
+//   }
+// });
+
+// const upload = multer({ 
+//   storage: storage,
+//   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+// });
+
+
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+  destination: function (req, file, cb) {
+    cb(null, 'uploads'); // Stocker dans le dossier `uploads/`
   },
-  filename: (req, file, cb) => {
+  filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    cb(null, uniqueSuffix + path.extname(file.originalname)); // Nom de fichier unique
   }
 });
 
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+const upload = multer({
+  storage,
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'));
+    }
+  }
 });
+
 
 // ======================
 // 5. Mongoose Models
@@ -273,9 +297,10 @@ const authenticateTeacherJWT = async (req, res, next) => {
 // ======================
 // 7. API Endpoints
 // ======================
+
 app.post('/api/create-document', authenticateJWT, upload.single('document'), async (req, res) => {
   try {
-    const { SERVICE1_NAME, SERVICE3_NAME } = process.env;
+    const { SERVICE1_NAME, SERVICE3_NAME,SERVICE4_NAME } = process.env;
 
     // Découvrir le Service 1 (Django)
     const service1Url = await discoverService(SERVICE1_NAME); // SERVICE1-CLIENT
@@ -310,6 +335,12 @@ app.post('/api/create-document', authenticateJWT, upload.single('document'), asy
     const service4Url = await discoverService(SERVICE4_NAME);
     const encadrantResponse = await axios.get(`${service4Url}/encadrant-by-group/${groupId}`);
     const encadrantId = encadrantResponse.data.encadrant_id;
+
+    if (!encadrantId) {
+      return res.status(400).json({ error: "No encadrant found for the group" });
+    }
+
+    // Création du document
 
     if (!encadrantId) {
       return res.status(400).json({ error: "No encadrant found for the group" });
@@ -385,7 +416,7 @@ app.post('/api/create-document/:groupId', authenticateJWT, upload.single('docume
     const newDoc = new Document({
       title: req.body.title,
       description: req.body.description || '',
-      fileUrl: `/uploads/${req.file.filename}`,
+      fileUrl: `uploads/${req.file.filename}`,
       status: 'en attente',
       createdBy: req.user.user_id,
       teacherId: encadrantId,
@@ -724,7 +755,52 @@ app.post('/api/enseignant/document/:id/note', authenticateTeacherJWT, async (req
     return res.status(500).json({ error: "Erreur serveur", detail: err.message });
   }
 });
+const fs = require('fs');
+const uploadsPath = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+}
 
+
+app.get('/api/document/:id/pdf', authenticateJWT, async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.id);
+
+    if (!document || !document.fileUrl) {
+      return res.status(404).json({ error: 'Document ou chemin du fichier introuvable' });
+    }
+
+    const filePath = path.join(__dirname, document.fileUrl); 
+    console.log('📄 Chemin complet:', filePath);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'Fichier introuvable sur le disque' });
+    }
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.sendFile(filePath);
+  } catch (err) {
+    console.error('❌ Erreur:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+
+app.get('/api/document/:id', authenticateJWT, async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.id);
+
+    if (!document) {
+      return res.status(404).json({ error: 'Document non trouvé' });
+    }
+
+    return res.status(200).json(document);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 app.post('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (req, res) => {
