@@ -5,7 +5,7 @@ import { IoTimeOutline } from "react-icons/io5";
 import { MdCalendarMonth } from "react-icons/md";
 import { nodeAxios2 } from '../../../axios';
 
-const RendezVousPage = () => {
+const RendezVous = () => {
   const [rendezVous, setRendezVous] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -222,4 +222,4 @@ const styles = {
   }
 };
 
-export default RendezVousPage;
+export default RendezVous;

@@ -45,7 +45,7 @@ class ValidateSoutenanceView(APIView):
 
         # 3. Valider la soutenance
         update_resp = requests.patch(
-            f"{AFFECTATION_SERVICE_URL}assignments/{group_id}/",
+            f"{AFFECTATION_SERVICE_URL}/assignments/{group_id}/",
             json={"soutenance_valide": True}
         )
 
@@ -403,12 +403,118 @@ class SoutenanceDetailView(RetrieveUpdateDestroyAPIView):
             return Response({"error": "Soutenance non trouvée"}, status=404)
 
 
+# class SoutenanceListView(ListAPIView):
+#     queryset = Soutenance.objects.all()
+#     serializer_class = SoutenanceSerializer
+
+#     def get_serializer_context(self):
+#         return {'request': self.request}
+
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
+from .models import Soutenance
+from .serializers import SoutenanceSerializer
+import requests
+from rest_framework import status # si tu as une fonction utilitaire
+
 class SoutenanceListView(ListAPIView):
-    queryset = Soutenance.objects.all()
     serializer_class = SoutenanceSerializer
+
+    def get_queryset(self):
+        return Soutenance.objects.all()
 
     def get_serializer_context(self):
         return {'request': self.request}
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        service1_url = discover_service("SERVICE1-CLIENT")
+        service3_url = discover_service("SERVICE3-NODE")
+        headers = {'Authorization': request.headers.get('Authorization')}
+        enriched_data = []
+
+        for soutenance in queryset:
+            serializer = self.get_serializer(soutenance)
+            data = serializer.data
+
+            group_id = data.get('groupe')
+            salle_id = data.get('salle')
+            annee_id = data.get('annee')
+            specialite_id = data.get('specialite')
+            annee_acad_id = data.get('annee_academique')
+
+            # 1. Nom du groupe depuis Service 3
+            try:
+                if group_id and service3_url:
+                    resp = requests.get(f'{service3_url}/api/groups/{group_id}', headers=headers)
+                    data['nom_groupe'] = resp.json().get('name') if resp.status_code == 200 else None
+                else:
+                    data['nom_groupe'] = None
+            except requests.RequestException:
+                data['nom_groupe'] = None
+
+            # 2. Annee + département depuis Service 1
+            try:
+                if annee_id and service1_url:
+                    resp = requests.get(f'{service1_url}/annees/{annee_id}/', headers=headers)
+                    if resp.status_code == 200:
+                        annee_data = resp.json()
+                        annee_title = annee_data.get('title') or ''
+                        dept_title = annee_data.get('departement_title') or ''
+                        data['annee'] = f"{annee_title} - {dept_title}".strip(" -")
+                    else:
+                        data['annee'] = None
+            except requests.RequestException:
+                data['annee'] = None
+
+            # 3. Année académique (year)
+            try:
+                if annee_acad_id and service1_url:
+                    resp = requests.get(f'{service1_url}/annees-academiques/{annee_acad_id}/', headers=headers)
+                    data['annee_academique_year'] = resp.json().get('year') if resp.status_code == 200 else None
+                else:
+                    data['annee_academique_year'] = None
+            except requests.RequestException:
+                data['annee_academique_year'] = None
+
+            # 4. Spécialité
+            try:
+                if specialite_id and service1_url:
+                    resp = requests.get(f'{service1_url}/specialites/{specialite_id}/', headers=headers)
+                    data['specialite'] = resp.json().get('title') if resp.status_code == 200 else None
+                else:
+                    data['specialite'] = None
+            except requests.RequestException:
+                data['specialite'] = None
+
+            # 5. Salle + département
+            try:
+                if salle_id and service1_url:
+                    salle_resp = requests.get(f'{service1_url}/salles/{salle_id}/', headers=headers)
+                    if salle_resp.status_code == 200:
+                        salle_data = salle_resp.json()
+                        nom_salle = salle_data.get('nom_salle') or ''
+                        dept_id = salle_data.get('departement')
+
+                        dept_title = ''
+                        if dept_id:
+                            dept_resp = requests.get(f'{service1_url}/departements/{dept_id}/', headers=headers)
+                            if dept_resp.status_code == 200:
+                                dept_title = dept_resp.json().get('title') or ''
+
+                        data['nom_salle'] = f"{nom_salle} - {dept_title}".strip(" -")
+                    else:
+                        data['nom_salle'] = None
+                else:
+                    data['nom_salle'] = None
+            except requests.RequestException:
+                data['nom_salle'] = None
+
+            enriched_data.append(data)
+
+        return Response(enriched_data)
+
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -427,46 +533,6 @@ class SoutenanceArchiverView(APIView):
             return Response({"detail": "Soutenance archivée."}, status=status.HTTP_200_OK)
         except Soutenance.DoesNotExist:
             return Response({"detail": "Soutenance non trouvée."}, status=status.HTTP_404_NOT_FOUND)
-    
-# class SoutenanceParEtudiantView(APIView):
-
-#     def get(self, request):
-#         user_id = request.user.id
-#         headers = {
-#             'Authorization': request.headers.get('Authorization')
-#         }
-
-#         try:
-#             # Appel au service 3
-#             service3url=discover_service("SERVICE3-NODE")
-#             service3_url = f'{service3url}/api/groups/user'
-#             response = requests.get(service3_url, headers=headers)
-
-#             if response.status_code != 200:
-#                 return Response({'error': 'Erreur lors de la récupération des groupes'}, status=response.status_code)
-
-#             groupes = response.json()
-#             if not groupes:
-#                 return Response({'error': 'Aucun groupe trouvé'}, status=status.HTTP_404_NOT_FOUND)
-
-#         except requests.RequestException:
-#             return Response({'error': 'Service 3 inaccessible'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-
-#         # Récupération des soutenances pour chaque groupe
-#         soutenances = []
-#         for groupe in groupes:
-#             group_id = groupe['_id']
-#             try:
-#                 soutenance = Soutenance.objects.get(groupe=group_id)
-#                 serializer = SoutenanceSerializer(soutenance, context={'request': request})
-#                 soutenances.append(serializer.data)
-#             except Soutenance.DoesNotExist:
-#                 continue
-
-#         if not soutenances:
-#             return Response({'error': 'Aucune soutenance trouvée pour vos groupes'}, status=status.HTTP_404_NOT_FOUND)
-
-#         return Response(soutenances)
     
 
 

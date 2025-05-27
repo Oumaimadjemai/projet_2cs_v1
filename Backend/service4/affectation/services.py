@@ -71,16 +71,15 @@ def get_theme_info(theme_id):
 import requests
 
 def get_group_members(group_id, jwt_token):
-    try:
-        base_url = discover_service(SERVICE3)
-        headers = {'Authorization': jwt_token}
-        url = f"{base_url}/api/groups/{group_id}/members"
-        res = requests.get(url, headers=headers)
-        if res.status_code == 404:
-            return None  # Group not found
-        res.raise_for_status()
-        return res.json()
-    except requests.RequestException as e:
-        # Log the error if needed
-        return None
+    if not jwt_token.startswith("Bearer "):
+        jwt_token = f"Bearer {jwt_token}"
 
+    headers = {'Authorization': jwt_token}
+    base_url = discover_service("SERVICE3-NODE")
+    try:
+        response = requests.get(f"{base_url}/api/groups/{group_id}/members", headers=headers)
+        response.raise_for_status()
+        return response.json().get("members", [])
+    except requests.RequestException as e:
+        print(f"Erreur lors de la récupération des membres: {e}")
+        return []
