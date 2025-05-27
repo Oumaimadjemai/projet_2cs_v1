@@ -27,36 +27,36 @@ function GroupeDetail() {
 
     }, [id])
 
-    const documents = [
-        { id: 1, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
-        { id: 2, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Refuser" },
-        { id: 3, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
-        { id: 1, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "En Attente" },
-        { id: 2, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
-        { id: 3, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
-        { id: 1, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Refuser" },
-        { id: 2, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Refuser" },
-        { id: 3, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
-        { id: 1, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
-        { id: 2, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "En Attente" },
-        { id: 3, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
-        { id: 1, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Validé" },
-        { id: 2, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "Refuser" },
-        { id: 3, name: "Cahier de chargev1.pdf", date: " Feb 21, 2022 12:45 PM", chef: "Djamel Bensaber", status: "En Attente" }
-    ];
+    const [documents, setDocuments] = useState([]);
+
+    useEffect(() => {
+
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE5}/api/groups/${id}/documents`, {
+            headers: {
+                authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+        })
+            .then((res) => {
+                setDocuments(res.data.documents)
+            })
+            .catch((err) => console.error(err.response.data))
+
+    }, [])
 
     const getStatusColor = (status) => {
+
         switch (status) {
-            case "Validé":
+            case "valide":
                 return "#6FCF97"
-            case "En Attente":
-                return "#925FE2"
-            case "Refuser":
+            case "en attente":
+                return "#00000080"
+            case "refuse":
                 return "#D42803"
             default:
                 return "black";
+
         }
-    };
+    }
 
     const [isVisible, setIsVisible] = useState(false);
     const dynamicListRef = useRef(null);
@@ -108,7 +108,7 @@ function GroupeDetail() {
         e.preventDefault()
         setLoading(true)
 
-        axios.post(`${process.env.REACT_APP_API_URL_SERVICE6}/soutenances/valider/${groupe.id}/`, {
+        axios.post(`${process.env.REACT_APP_API_URL_SERVICE6}/soutenances/valider/${id}/`, {} , {
             headers: {
                 authorization: `Bearer ${localStorage.getItem('access_token')}`,
                 "Content-Type": "application/json",
@@ -130,9 +130,9 @@ function GroupeDetail() {
             <div className="groupes-liste-wrapper" style={{ paddingRight: isRtl ? "0" : "12px", paddingLeft: isRtl ? "12px" : "0" }}>
                 <div className="title-detail-line">
                     <h1 style={{ fontSize: "1.2rem", fontWeight: "500", color: "#4F4F4F" }}>
-                        <Link to={'/enseignant/groupes'} className='return-to-groupes'> Tous Les Groupes </Link>  &gt; <span style={{ color: "#925FE2" }}>{ groupe.group_name }</span>
+                        <Link to={'/enseignant/groupes'} className='return-to-groupes'> Tous Les Groupes </Link>  &gt; <span style={{ color: "#925FE2" }}>{groupe.group_name}</span>
                     </h1>
-                    <div style={{ display: "flex", gap: "1.1rem", alignItems: "center", marginRight: "1rem" }} onClick={() => navigate(`/enseignant/groupes/${id}/rendez-vous`)}>
+                    <div style={{ display: "flex", gap: "1.1rem", alignItems: "center", marginRight: "1rem" }}>
                         <span style={{ display: "flex", gap: "10px", alignItems: "center", fontFamily: "Kumbh Sans, sans-serif", fontWeight: "600", color: "#925FE2", cursor: "pointer" }} onClick={() => setGroupeClicked(true)}>
                             Sur le Groupe
                             <svg width="8" height="12" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -227,14 +227,14 @@ function GroupeDetail() {
                                                             <path d="M19.5 10.3711V19.5C19.5 20.0967 19.2629 20.669 18.841 21.091C18.419 21.5129 17.8467 21.75 17.25 21.75H6.75C6.15326 21.75 5.58097 21.5129 5.15901 21.091C4.73705 20.669 4.5 20.0967 4.5 19.5V4.5C4.5 3.90326 4.73705 3.33097 5.15901 2.90901C5.58097 2.48705 6.15326 2.25 6.75 2.25H11.3789C11.7766 2.25006 12.158 2.40804 12.4392 2.68922L19.0608 9.31078C19.342 9.59202 19.4999 9.97341 19.5 10.3711Z" stroke="black" stroke-linejoin="round" />
                                                             <path d="M12 2.625V8.25C12 8.64782 12.158 9.02936 12.4393 9.31066C12.7206 9.59196 13.1022 9.75 13.5 9.75H19.125" stroke="black" stroke-linecap="round" stroke-linejoin="round" />
                                                         </svg>
-                                                        {document.name}
+                                                        {document.title}
                                                     </span>
                                                 </td>
                                                 <td style={{ width: "23%", color: "#3A3541", fontSize: "0.7rem", paddingTop: "10px" }}>
-                                                    {document.date}
+                                                    {document.createdAt}
                                                 </td>
                                                 <td style={{ width: "30%" }}>
-                                                    {document.chef}
+                                                    {document.etudiantNom || "N/A"}
                                                 </td>
                                                 <td className='grade-td' style={{ width: "100%" }}>
                                                     <div
@@ -273,7 +273,7 @@ function GroupeDetail() {
                                                             </svg>
                                                             Télécharger
                                                         </button>
-                                                        <span style={{ display: "flex", gap: "8px", alignItems: "center", color: "#884DFF", marginRight: "1rem" }}>
+                                                        <span style={{ display: "flex", gap: "8px", alignItems: "center", color: "#884DFF", marginRight: "1rem" }} onClick={() => navigate(`/enseignant/groupes/${id}/documents/${document._id}`)} >
                                                             <svg width="10" height="16" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                 <path d="M1.5 1L8.5 8L1.5 15" stroke="#925FE2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                                                             </svg>
@@ -471,7 +471,7 @@ export default GroupeDetail
 
 const ValiderAlert = ({ annulerAffecter, handleAffecter }) => {
     return (
-        <div className="add-departement-success" style={{zIndex: "3000"}}>
+        <div className="add-departement-success" style={{ zIndex: "3000" }}>
             <div className="img-container" style={{ height: "90px", width: "150px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="30" cy="30" r="30" fill="#FFD21E" />
@@ -508,7 +508,7 @@ const ValiderAlert = ({ annulerAffecter, handleAffecter }) => {
 
 const AddAlert = ({ addSuccess }) => {
     return (
-        <div className="add-departement-success" style={{zIndex: "3000"}}>
+        <div className="add-departement-success" style={{ zIndex: "3000" }}>
             <div className="img-container" style={{ height: "90px", width: "100px" }}>
                 <img src={doneImg} alt="done" style={{ height: "100%", width: "100%", objectFit: "cover", transform: "scale(1.2)" }} />
             </div>

@@ -94,6 +94,9 @@
         "salles": "Salles",
         "specialites": "Spécialities",
         "annees": "Années Universitaires",
+        "parametreGrp": "Paramètres Groupe",
+        "periodes": "Périodes",
+        "anneeAcad": "Année Académiques",
         "moreBtn": "Voir Plus",
         "gererBtn": "Gérer",
         "departemenLine": "L'ESI - SBA regroupe <1> 2 départements </1> spécialisés pour offrir une formation d'excellence.",
@@ -119,7 +122,38 @@
         "anneesTitle": "Les Années Universitaires ",
         "anneesRemark": "Ajoutez, supprimez ou modifiez les années universitaires de l’établissement en toute simplicité.",
         "anneeLink": "Paramètres > <1> Paramètres Scolarité </1> > <2>Années</2> ",
-        "anneeInputPlaceholder": "Entrez la nouvelle année"
+        "anneeInputPlaceholder": "Entrez la nouvelle année",
+        "parametresGrpTitle": "Les Paramètres des Groupes",
+        "paraGrpRemark": "Ajoutez, supprimez ou modifiez les paramètres des groupes en toute simplicité.",
+        "minMembre": "Nombre Minimum",
+        "maxMembre": "Nombre Maximum",
+        "periodesTitle": "Les Périodes",
+        "preiodesRemark": "Ajoutez, supprimez ou modifiez les périodes de Dépôt des Thèmes et Soutenances en toute simplicité.",
+        "dateDebut": "Entrer la Date Debut",
+        "dateFin": "Entrer la Date Fin",
+        "anneAcadRemark": "Ajoutez, supprimez ou modifiez les périodes des Années Académiques en toute simplicité.",
+        "departSucess": "Sauvegarde effectuée ! Les nouveaux départements sont en place.",
+        "departModifie": "Êtes-vous certain(e) de vouloir apporter des modifications à ce département ?",
+        "departSupp": "Êtes-vous sûr(e) de vouloir supprimer ce département ? Cette action est irréversible.",
+        "anneeSucess": "Sauvegarde effectuée ! Les nouvelles années sont en place.",
+        "anneeModifie": "Êtes-vous sûr(e) de vouloir apporter des modifications à cette année ?",
+        "anneeSupp": "Êtes-vous sûr(e) de vouloir supprimer cette année ? Cette action est irréversible.",
+        "specialiteSucess": "Sauvegarde effectuée ! Les nouvelles spécialités sont en place.",
+        "specialiteModifie": "Êtes-vous sûr(e) de vouloir apporter des modifications à cette spécialité ?",
+        "specialiteSupp": "Êtes-vous sûr(e) de vouloir supprimer cette spécialité ? Cette action est irréversible.",
+        "periodeSucess": "Sauvegarde effectuée ! Les nouvelles périodes sont en place.",
+        "periodeModifie": "Êtes-vous sûr(e) de vouloir apporter des modifications à cette période ?",
+        "periodeSupp": "Êtes-vous sûr(e) de vouloir supprimer cette période ? Cette action est irréversible.",
+        "parametreGrpSucess": "Sauvegarde effectuée ! Les nouveaux paramètres de groupe sont en place.",
+        "parametreGrpModifie": "Êtes-vous sûr(e) de vouloir apporter des modifications à ces paramètres de groupe ?",
+        "parametreGrpSupp": "Êtes-vous sûr(e) de vouloir supprimer ces paramètres de groupe ? Cette action est irréversible.",
+        "anneeAcadSucess": "Sauvegarde effectuée ! Les nouvelles années académiques sont en place.",
+        "anneeAcadModifie": "Êtes-vous sûr(e) de vouloir apporter des modifications à cette année académique ?",
+        "anneeAcadSupp": "Êtes-vous sûr(e) de vouloir supprimer cette année académique ? Cette action est irréversible.",
+        "salleSucess": "Sauvegarde effectuée ! Les nouvelles salles sont en place.",
+        "salleModifie": "Êtes-vous sûr(e) de vouloir apporter des modifications à cette salle ?",
+        "salleSupp": "Êtes-vous sûr(e) de vouloir supprimer cette salle ? Cette action est irréversible.",
+        "type": "Type"
     },
     "settingsList": {
         "langues": "Langues",
@@ -130,5 +164,17 @@
         "french": "Français",
         "english": "Anglais",
         "arabic": "Arabe"
+    },
+    "dashboard": {
+        "admin": "Administaration",
+        "soutenances": "Les Soutenances",
+        "soutTable": {
+            "encadrant": "Encadrant",
+            "theme": "Thème",
+            "annee": "Année",
+            "date": "Date",
+            "salle": "Salle",
+            "voir": "Voir tout"
+        }
     }
 }

@@ -262,3 +262,99 @@ def archive_assignments_by_annee(request, annee_id):
     assignments = Assignment.objects.filter(annee_academique=annee_id, archived=False)
     count = assignments.update(archived=True)
     return Response({"archived_count": count}, status=status.HTTP_200_OK)
+
+
+from django.db.models import Q
+class AssignmentListView(APIView):
+    authentication_classes = []
+
+    def get(self, request):
+        annee_filter = request.query_params.get("annee")
+        soutenance_valide_filter = request.query_params.get("soutenance_valide")
+
+        filters = Q()
+        if annee_filter:
+            filters &= Q(annee_academique=annee_filter)
+        if soutenance_valide_filter and soutenance_valide_filter.lower() == "true":
+            filters &= Q(soutenance_valide=True)
+
+        assignments = Assignment.objects.filter(filters)
+        result = []
+
+        auth_header = request.headers.get('Authorization')
+        headers = {'Authorization': auth_header} if auth_header else {}
+
+        SERVICE1_URL = discover_service('SERVICE1-CLIENT')
+        SERVICE2_URL = discover_service('SERVICE2-CLIENT')
+        SERVICE3_URL = discover_service('SERVICE3-NODE')
+
+        for assignment in assignments:
+            serializer = AssignmentSerializer(assignment)
+            data = serializer.data
+
+            # Theme title
+            try:
+                theme_url = f'{SERVICE2_URL}/themes/{data.get("theme_id")}/'
+                r = requests.get(theme_url, headers=headers, timeout=5)
+                data['theme_title'] = r.json().get('titre') if r.status_code == 200 else None
+            except:
+                data['theme_title'] = None
+
+            # Group name
+            try:
+                group_url = f'{SERVICE3_URL}/api/groups/{data.get("group_id")}/'
+                r = requests.get(group_url, headers=headers, timeout=5)
+                data['group_name'] = r.json().get('name') if r.status_code == 200 else None
+            except:
+                data['group_name'] = None
+
+            # Group members (nom, prenom)
+            try:
+                members_url = f'{SERVICE3_URL}/api/groups/{data.get("group_id")}/members'
+                r = requests.get(members_url, headers=headers, timeout=5)
+                if r.status_code == 200:
+                    members = r.json().get('members', [])
+                    data['group_members'] = [{'nom': m.get('nom'), 'prenom': m.get('prenom')} for m in members]
+                else:
+                    data['group_members'] = []
+            except:
+                data['group_members'] = []
+
+            # Encadrant nom/prenom
+            try:
+                enseignant_url = f'{SERVICE1_URL}/enseignants/{data.get("encadrant")}/'
+                r = requests.get(enseignant_url, headers=headers, timeout=5)
+                if r.status_code == 200:
+                    json_data = r.json()
+                    data['encadrant_nom'] = json_data.get('nom')
+                    data['encadrant_prenom'] = json_data.get('prenom')
+                else:
+                    data['encadrant_nom'] = data['encadrant_prenom'] = None
+            except:
+                data['encadrant_nom'] = data['encadrant_prenom'] = None
+
+            # Année académique year
+            try:
+                annee_url = f'{SERVICE1_URL}/annees-academiques/{data.get("annee_academique")}/'
+                r = requests.get(annee_url, headers=headers, timeout=5)
+                data['annee_academique_year'] = r.json().get('year') if r.status_code == 200 else None
+            except:
+                data['annee_academique_year'] = None
+
+            # Theme choices
+            try:
+                choices_url = f'{SERVICE3_URL}/api/themes/{data.get("group_id")}/choices/'
+                r = requests.get(choices_url, headers=headers, timeout=5)
+                if r.status_code == 200:
+                    data['theme_choices'] = r.json().get('data', {}).get('theme_selections', [])
+                else:
+                    data['theme_choices'] = []
+            except:
+                data['theme_choices'] = []
+
+            result.append(data)
+
+        return Response(result, status=status.HTTP_200_OK)
+
+
+

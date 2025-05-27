@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios'
-import { RendezVousContexte } from './RendezVous';
+import { RendezVousContexte } from './RendezVousEnseignant';
 
 const ModifireRendezVous = ({ onClose, getTodayDate, rendez, id }) => {
     const styles = {

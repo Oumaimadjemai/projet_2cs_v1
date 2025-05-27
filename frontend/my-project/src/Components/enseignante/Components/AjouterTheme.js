@@ -5,6 +5,9 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { EnseignantThemesContext } from "./ThemesEnseignant";
 import CreatableSelect from "react-select/creatable";
+import Select from "react-select/creatable";
+import { ReactComponent as CloudIcon } from '../../../Assets/Icons/cloud.svg';
+import { ReactComponent as CloseIcon } from '../../../Assets/Icons/close.svg';
 
 export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
   const { setThemes, setLoading } = useContext(EnseignantThemesContext);
@@ -75,6 +78,7 @@ export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
   const [showYearOptions, setShowYearOptions] = useState(false);
   const [priorities, setPriorities] = useState({});
   const [showSpecialitesMenu, setShowSpecialitesMenu] = useState(false);
+  const [methodeAjouter, setMethodeAjouter] = useState(0);
 
   // Initialiser les priorités quand les années changent
   useEffect(() => {
@@ -150,11 +154,10 @@ export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
           ...prev,
           {
             ...res.data,
-            annee_titre: `${selectedYear.title} ${
-              selectedYear.departement_title.toLowerCase() === "préparatoire"
-                ? "CPI"
-                : "CS"
-            }`,
+            annee_titre: `${selectedYear.title} ${selectedYear.departement_title.toLowerCase() === "préparatoire"
+              ? "CPI"
+              : "CS"
+              }`,
             specialite_title: getSpecialiteName(
               priorities[selectedYear.id]?.find((p) => p.priorite === 1)
                 ?.specialite_id
@@ -218,8 +221,8 @@ export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
 
     const selectedOptions = newTheme.outils_et_language
       ? newTheme.outils_et_language
-          .split(", ")
-          .map((val) => ({ value: val, label: val }))
+        .split(", ")
+        .map((val) => ({ value: val, label: val }))
       : [];
 
     const updatedSelected = [...selectedOptions, newOption];
@@ -263,6 +266,239 @@ export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
     });
   };
 
+  const [file, setFile] = useState(null);
+  const [error, setError] = useState("");
+
+  const allowedTypes = [
+    'application/pdf',
+  ];
+
+  const validateFile = (selectedFile) => {
+    if (!allowedTypes.includes(selectedFile.type)) {
+      setError("Seuls les fichiers Excel et CSV sont autorisés.");
+      setFile(null);
+      return false;
+    }
+    setError("");
+    return true;
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const [themePdf, setThemePdf] = useState({
+    annee_id: null,
+    priorities: [],
+    file: null,
+    numberOfGrp: null
+  })
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length > 0) {
+      const droppedFile = e.dataTransfer.files[0];
+      if (validateFile(droppedFile)) {
+        setFile(droppedFile);
+      }
+    }
+  };
+
+  const handleFileSelect = (event) => {
+    if (event.target.files.length > 0) {
+      const selectedFile = event.target.files[0];
+      if (validateFile(selectedFile)) {
+        setFile(selectedFile);
+        setThemePdf({ ...themePdf, file: selectedFile })
+      }
+    }
+  };
+
+  const handleSubmitPdf = (e) => {
+    e.preventDefault();
+
+    const finalPriorities = selectedYear?.has_specialite
+      ? priorities[selectedYear.id] || []
+      : [];
+
+    const finalTheme = {
+      ...themePdf,
+      priorities: finalPriorities,
+      annee_id: selectedYear.id,
+    };
+
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append('annee_id', finalTheme.annee_id)
+    formData.append('priorities', finalTheme.priorities)
+    formData.append('file', finalTheme.file)
+    formData.append('numberOfGrp', finalTheme.numberOfGrp)
+
+    axios.post(`${process.env.REACT_APP_API_URL_SERVICE2}/themes/upload-pdf/`, formData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+      .then((res) => {
+        setThemes((prev) => [
+          ...prev,
+          {
+            ...res.data,
+            annee_titre: `${selectedYear.title} ${selectedYear.departement_title.toLowerCase() === "préparatoire"
+              ? "CPI"
+              : "CS"
+              }`,
+            specialite_title: getSpecialiteName(
+              priorities[selectedYear.id]?.find((p) => p.priorite === 1)
+                ?.specialite_id
+            ),
+          },
+        ]);
+        annulerAjouter();
+        addWithSuccess();
+      })
+      .catch((err) => console.error(err.response.data))
+      .finally(() => setLoading(false))
+  }
+
+  const [newThemeUsers, setNewThemeUsers] = useState({
+    titre: "",
+    resume: "",
+    outils_et_language: "",
+    plan_travail: "",
+    livrable: "",
+    annee_id: null,
+    priorities: [],
+    numberOfGrp: null,
+    members: []
+  })
+
+  const [etudiants, setEtudiants] = useState([])
+
+  useEffect(() => {
+    axios
+      .get(`${process.env.REACT_APP_API_URL_SERVICE1}/etudiants/annee/${newThemeUsers.annee_id}/`)
+      .then(res => {
+        const formatted = res.data.map(etu => ({
+          value: etu.id,
+          label: `${etu.nom} ${etu.prenom}`
+        }));
+        setEtudiants(formatted);
+      })
+      .catch((err) => console.error(err));
+
+  }, [newThemeUsers.annee_id])
+
+  const handleChangeLivrables1 = (selectedOptions) => {
+    const livrablesString = selectedOptions
+      .map((option) => option.value)
+      .join(", ");
+
+    setNewThemeUsers({
+      ...newThemeUsers,
+      livrable: livrablesString,
+    });
+  };
+
+   const handleCreateLivrable1 = (inputValue) => {
+    const newOption = { value: inputValue, label: inputValue };
+    setLivrables((prev) => [...prev, newOption]);
+
+    const selectedOptions = newThemeUsers.livrable
+      ? newThemeUsers.livrable.split(", ").map((val) => ({ value: val, label: val }))
+      : [];
+
+    const updatedSelected = [...selectedOptions, newOption];
+    const livrablesString = updatedSelected
+      .map((option) => option.value)
+      .join(", ");
+
+    setNewThemeUsers({
+      ...newThemeUsers,
+      livrable: livrablesString,
+    });
+  };
+
+  const handleChangeLanguages1 = (selectedOptions) => {
+    const languagesString = selectedOptions
+      .map((option) => option.value)
+      .join(", ");
+
+    setNewThemeUsers({
+      ...newThemeUsers,
+      outils_et_language: languagesString,
+    });
+  };
+
+  const handleCreateLanguage1 = (inputValue) => {
+    const newOption = { value: inputValue, label: inputValue };
+    setLanguages((prev) => [...prev, newOption]);
+
+    const selectedOptions = newThemeUsers.outils_et_language
+      ? newThemeUsers.outils_et_language
+        .split(", ")
+        .map((val) => ({ value: val, label: val }))
+      : [];
+
+    const updatedSelected = [...selectedOptions, newOption];
+    const languagesString = updatedSelected
+      .map((option) => option.value)
+      .join(", ");
+
+    setNewThemeUsers({
+      ...newThemeUsers,
+      outils_et_language: languagesString,
+    });
+  };
+
+   const handleSubmit1 = (e) => {
+    e.preventDefault();
+
+    const finalPriorities = selectedYear?.has_specialite
+      ? priorities[selectedYear.id] || []
+      : [];
+
+    const finalTheme = {
+      ...newThemeUsers,
+      priorities: finalPriorities,
+      annee_id: selectedYear.id,
+    };
+
+    setLoading(true);
+
+    axios
+      .post(`${process.env.REACT_APP_API_URL_SERVICE2}/themes/create-group/`, finalTheme, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((res) => {
+        setThemes((prev) => [
+          ...prev,
+          {
+            ...res.data,
+            annee_titre: `${selectedYear.title} ${selectedYear.departement_title.toLowerCase() === "préparatoire"
+              ? "CPI"
+              : "CS"
+              }`,
+            specialite_title: getSpecialiteName(
+              priorities[selectedYear.id]?.find((p) => p.priorite === 1)
+                ?.specialite_id
+            ),
+          },
+        ]);
+        annulerAjouter();
+        addWithSuccess();
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  };
+
+
+
   return (
     <div className="ajouter-theme-container">
       <div className="ajouter-theme-wrapper">
@@ -284,273 +520,779 @@ export const AjouterTheme = ({ annulerAjouter, addWithSuccess }) => {
             />
           </svg>
         </div>
-        <form id="ajouterFormTheme" onSubmit={handleSubmit}>
-          <div className="ajouter-input-line select-line">
-            <div className="input-flex">
-              <label
-                style={{
-                  fontSize: "0.9rem",
-                  color: "#00000070",
-                  fontWeight: "430",
-                }}
-              >
-                Titre
-              </label>
-              <input
-                type="text"
-                name="nom"
-                id="nom"
-                value={newTheme.titre}
-                onChange={(e) =>
-                  setNewTheme({ ...newTheme, titre: e.target.value })
-                }
-                required
-              />
-            </div>
-            <div className="select-flex">
-              <div className="select-flex-line">
-                <div
-                  style={{
-                    position: "relative",
-                    display: "inline-block",
-                    width: "100%",
-                  }}
-                >
-                  <CreatableSelect
-                    className="multi-custom-select"
-                    isMulti
-                    options={languages}
-                    value={languages.filter((option) =>
-                      newTheme.outils_et_language
-                        .split(", ")
-                        .includes(option.value)
-                    )}
-                    onChange={handleChangeLanguages}
-                    onCreateOption={handleCreateLanguage}
-                    placeholder="Outils & Langages"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="ajouter-input-line select-line">
-            <div
-              style={{
-                position: "relative",
-                display: "inline-block",
-                width: "300px",
-              }}
-            >
-              <CreatableSelect
-                className="multi-custom-select"
-                isMulti
-                options={livrables}
-                value={livrables.filter((option) =>
-                  newTheme.livrable.split(", ").includes(option.value)
-                )}
-                onChange={handleChangeLivrables}
-                onCreateOption={handleCreateLivrable}
-                placeholder="Livrables"
-                required
-              />
-            </div>
-            <div className="select-flex">
-              <div
-                className="annee-field"
-                onClick={() => setShowYearOptions(!showYearOptions)}
-                ref={anneeRef}
-              >
-                {selectedYear
-                  ? `${selectedYear.title} ${
-                      selectedYear.departement_title.toLowerCase() ===
-                      "préparatoire"
-                        ? "CPI"
-                        : "CS"
-                    }`
-                  : "Année"}
-                {/* Icône flèche... */}
-
-                {showYearOptions && (
-                  <ul className="annee-options">
-                    {annees.map((annee) => (
-                      <li
-                        key={annee.id}
+        <div className="ajouter-choice">
+          <span
+            className={`${methodeAjouter === 0 ? "current" : ""}`}
+            onClick={() => setMethodeAjouter(0)}
+          >{t('enseignantsPage.manuel')}</span>
+          <span
+            className={`${methodeAjouter === 1 ? "current" : ""}`}
+            onClick={() => setMethodeAjouter(1)}
+          >
+            Importer Fichier
+          </span>
+          <span
+            className={`${methodeAjouter === 2 ? "current" : ""}`}
+            onClick={() => setMethodeAjouter(2)}
+          >
+            Avec Etudiants
+          </span>
+        </div>
+        <form id="ajouterFormTheme" onSubmit={methodeAjouter === 0 ? handleSubmit : methodeAjouter === 1 ? handleSubmitPdf : handleSubmit1}>
+          {
+            methodeAjouter === 0 ?
+              <>
+                <div className="ajouter-input-line select-line">
+                  <div className="input-flex">
+                    <label
+                      style={{
+                        fontSize: "0.9rem",
+                        color: "#00000070",
+                        fontWeight: "430",
+                      }}
+                    >
+                      Titre
+                    </label>
+                    <input
+                      type="text"
+                      name="nom"
+                      id="nom"
+                      value={newTheme.titre}
+                      onChange={(e) =>
+                        setNewTheme({ ...newTheme, titre: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="select-flex">
+                    <div className="select-flex-line">
+                      <div
                         style={{
-                          borderBottom: "1px solid #D6D6D6",
-                          position: annee.has_specialite
-                            ? "relative"
-                            : "static",
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!annee.has_specialite) {
-                            handleYearSelect(annee);
-                          } else {
-                            setSelectedYear(annee);
-                          }
+                          position: "relative",
+                          display: "inline-block",
+                          width: "100%",
                         }}
                       >
-                        {annee.title}
-                        {annee.departement_title.toLowerCase() ===
-                        "préparatoire"
+                        <CreatableSelect
+                          className="multi-custom-select"
+                          isMulti
+                          options={languages}
+                          value={languages.filter((option) =>
+                            newTheme.outils_et_language
+                              .split(", ")
+                              .includes(option.value)
+                          )}
+                          onChange={handleChangeLanguages}
+                          onCreateOption={handleCreateLanguage}
+                          placeholder="Outils & Langages"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="ajouter-input-line select-line">
+                  <div
+                    style={{
+                      position: "relative",
+                      display: "inline-block",
+                      width: "300px",
+                    }}
+                  >
+                    <CreatableSelect
+                      className="multi-custom-select"
+                      isMulti
+                      options={livrables}
+                      value={livrables.filter((option) =>
+                        newTheme.livrable.split(", ").includes(option.value)
+                      )}
+                      onChange={handleChangeLivrables}
+                      onCreateOption={handleCreateLivrable}
+                      placeholder="Livrables"
+                      required
+                    />
+                  </div>
+                  <div className="select-flex">
+                    <div
+                      className="annee-field"
+                      onClick={() => setShowYearOptions(!showYearOptions)}
+                      ref={anneeRef}
+                    >
+                      {selectedYear
+                        ? `${selectedYear.title} ${selectedYear.departement_title.toLowerCase() ===
+                          "préparatoire"
                           ? "CPI"
-                          : "CS"}
+                          : "CS"
+                        }`
+                        : "Année"}
+                      {/* Icône flèche... */}
 
-                        {annee.has_specialite && (
-                          <>
-                            {/* Icône flèche pour les années avec spécialité */}
-                            <svg
-                              width="10"
-                              height="6"
-                              viewBox="0 0 10 6"
+                      {showYearOptions && (
+                        <ul className="annee-options">
+                          {annees.map((annee) => (
+                            <li
+                              key={annee.id}
                               style={{
-                                position: "absolute",
-                                right: "10px",
-                                top: "50%",
-                                transform: `translateY(-50%) rotate(-90deg)`,
-                                pointerEvents: "none",
+                                borderBottom: "1px solid #D6D6D6",
+                                position: annee.has_specialite
+                                  ? "relative"
+                                  : "static",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!annee.has_specialite) {
+                                  handleYearSelect(annee);
+                                } else {
+                                  setSelectedYear(annee);
+                                }
                               }}
                             >
-                              <path
-                                d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z"
-                                fill="#8A8A8A"
-                              />
-                            </svg>
+                              {annee.title}
+                              {annee.departement_title.toLowerCase() ===
+                                "préparatoire"
+                                ? "CPI"
+                                : "CS"}
 
-                            {/* Menu des priorités */}
-                            {selectedYear?.id === annee.id && (
-                              <ul className="sub-priorite-options">
-                                {specialites.map((specialite) => (
-                                  <li
-                                    key={specialite.id}
-                                    style={{ position: "relative" }}
+                              {annee.has_specialite && (
+                                <>
+                                  {/* Icône flèche pour les années avec spécialité */}
+                                  <svg
+                                    width="10"
+                                    height="6"
+                                    viewBox="0 0 10 6"
+                                    style={{
+                                      position: "absolute",
+                                      right: "10px",
+                                      top: "50%",
+                                      transform: `translateY(-50%) rotate(-90deg)`,
+                                      pointerEvents: "none",
+                                    }}
                                   >
-                                    <div>
-                                      {specialite.title}
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          gap: "8px",
-                                          marginTop: "4px",
-                                          width: "100%",
-                                          justifyContent: "space-between",
-                                        }}
-                                      >
-                                        {[1, 2, 3].map((priority) => {
-                                          const isSelected = priorities[
-                                            annee.id
-                                          ]?.some(
-                                            (item) =>
-                                              item.specialite_id ===
-                                                specialite.id &&
-                                              item.priorite === priority
-                                          );
-                                          return (
-                                            <button
-                                              key={priority}
+                                    <path
+                                      d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z"
+                                      fill="#8A8A8A"
+                                    />
+                                  </svg>
+
+                                  {/* Menu des priorités */}
+                                  {selectedYear?.id === annee.id && (
+                                    <ul className="sub-priorite-options">
+                                      {specialites.map((specialite) => (
+                                        <li
+                                          key={specialite.id}
+                                          style={{ position: "relative" }}
+                                        >
+                                          <div>
+                                            {specialite.title}
+                                            <div
                                               style={{
-                                                width: "24px",
-                                                height: "24px",
-                                                borderRadius: "50%",
-                                                border: `1px solid ${
-                                                  isSelected
-                                                    ? "#925FE2"
-                                                    : "#D6D6D6"
-                                                }`,
-                                                background: isSelected
-                                                  ? "#925FE2"
-                                                  : "white",
-                                                color: isSelected
-                                                  ? "white"
-                                                  : "#555",
-                                                cursor: "pointer",
-                                              }}
-                                              onClick={(e) => {
-                                                e.preventDefault();
-                                                handlePrioritySelect(
-                                                  annee.id,
-                                                  specialite.id,
-                                                  isSelected ? null : priority
-                                                );
+                                                display: "flex",
+                                                gap: "8px",
+                                                marginTop: "4px",
+                                                width: "100%",
+                                                justifyContent: "space-between",
                                               }}
                                             >
-                                              {priority}
-                                            </button>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </>
+                                              {[1, 2, 3].map((priority) => {
+                                                const isSelected = priorities[
+                                                  annee.id
+                                                ]?.some(
+                                                  (item) =>
+                                                    item.specialite_id ===
+                                                    specialite.id &&
+                                                    item.priorite === priority
+                                                );
+                                                return (
+                                                  <button
+                                                    key={priority}
+                                                    style={{
+                                                      width: "24px",
+                                                      height: "24px",
+                                                      borderRadius: "50%",
+                                                      border: `1px solid ${isSelected
+                                                        ? "#925FE2"
+                                                        : "#D6D6D6"
+                                                        }`,
+                                                      background: isSelected
+                                                        ? "#925FE2"
+                                                        : "white",
+                                                      color: isSelected
+                                                        ? "white"
+                                                        : "#555",
+                                                      cursor: "pointer",
+                                                    }}
+                                                    onClick={(e) => {
+                                                      e.preventDefault();
+                                                      handlePrioritySelect(
+                                                        annee.id,
+                                                        specialite.id,
+                                                        isSelected ? null : priority
+                                                      );
+                                                    }}
+                                                  >
+                                                    {priority}
+                                                  </button>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <input
+                      type="number"
+                      min={0}
+                      style={{
+                        width: "49%",
+                      }}
+                      placeholder="Nombre Groupes"
+                      value={newTheme.numberOfGrp}
+                      onChange={(e) =>
+                        setNewTheme({ ...newTheme, numberOfGrp: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="ajouter-input-line">
+                  <div className="input-flex">
+                    <label
+                      style={{
+                        fontSize: "0.9rem",
+                        color: "#00000070",
+                        fontWeight: "430",
+                      }}
+                    >
+                      Plan de Travail
+                    </label>
+                    <textarea
+                      type="text"
+                      ref={planRef}
+                      value={newTheme.plan_travail}
+                      onChange={(e) => {
+                        handlePlanText();
+                        setNewTheme({ ...newTheme, plan_travail: e.target.value });
+                      }}
+                      required
+                    />
+                  </div>
+                  <div className="input-flex">
+                    <label
+                      style={{
+                        fontSize: "0.9rem",
+                        color: "#00000070",
+                        fontWeight: "430",
+                      }}
+                    >
+                      Résumé
+                    </label>
+                    <textarea
+                      type="text"
+                      ref={resumeRef}
+                      value={newTheme.resume}
+                      onChange={(e) => {
+                        handleResumeText();
+                        setNewTheme({ ...newTheme, resume: e.target.value });
+                      }}
+                      required
+                    />
+                  </div>
+                </div>
+              </> : methodeAjouter === 1 ?
+                <>
+                  <div className="ajouter-input-line select-line">
+                    <div className="select-flex">
+                      <div
+                        className="annee-field"
+                        onClick={() => setShowYearOptions(!showYearOptions)}
+                        ref={anneeRef}
+                      >
+                        {selectedYear
+                          ? `${selectedYear.title} ${selectedYear.departement_title.toLowerCase() ===
+                            "préparatoire"
+                            ? "CPI"
+                            : "CS"
+                          }`
+                          : "Année"}
+                        {/* Icône flèche... */}
+
+                        {showYearOptions && (
+                          <ul className="annee-options">
+                            {annees.map((annee) => (
+                              <li
+                                key={annee.id}
+                                style={{
+                                  borderBottom: "1px solid #D6D6D6",
+                                  position: annee.has_specialite
+                                    ? "relative"
+                                    : "static",
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!annee.has_specialite) {
+                                    handleYearSelect(annee);
+                                  } else {
+                                    setSelectedYear(annee);
+                                  }
+                                }}
+                              >
+                                {annee.title}
+                                {annee.departement_title.toLowerCase() ===
+                                  "préparatoire"
+                                  ? "CPI"
+                                  : "CS"}
+
+                                {annee.has_specialite && (
+                                  <>
+                                    {/* Icône flèche pour les années avec spécialité */}
+                                    <svg
+                                      width="10"
+                                      height="6"
+                                      viewBox="0 0 10 6"
+                                      style={{
+                                        position: "absolute",
+                                        right: "10px",
+                                        top: "50%",
+                                        transform: `translateY(-50%) rotate(-90deg)`,
+                                        pointerEvents: "none",
+                                      }}
+                                    >
+                                      <path
+                                        d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z"
+                                        fill="#8A8A8A"
+                                      />
+                                    </svg>
+
+                                    {/* Menu des priorités */}
+                                    {selectedYear?.id === annee.id && (
+                                      <ul className="sub-priorite-options">
+                                        {specialites.map((specialite) => (
+                                          <li
+                                            key={specialite.id}
+                                            style={{ position: "relative" }}
+                                          >
+                                            <div>
+                                              {specialite.title}
+                                              <div
+                                                style={{
+                                                  display: "flex",
+                                                  gap: "8px",
+                                                  marginTop: "4px",
+                                                  width: "100%",
+                                                  justifyContent: "space-between",
+                                                }}
+                                              >
+                                                {[1, 2, 3].map((priority) => {
+                                                  const isSelected = priorities[
+                                                    annee.id
+                                                  ]?.some(
+                                                    (item) =>
+                                                      item.specialite_id ===
+                                                      specialite.id &&
+                                                      item.priorite === priority
+                                                  );
+                                                  return (
+                                                    <button
+                                                      key={priority}
+                                                      style={{
+                                                        width: "24px",
+                                                        height: "24px",
+                                                        borderRadius: "50%",
+                                                        border: `1px solid ${isSelected
+                                                          ? "#925FE2"
+                                                          : "#D6D6D6"
+                                                          }`,
+                                                        background: isSelected
+                                                          ? "#925FE2"
+                                                          : "white",
+                                                        color: isSelected
+                                                          ? "white"
+                                                          : "#555",
+                                                        cursor: "pointer",
+                                                      }}
+                                                      onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handlePrioritySelect(
+                                                          annee.id,
+                                                          specialite.id,
+                                                          isSelected ? null : priority
+                                                        );
+                                                      }}
+                                                    >
+                                                      {priority}
+                                                    </button>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
                         )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <input
-                type="number"
-                min={0}
-                style={{
-                  width: "49%",
-                }}
-                placeholder="Nombre Groupes"
-                value={newTheme.numberOfGrp}
-                onChange={(e) =>
-                  setNewTheme({ ...newTheme, numberOfGrp: e.target.value })
-                }
-                required
-              />
-            </div>
-          </div>
-          <div className="ajouter-input-line">
-            <div className="input-flex">
-              <label
-                style={{
-                  fontSize: "0.9rem",
-                  color: "#00000070",
-                  fontWeight: "430",
-                }}
-              >
-                Plan de Travail
-              </label>
-              <textarea
-                type="text"
-                ref={planRef}
-                value={newTheme.plan_travail}
-                onChange={(e) => {
-                  handlePlanText();
-                  setNewTheme({ ...newTheme, plan_travail: e.target.value });
-                }}
-                required
-              />
-            </div>
-            <div className="input-flex">
-              <label
-                style={{
-                  fontSize: "0.9rem",
-                  color: "#00000070",
-                  fontWeight: "430",
-                }}
-              >
-                Résumé
-              </label>
-              <textarea
-                type="text"
-                ref={resumeRef}
-                value={newTheme.resume}
-                onChange={(e) => {
-                  handleResumeText();
-                  setNewTheme({ ...newTheme, resume: e.target.value });
-                }}
-                required
-              />
-            </div>
-          </div>
+                      </div>
+                      <input
+                        type="number"
+                        min={0}
+                        style={{
+                          width: "49%",
+                        }}
+                        placeholder="Nombre Groupes"
+                        value={themePdf.numberOfGrp}
+                        onChange={(e) =>
+                          setThemePdf({ ...themePdf, numberOfGrp: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="drop-file-container">
+                    <div className="drop-file-wrapper" onDragOver={handleDragOver} onDrop={handleDrop}>
+                      <CloudIcon />
+                      <div className="structures-box">
+                        {!file ? (
+                          <>
+                            <h2 style={{ color: "#292D32", fontSize: "1.25rem", fontWeight: "500" }}>
+                              {t('enseignantsPage.dropTitle')}
+                            </h2>
+                            <span style={{ color: "#A9ACB4" }}>
+                              Pdf Formats, up to 50 MB
+                            </span>
+                            <input
+                              type="file"
+                              id="fileUpload"
+                              style={{ display: "none" }}
+                              accept=".pdf" // Restrict file types in file picker
+                              onChange={handleFileSelect}
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                document.getElementById("fileUpload").click();
+                              }}
+                            >
+                              {t('enseignantsPage.browseBtn')}
+                            </button>
+                            {error && <p style={{ color: "red" }}>{error}</p>}
+                          </>
+                        ) : (
+                          <div className="file-preview">
+                            <p>{file.name}</p>
+                            <button className="delete-file" onClick={() => setFile(null)}>
+                              <CloseIcon />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </> :
+                <>
+                  <div className="ajouter-input-line select-line">
+                    <div className="input-flex">
+                      <label
+                        style={{
+                          fontSize: "0.9rem",
+                          color: "#00000070",
+                          fontWeight: "430",
+                        }}
+                      >
+                        Titre
+                      </label>
+                      <input
+                        type="text"
+                        name="nom"
+                        id="nom"
+                        value={newThemeUsers.titre}
+                        onChange={(e) =>
+                          setNewThemeUsers({ ...newThemeUsers, titre: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="select-flex">
+                      <div className="select-flex-line">
+                        <div
+                          style={{
+                            position: "relative",
+                            display: "inline-block",
+                            width: "100%",
+                          }}
+                        >
+                          <CreatableSelect
+                            className="multi-custom-select"
+                            isMulti
+                            options={languages}
+                            value={languages.filter((option) =>
+                              newThemeUsers.outils_et_language
+                                .split(", ")
+                                .includes(option.value)
+                            )}
+                            onChange={handleChangeLanguages1}
+                            onCreateOption={handleCreateLanguage1}
+                            placeholder="Outils & Langages"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="ajouter-input-line select-line">
+                    <div
+                      style={{
+                        position: "relative",
+                        display: "inline-block",
+                        width: "300px",
+                      }}
+                    >
+                      <CreatableSelect
+                        className="multi-custom-select"
+                        isMulti
+                        options={livrables}
+                        value={livrables.filter((option) =>
+                          newThemeUsers.livrable.split(", ").includes(option.value)
+                        )}
+                        onChange={handleChangeLivrables1}
+                        onCreateOption={handleCreateLivrable1}
+                        placeholder="Livrables"
+                        required
+                      />
+                    </div>
+                    <div className="select-flex">
+                      <div
+                        className="annee-field"
+                        onClick={() => setShowYearOptions(!showYearOptions)}
+                        ref={anneeRef}
+                      >
+                        {selectedYear
+                          ? `${selectedYear.title} ${selectedYear.departement_title.toLowerCase() ===
+                            "préparatoire"
+                            ? "CPI"
+                            : "CS"
+                          }`
+                          : "Année"}
+                        {/* Icône flèche... */}
+
+                        {showYearOptions && (
+                          <ul className="annee-options">
+                            {annees.map((annee) => (
+                              <li
+                                key={annee.id}
+                                style={{
+                                  borderBottom: "1px solid #D6D6D6",
+                                  position: annee.has_specialite
+                                    ? "relative"
+                                    : "static",
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!annee.has_specialite) {
+                                    handleYearSelect(annee);
+                                  } else {
+                                    setSelectedYear(annee);
+                                  }
+                                  setNewThemeUsers({...newThemeUsers, annee_id: annee.id})
+                                }}
+                              >
+                                {annee.title}
+                                {annee.departement_title.toLowerCase() ===
+                                  "préparatoire"
+                                  ? "CPI"
+                                  : "CS"}
+
+                                {annee.has_specialite && (
+                                  <>
+                                    {/* Icône flèche pour les années avec spécialité */}
+                                    <svg
+                                      width="10"
+                                      height="6"
+                                      viewBox="0 0 10 6"
+                                      style={{
+                                        position: "absolute",
+                                        right: "10px",
+                                        top: "50%",
+                                        transform: `translateY(-50%) rotate(-90deg)`,
+                                        pointerEvents: "none",
+                                      }}
+                                    >
+                                      <path
+                                        d="M4.99929 4.18863L8.77899 0.220677C8.91347 0.0793351 9.09533 0 9.28493 0C9.47453 0 9.65649 0.0793351 9.79097 0.220677C9.85721 0.290046 9.90976 0.372607 9.94565 0.463596C9.98153 0.554585 10 0.652194 10 0.750779C10 0.849365 9.98153 0.946974 9.94565 1.03796C9.90976 1.12895 9.85721 1.21152 9.79097 1.28089L5.50595 5.77932C5.37147 5.92066 5.1896 6 5 6C4.8104 6 4.62853 5.92066 4.49405 5.77932L0.209032 1.28089C0.14279 1.21152 0.0902398 1.12895 0.0543536 1.03796C0.0184674 0.946974 0 0.849365 0 0.750779C0 0.652194 0.0184674 0.554585 0.0543536 0.463596C0.0902398 0.372607 0.14279 0.290046 0.209032 0.220677C0.343604 0.0795203 0.525523 0.000314919 0.715067 0.000314919C0.904612 0.000314919 1.08644 0.0795203 1.22101 0.220677L4.99929 4.18863Z"
+                                        fill="#8A8A8A"
+                                      />
+                                    </svg>
+
+                                    {/* Menu des priorités */}
+                                    {selectedYear?.id === annee.id && (
+                                      <ul className="sub-priorite-options">
+                                        {specialites.map((specialite) => (
+                                          <li
+                                            key={specialite.id}
+                                            style={{ position: "relative" }}
+                                          >
+                                            <div>
+                                              {specialite.title}
+                                              <div
+                                                style={{
+                                                  display: "flex",
+                                                  gap: "8px",
+                                                  marginTop: "4px",
+                                                  width: "100%",
+                                                  justifyContent: "space-between",
+                                                }}
+                                              >
+                                                {[1, 2, 3].map((priority) => {
+                                                  const isSelected = priorities[
+                                                    annee.id
+                                                  ]?.some(
+                                                    (item) =>
+                                                      item.specialite_id ===
+                                                      specialite.id &&
+                                                      item.priorite === priority
+                                                  );
+                                                  return (
+                                                    <button
+                                                      key={priority}
+                                                      style={{
+                                                        width: "24px",
+                                                        height: "24px",
+                                                        borderRadius: "50%",
+                                                        border: `1px solid ${isSelected
+                                                          ? "#925FE2"
+                                                          : "#D6D6D6"
+                                                          }`,
+                                                        background: isSelected
+                                                          ? "#925FE2"
+                                                          : "white",
+                                                        color: isSelected
+                                                          ? "white"
+                                                          : "#555",
+                                                        cursor: "pointer",
+                                                      }}
+                                                      onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handlePrioritySelect(
+                                                          annee.id,
+                                                          specialite.id,
+                                                          isSelected ? null : priority
+                                                        );
+                                                      }}
+                                                    >
+                                                      {priority}
+                                                    </button>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      <input
+                        type="number"
+                        min={0}
+                        style={{
+                          width: "49%",
+                        }}
+                        placeholder="Nombre Groupes"
+                        value={newThemeUsers.numberOfGrp}
+                        onChange={(e) =>
+                          setNewThemeUsers({ ...newThemeUsers, numberOfGrp: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="ajouter-input-line">
+                    <div className="input-flex">
+                      <label
+                        style={{
+                          fontSize: "0.9rem",
+                          color: "#00000070",
+                          fontWeight: "430",
+                        }}
+                      >
+                        Plan de Travail
+                      </label>
+                      <textarea
+                        type="text"
+                        ref={planRef}
+                        value={newThemeUsers.plan_travail}
+                        onChange={(e) => {
+                          handlePlanText();
+                          setNewThemeUsers({ ...newThemeUsers, plan_travail: e.target.value });
+                        }}
+                        required
+                      />
+                    </div>
+                    <div className="input-flex">
+                      <label
+                        style={{
+                          fontSize: "0.9rem",
+                          color: "#00000070",
+                          fontWeight: "430",
+                        }}
+                      >
+                        Résumé
+                      </label>
+                      <textarea
+                        type="text"
+                        ref={resumeRef}
+                        value={newThemeUsers.resume}
+                        onChange={(e) => {
+                          handleResumeText();
+                          setNewThemeUsers({ ...newThemeUsers, resume: e.target.value });
+                        }}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="ajouter-input-line select-line">
+                    <div className="select-flex">
+                      <div className="select-flex-line">
+                        <div
+                          style={{
+                            position: "relative",
+                            display: "inline-block",
+                            width: "100%",
+                          }}
+                        >
+                          <Select
+                            className="multi-custom-select"
+                            isMulti
+                            options={etudiants}
+                            placeholder="Sélectionnez les etudiants"
+                            onChange={(selectedOptions) => {
+                              const selectedIds = selectedOptions.map(option => option.value);
+                              setNewThemeUsers(prev => ({ ...prev, members: selectedIds }));
+                            }}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+          }
         </form>
         <div className="btns-form-line">
           <button

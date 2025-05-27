@@ -5,7 +5,7 @@ import './App.css';
 import Entrepriseinterface from './Components/entreprise/Components/entrepriseinterface';
 import Login from './Components/Login/Login';
 import Pagedacceuille from './Components/Login/Pagedacceuille';
-import  DemandeEntreprise  from "./Components/entreprise/Pages/listdemande";
+import DemandeEntreprise from "./Components/entreprise/Pages/listdemande";
 import InscriptionEntreprise from "./Components/inscriEntreprise/inscriEntreprise";
 import { AdminLayout } from "./Layouts/AdminLayout";
 import Dashboard from "./Components/admin/Components/Dashboard";
@@ -26,7 +26,7 @@ import { EnseignantLayout } from "./Layouts/EnseignantLayout";
 import Themes from "./Components/admin/Components/Themes";
 import Notifications from "./Components/admin/Components/Notifications";
 // import IntroPage from "./Components/Login/IntroPage";
-import EntrepriseList, {EntrepriseListLayout} from "./Components/entreprise/Pages/ListEntreprise";
+import EntrepriseList, { EntrepriseListLayout } from "./Components/entreprise/Pages/ListEntreprise";
 import ThemesEnseignant from "./Components/enseignante/Components/ThemesEnseignant";
 import GroupeDetail from "./Components/enseignante/Components/GroupeDetail";
 import GroupesEnseignant from "./Components/enseignante/Components/Groupes";
@@ -45,13 +45,15 @@ import ProfileEtudiant from "./Components/Etudiant/pages/ProfileEtudiant";
 import GroupesAdmin from "./Components/admin/Components/Groupes";
 import GroupeAdmin from "./Components/admin/Components/Groupe";
 import SoutenancesAdmin from "./Components/admin/Components/Soutenances";
-import RendezVousPage from "./Components/enseignante/Components/RendezVous";
 import DetailGroupe from "./Components/Etudiant/pages/DetailGroupe";
 import ThemesEtudiant from "./Components/Etudiant/pages/Themes";
 import ThemeEtudiant from "./Components/Etudiant/pages/Theme";
 import DefenseInformation from "./Components/Etudiant/pages/DefenseInformation";
-import RendezVousPage from "./Components/Etudiant/Components/Rendezvous";
 import RendezVousGenrale from "./Components/enseignante/Components/RendezVousGenrale";
+import RendezVousEtudiant from "./Components/Etudiant/Components/RendezvousEtudiant";
+import RendezVousPage from "./Components/enseignante/Components/RendezVousEnseignant";
+import DocumentEtudiant from "./Components/enseignante/Components/Document";
+import SoutenancesEnseignant from "./Components/enseignante/Components/Soutenances";
 
 // import Rendezvous from './Components/enseignante/Components/Rendezvous';
 
@@ -133,27 +135,31 @@ function App() {
               <Route path="groupes" element={<GroupesEnseignant />} />
               <Route path="groupes/:id" element={<GroupeDetail />} />
               <Route path="groupes/:id/rendez-vous" element={<RendezVousPage />} />
+              <Route path="groupes/:id/documents/:idD" element={<DocumentEtudiant />} />
               <Route path="themes/:id" element={<ThemeEnseignant link={'enseignant'} />} />
               <Route path="rendez-vous" element={<RendezVousGenrale />} />
               <Route path="profile" element={<ProfileEnseignant />} />
+              <Route path="notifications" element={<Notifications />} />
+              <Route path="soutenances" element={<SoutenancesEnseignant />} />
             </Route>
-          <Route path="/etudiant" element={<EtudiantLayout />} >
-            <Route index element={<Dashboard />} />
-            <Route path="groupes" element={<Groupes />} />
-             <Route path="groupes/:id" element={<DetailGroupe />} />
-            <Route path="invitations" element={<Invitations />} />
-            <Route path="themes" element={<ThemesEtudiant />} />         
-            <Route path="themes/:id" element={<ThemeEtudiant />} />          
-           <Route path="groupes/:groupId/fiche-vu" element={<Themeselectionform/>} /> 
-           <Route path="rendezvous" element={<RendezVousPage/>} />   
-           <Route path="profile" element={<ProfileEtudiant />} />       
-         
-            <Route path="soutenances" element={<DefenseInformation/>} />
-          </Route>
+            <Route path="/etudiant" element={<EtudiantLayout />} >
+              <Route index element={<ThemesEtudiant />} />
+              <Route path="groupes" element={<Groupes />} />
+              <Route path="groupes/:id" element={<DetailGroupe />} />
+              <Route path="invitations" element={<Invitations />} />
+              <Route path="themes/:id" element={<ThemeEtudiant />} />
+              <Route path="groupes/:groupId/fiche-vu" element={<Themeselectionform />} />
+              <Route path="rendezvous" element={<RendezVousEtudiant />} />
+              <Route path="profile" element={<ProfileEtudiant />} />
+              <Route path="notifications" element={<Notifications />} />
+
+              <Route path="soutenances" element={<DefenseInformation />} />
+            </Route>
 
             <Route path="/entreprise" element={<EntrepriseLayout />} >
               <Route index element={<ThemesEntreprise />} />
               <Route path="themes/:id" element={<ThemeEnseignant link={'entreprise'} />} />
+              <Route path="notifications" element={<Notifications />} />
             </Route>
 
           </Routes>

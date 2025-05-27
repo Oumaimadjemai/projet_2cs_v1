@@ -44,8 +44,28 @@ async function discoverService2() {
   }
 }
 
+async function discoverServiceNotification() {
+  try {
+    const instances = eurekaClient.getInstancesByAppId(config.SERVICE7_NAME);
+
+    if (!instances || instances.length === 0) {
+      console.warn("Aucune instance Service2 disponible via Eureka, utilisation de la configuration par défaut");
+      return process.env.SERVICE7_API_URL || "http://localhost:4000";
+    }
+
+    const instance = instances[Math.floor(Math.random() * instances.length)];
+    const baseUrl = `http://${instance.hostName}:${instance.port["$"] || 8001}`;
+    console.log(`Utilisation de l'instance Service2: ${baseUrl}`);
+    return baseUrl;
+  } catch (error) {
+    console.error("Erreur de découverte de service2:", error);
+    return process.env.SERVICE7_API_URL || "http://localhost:4000";
+  }
+}
+
 module.exports = {
   eurekaClient,
   discoverDjangoService,
   discoverService2,
+  discoverServiceNotification
 };
