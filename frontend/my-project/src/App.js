@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext } from "react";
 import { Route, Routes } from "react-router";
-import './App.css';
+import "./App.css";
 // import Enseignanteinterface from './Components/enseignante/Components/enseignanteinterface';
 import Entrepriseinterface from './Components/entreprise/Components/entrepriseinterface';
 import ResetPassword from './Components/Login/ResetPassword';
@@ -19,10 +19,20 @@ import Themeselectionform from "./Components/Etudiant/pages/ThemeSelectionForm";
 import { EtudiantLayout } from "./Layouts/EtudiantLayout";
 import Theme from "./Components/Etudiant/pages/Theme";
 import EtudiantsListe from "./Components/admin/Components/EtudiantsListe";
-import ParametresScolarite, { ScolariteLayout } from "./Components/admin/Components/ParametresScolarite";
-import cookies from 'js-cookie';
+import ParametresScolarite, {
+  ScolariteLayout,
+} from "./Components/admin/Components/ParametresScolarite";
+import cookies from "js-cookie";
 import i18n from "./Components/Partials/Components/i18n";
-import { Annees, AnneesAcademiques, Departements, ParametresGroupe, Periodes, Salles, Specialites } from "./Components/admin/Components/Parametres";
+import {
+  Annees,
+  AnneesAcademiques,
+  Departements,
+  ParametresGroupe,
+  Periodes,
+  Salles,
+  Specialites,
+} from "./Components/admin/Components/Parametres";
 // import TextToSpeech from "./Components/admin/Components/TextToSpeech";
 import { EnseignantLayout } from "./Layouts/EnseignantLayout";
 import Themes from "./Components/admin/Components/Themes";
@@ -64,12 +74,11 @@ import SoutenancesEnseignant from "./Components/enseignante/Components/Soutenanc
 export const AppContext = createContext();
 
 function App() {
-
-  const [lang, setLang] = useState(cookies.get('i18next') || 'ar');
+  const [lang, setLang] = useState(cookies.get("i18next") || "ar");
 
   useEffect(() => {
     window.document.dir = i18n.dir();
-  }, [lang])
+  }, [lang]);
 
   const [isRtl, setIsRtl] = useState(false);
 
@@ -89,8 +98,7 @@ function App() {
     setCards((prev) => [...prev, newCompany]);
   };
 
-  const token = localStorage.getItem('access_token');
-
+  const token = localStorage.getItem("access_token");
 
   return (
     <AppContext.Provider value={{ isRtl, setIsRtl, setLang, lang }}>
@@ -98,16 +106,19 @@ function App() {
         <IntroPage onTimeout={handleIntroTimeout} />
       ) : ( */}
       <SocketProvider token={token}>
-        <div className='App'>
+        <div className="App">
           <Routes>
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
 <Route path="/reset/:uid/:token" element={<ResetPassword />} />
           <Route index element={<Pagedacceuille />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/login/entreprise" element={< InscriptionEntreprise />} />
+            <Route
+              path="/login/entreprise"
+              element={<InscriptionEntreprise />}
+            />
             <Route path="*" element={<NotFound />} />
 
-            <Route path="/admin" element={<AdminLayout />} >
+            <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="enseignants" element={<EnseignantsListe />} />
               <Route path="etudiants" element={<EtudiantsListe />} />
@@ -118,13 +129,16 @@ function App() {
                 <Route path="demandes" element={<DemandeEntreprise />} />
               </Route>
               <Route path="admins" element={<AdminsList />} />
-              <Route path="scolarite" element={<ScolariteLayout />} >
+              <Route path="scolarite" element={<ScolariteLayout />}>
                 <Route index element={<ParametresScolarite />} />
                 <Route path="departements" element={<Departements />} />
                 <Route path="salles" element={<Salles />} />
                 <Route path="specialites" element={<Specialites />} />
                 <Route path="annees" element={<Annees />} />
-                <Route path="parametres-groupe" element={<ParametresGroupe />} />
+                <Route
+                  path="parametres-groupe"
+                  element={<ParametresGroupe />}
+                />
                 <Route path="periodes" element={<Periodes />} />
                 <Route path="acdemic-annees" element={<AnneesAcademiques />} />
               </Route>
@@ -137,7 +151,7 @@ function App() {
               <Route path="notifications" element={<Notifications />} />
             </Route>
 
-            <Route path="/enseignant" element={<EnseignantLayout />} >
+            <Route path="/enseignant" element={<EnseignantLayout />}>
               <Route index element={<ThemesEnseignant />} />
               <Route path="groupes" element={<GroupesEnseignant />} />
               <Route path="groupes/:id" element={<GroupeDetail />} />

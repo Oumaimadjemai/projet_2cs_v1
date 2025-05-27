@@ -1,0 +1,251 @@
+version: "3.8"
+
+services:
+  registry:
+    build:
+      context: ./registry
+      dockerfile: Dockerfile
+    image: rgestry-pfe
+    container_name: registry
+    ports:
+      - "8761:8761"
+    networks:
+      - backend
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    image: gateway-pfe
+    container_name: gateway
+    depends_on:
+      - registry
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registry:8761/eureka
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - backend
+
+  redis:
+    image: redis:7.2
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-service1
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: service1
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data1:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-container
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "8081:80"
+    networks:
+      - backend
+
+  service1-auth:
+    build:
+      context: ./authentification
+      dockerfile: Dockerfile
+    container_name: service1-auth
+    environment:
+      - EUREKA_URL=http://registry:8761/eureka/
+      - EUREKA_APP_NAME=SERVICE1-CLIENT
+      - PORT=8000
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=service1
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+    depends_on:
+      - mysql
+      - registry
+      - redis
+    ports:
+      - "8000:8000"
+    networks:
+      - backend
+
+  service2-depot:
+    build:
+      context: ./service2
+      dockerfile: Dockerfile
+    container_name: service2-depot
+    environment:
+      - EUREKA_URL=http://registry:8761/eureka/
+      - EUREKA_APP_NAME=SERVICE2-CLIENT
+      - PORT=8001
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=service2
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+    depends_on:
+      - mysql
+      - registry
+    ports:
+      - "8001:8001"
+    networks:
+      - backend
+
+  service3-node:
+    build:
+      context: ./service3-node
+      dockerfile: Dockerfile
+    container_name: service3-node
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/groupApp
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registry:8761/eureka
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - SPRING_APPLICATION_NAME=SERVICE3-NODE
+    depends_on:
+      - mongo
+      - registry
+    networks:
+      - backend
+
+  service4-affectation:
+    build:
+      context: ./service4
+      dockerfile: Dockerfile
+    container_name: service4-affectation
+    environment:
+      - EUREKA_URL=http://registry:8761/eureka/
+      - EUREKA_APP_NAME=SERVICE4-CLIENT
+      - PORT=8003
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=service4
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+    depends_on:
+      - mysql
+      - registry
+    ports:
+      - "8003:8003"
+    networks:
+      - backend
+
+  service5-node:
+    build:
+      context: ./service5_node
+      dockerfile: Dockerfile
+    container_name: service5_node
+    ports:
+      - "5005:5005"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/service5_db
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registry:8761/eureka
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - SPRING_APPLICATION_NAME=SERVICE5
+    depends_on:
+      - mongo
+      - registry
+    networks:
+      - backend
+
+  service6-soutenance:
+    build:
+      context: ./service6
+      dockerfile: Dockerfile
+    container_name: service6-soutenance
+    environment:
+      - EUREKA_URL=http://registry:8761/eureka/
+      - EUREKA_APP_NAME=SERVICE6-CLIENT
+      - PORT=8004
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=service6
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+    depends_on:
+      - mysql
+      - registry
+    ports:
+      - "8004:8004"
+    networks:
+      - backend
+
+  service6-notification:
+    build:
+      context: ./service6-notifications
+      dockerfile: Dockerfile
+    container_name: service6-notification
+    ports:
+      - "4000:4000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/notification_db
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registry:8761/eureka
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - SPRING_APPLICATION_NAME=SERVICE6-NOTIFICATIONS
+    depends_on:
+      - mongo
+      - registry
+    networks:
+      - backend
+
+  service8-archive:
+    build:
+      context: ./service8
+      dockerfile: Dockerfile
+    container_name: service8-archive
+    environment:
+      - EUREKA_URL=http://registry:8761/eureka/
+      - EUREKA_APP_NAME=SERVICE8-CLIENT
+      - PORT=8005
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - registry
+      - redis
+    ports:
+      - "8005:8005"
+    networks:
+      - backend
+
+volumes:
+  mongo-data:
+  mysql_data1:
+  mysql_data2:
+  mysql_data4:
+  mysql_data6:
+networks:
+  backend:

@@ -1,6 +1,6 @@
 import requests
 
-EUREKA_SERVER = "http://localhost:8761/eureka"  # à adapter si besoin
+EUREKA_SERVER = "http://registry:8761/eureka"  # à adapter si besoin
 
 def discover_service(app_name):
     url = f"{EUREKA_SERVER}/apps/{app_name}"

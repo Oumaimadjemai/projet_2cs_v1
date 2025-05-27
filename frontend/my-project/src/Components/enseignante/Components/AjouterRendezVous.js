@@ -5,107 +5,108 @@ import axios from 'axios'
 const RendezVousForm = ({ onClose, getTodayDate, id }) => {
   const styles = {
     modalOverlay: {
-      position: 'fixed',
+      position: "fixed",
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.3)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      backgroundColor: "rgba(0, 0, 0, 0.3)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
       zIndex: 9999,
     },
     modal: {
-      backgroundColor: '#fff',
-      borderRadius: '20px',
-      padding: '30px',
-      width: '700px',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-      position: 'relative',
+      backgroundColor: "#fff",
+      borderRadius: "20px",
+      padding: "30px",
+      width: "700px",
+      boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+      position: "relative",
       display: "flex",
-      flexDirection: "column"
+      flexDirection: "column",
     },
     modalHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '20px',
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: "20px",
     },
     closeBtn: {
-      cursor: 'pointer',
-      fontSize: '18px',
-      color: '#555',
+      cursor: "pointer",
+      fontSize: "18px",
+      color: "#555",
     },
     modalContent: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '15px',
+      display: "flex",
+      flexDirection: "column",
+      gap: "15px",
     },
     input: {
-      marginTop: '10px',
-      width: '300px',
-      padding: '10px',
-      fontSize: '14px',
-      borderRadius: '20px',
-      border: '1px solid #ccc',
+      marginTop: "10px",
+      width: "300px",
+      padding: "10px",
+      fontSize: "14px",
+      borderRadius: "20px",
+      border: "1px solid #ccc",
     },
     error: {
-      color: 'red',
-      fontSize: '12px',
-      marginTop: '-10px',
-      marginBottom: '5px',
+      color: "red",
+      fontSize: "12px",
+      marginTop: "-10px",
+      marginBottom: "5px",
     },
     submitBtn: {
-      marginTop: '25px',
-      backgroundColor: '#9B5DE5',
-      color: '#fff',
-      border: 'none',
-      padding: '8px 12px',
-      borderRadius: '25px',
-      fontSize: '15px',
-      cursor: 'pointer',
+      marginTop: "25px",
+      backgroundColor: "#9B5DE5",
+      color: "#fff",
+      border: "none",
+      padding: "8px 12px",
+      borderRadius: "25px",
+      fontSize: "15px",
+      cursor: "pointer",
       alignSelf: "flex-end",
       fontWeight: "500",
       fontFamily: "Kumbh Sans, sans-serif",
       fontSize: "1.01rem",
-      width: "140px"
+      width: "140px",
     },
     row: {
-      display: 'flex',
-      gap: '30px',
+      display: "flex",
+      gap: "30px",
     },
     halfInput: {
       flex: 1,
     },
     label: {
-      marginBottom: '50px',
-      fontSize: '13px',
-      color: '#444',
+      marginBottom: "50px",
+      fontSize: "13px",
+      color: "#444",
     },
   };
 
   const { setLoading, setRendez } = useContext(RendezVousContexte);
 
-  const [salles, setSalles] = useState([])
+  const [salles, setSalles] = useState([]);
 
   useEffect(() => {
-
-    axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/salles/`)
+    axios
+      .get(`${process.env.REACT_APP_API_URL_SERVICE1}/salles/`)
       .then((res) => setSalles(res.data))
-      .catch((err) => console.error(err.response.data))
-
-  }, [])
+      .catch((err) => console.error(err.response.data));
+  }, []);
 
   const [newRendez, setNewRendez] = useState({
     salle: "",
     heure: "",
-    date: ""
-  })
+    date: "",
+  });
 
   const getSalle = async (salleId) => {
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL_SERVICE1}/salles/${salleId}/`);
+      const res = await axios.get(
+        `${process.env.REACT_APP_API_URL_SERVICE1}/salles/${salleId}/`
+      );
       return `${res.data.nom_salle} - ${res.data.type}`;
     } catch (err) {
       console.error(err);
@@ -130,7 +131,10 @@ const RendezVousForm = ({ onClose, getTodayDate, id }) => {
       );
 
       const salleNomType = await getSalle(res.data.rdv.salle);
-      setRendez((prev) => [...prev, { ...res.data.rdv, salle_nom_type: salleNomType }]);
+      setRendez((prev) => [
+        ...prev,
+        { ...res.data.rdv, salle_nom_type: salleNomType },
+      ]);
       onClose();
     } catch (err) {
       console.error(err);
@@ -139,12 +143,15 @@ const RendezVousForm = ({ onClose, getTodayDate, id }) => {
     }
   };
 
-
   return (
     <div style={styles.modalOverlay}>
       <div style={styles.modal}>
         <div style={styles.modalHeader}>
-          <h2 style={{ fontSize: "1.4rem", fontWeight: "550", color: "#4F4F4F" }}>Ajouter Rendez–Vous</h2>
+          <h2
+            style={{ fontSize: "1.4rem", fontWeight: "550", color: "#4F4F4F" }}
+          >
+            Ajouter Rendez–Vous
+          </h2>
           <svg
             width="36"
             height="36"
@@ -163,18 +170,21 @@ const RendezVousForm = ({ onClose, getTodayDate, id }) => {
         </div>
 
         <div style={styles.modalContent}>
-
           <div style={styles.row}>
             <div style={styles.halfInput}>
               <select
                 style={styles.input}
                 value={newRendez.salle}
-                onChange={(e) => setNewRendez({ newRendez, salle: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setNewRendez({ newRendez, salle: parseInt(e.target.value) })
+                }
                 required
               >
                 <option value="">Salle</option>
-                {salles.map(salle => (
-                  <option key={salle.id} value={salle.id}>{salle.nom_salle}</option>
+                {salles.map((salle) => (
+                  <option key={salle.id} value={salle.id}>
+                    {salle.nom_salle}
+                  </option>
                 ))}
               </select>
             </div>
@@ -186,7 +196,9 @@ const RendezVousForm = ({ onClose, getTodayDate, id }) => {
                 style={styles.input}
                 type="date"
                 value={newRendez.date}
-                onChange={(e) => setNewRendez({ ...newRendez, date: e.target.value })}
+                onChange={(e) =>
+                  setNewRendez({ ...newRendez, date: e.target.value })
+                }
                 min={getTodayDate()}
                 required
               />
@@ -198,14 +210,26 @@ const RendezVousForm = ({ onClose, getTodayDate, id }) => {
                 style={styles.input}
                 type="time"
                 value={newRendez.heure}
-                onChange={(e) => setNewRendez({ ...newRendez, heure: e.target.value })}
+                onChange={(e) =>
+                  setNewRendez({ ...newRendez, heure: e.target.value })
+                }
                 required
               />
             </div>
           </div>
         </div>
-        <div className="btns-line" style={{ alignSelf: "flex-end", display: "flex", gap: "0.6rem" }}>
-          <button style={{ ...styles.submitBtn, color: "#00000090", background: "#E2E4E5" }} onClick={onClose}>
+        <div
+          className="btns-line"
+          style={{ alignSelf: "flex-end", display: "flex", gap: "0.6rem" }}
+        >
+          <button
+            style={{
+              ...styles.submitBtn,
+              color: "#00000090",
+              background: "#E2E4E5",
+            }}
+            onClick={onClose}
+          >
             Annuler
           </button>
           <button style={styles.submitBtn} onClick={(e) => handleRendezVous(e)}>

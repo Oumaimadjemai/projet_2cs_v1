@@ -104,7 +104,7 @@ DATABASES = {
         'NAME': 'service4',
         'USER': 'root',  # Ou un autre utilisateur
         'PASSWORD': 'root',
-        'HOST': 'localhost',
+        'HOST': 'mysql',
         'PORT': '3306',  # Port par défaut de MySQL
     }
 }
@@ -161,9 +161,9 @@ REST_FRAMEWORK = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=6),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'SIGNING_KEY': 'django-insecure-1t@eg)yilj^)-=1b+lhhq0_82gmzzkbmcxmbkgf)yrd(c*e+o@',  # exactement la même que dans Service 1
+    'SIGNING_KEY': 'django-insecure-1t@eg)yilj^)-=1b+lhhq0_82gmzzkbmcxmbkgf)yrd(c*e+o@', # exactement la même que dans Service 1
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
@@ -172,7 +172,7 @@ import os
 # EUREKA_URL = 'http://localhost:8761/eureka/apps/'
 # EUREKA_APP_NAME = 'SERVICE1-CLIENT'
 # Eureka settings
-EUREKA_URL = os.getenv('EUREKA_URL', 'http://localhost:8761/eureka/')
+EUREKA_URL = os.getenv('EUREKA_URL', 'http://registry:8761/eureka/')
 EUREKA_APP_NAME = os.getenv('EUREKA_APP_NAME', 'SERVICE4-CLIENT')
 PORT = int(os.getenv('PORT', '8003'))
 

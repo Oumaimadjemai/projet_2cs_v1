@@ -21,7 +21,7 @@ class SoutenanceSerializer(serializers.ModelSerializer):
         if not token:
             raise serializers.ValidationError("Token manquant dans les headers. Authentification requise.")
         headers = {"Authorization": token}
-        base_url = "http://localhost:8000"
+        base_url = discover_service("SERVICE1-CLIENT")
 
         for user_id in jury_ids:
             try:

@@ -3,7 +3,7 @@ import socket
 import atexit
 from django.conf import settings
 
-EUREKA_URL = 'http://localhost:8761/eureka/apps/'
+EUREKA_URL = 'http://registry:8761/eureka/apps/'
 
 def register():
     hostname = socket.gethostname()

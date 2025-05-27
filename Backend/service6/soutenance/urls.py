@@ -13,4 +13,6 @@ urlpatterns = [
    path('soutenances/', SoutenanceListView.as_view(), name='soutenances-list'),
    path('soutenances-a-archiver/', soutenances_a_archiver, name='soutenances-a-archiver'),
    path('soutenances/<int:pk>/archiver/', SoutenanceArchiverView.as_view(), name='soutenance-archiver'),
+   
+
 ]

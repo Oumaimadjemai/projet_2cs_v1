@@ -27,7 +27,7 @@ import xml.etree.ElementTree as ET
 
 def get_service1_url():
     try:
-        res = requests.get("http://localhost:8761/eureka/apps/SERVICE1-CLIENT", headers={'Accept': 'application/json'})
+        res = requests.get("http://registry:8761/eureka/apps/SERVICE1-CLIENT", headers={'Accept': 'application/json'})
         instances = res.json()['application']['instance']
         # If multiple instances, take the first one
         instance = instances[0] if isinstance(instances, list) else instances
@@ -43,7 +43,7 @@ def get_notification_service_url():
     try:
         # Fetch SERVICE6-NOTIFICATIONS instances from Eureka
         res = requests.get(
-            "http://localhost:8761/eureka/apps/SERVICE6-NOTIFICATIONS",
+            "http://registry:8761/eureka/apps/SERVICE6-NOTIFICATIONS",
             headers={'Accept': 'application/json'}
         )
         res.raise_for_status()
@@ -114,33 +114,7 @@ def generate_pdf(request, theme_id):
     return response
 
 
-# 🌟 API to list and create themes
-# class ThemeAPIView(APIView):
 
-#     def get(self, request):
-#         themes = Theme.objects.all()
-#         serializer = ThemeSerializer(themes, many=True)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-#     def post(self, request):
-#         user_data = verify_user(request, role=["enseignant", "entreprise"])
-#         if not user_data:
-#             return Response({"detail": "Utilisateur non authentifié ou rôle incorrect"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         data = request.data.copy()
-#         if user_data.get("is_enseignant"):
-#             data['enseignant_id'] = user_data['user_id']
-#         elif user_data.get("is_entreprise"):
-#             data['entreprise_id'] = user_data['user_id']
-
-#         serializer = ThemeSerializer(data=data)
-#         if serializer.is_valid():
-#             theme = serializer.save()
-
-#             # 🚨 Modification ici : Appeler la fonction pour générer et sauvegarder le PDF
-#             return generate_pdf(request, theme.id)
-
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ThemeAPIView(APIView):
     
@@ -1128,7 +1102,6 @@ class ArchiveThemeAPIView(APIView):
             return Response({"message": "Theme archivé avec succès."}, status=status.HTTP_200_OK)
         except Theme.DoesNotExist:
             return Response({"error": "Thème non trouvé."}, status=status.HTTP_404_NOT_FOUND)
-        
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 SERVICE3_APP = "SERVICE3-NODE"
