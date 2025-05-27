@@ -93,7 +93,7 @@ function App() {
       {/* {showIntro ? (
         <IntroPage onTimeout={handleIntroTimeout} />
       ) : ( */}
-      <SocketProvider token={token}>
+      {/* <SocketProvider token={token}> */}
         <div className='App'>
           <Routes>
 
@@ -165,7 +165,7 @@ function App() {
           </Routes>
           <ToastContainer position="top-right" autoClose={10000} />
         </div>
-      </SocketProvider>
+      {/* </SocketProvider> */}
     </AppContext.Provider>
   );
 }

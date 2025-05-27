@@ -65,6 +65,7 @@ const Invitations = () => {
             bodyStyle={{ padding: '24px' }}
           >
             <Skeleton active paragraph={{ rows: 4 }} />
+            
           </Card>
         ) : invitations.length === 0 ? (
           <Card 

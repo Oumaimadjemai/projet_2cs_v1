@@ -14,28 +14,28 @@ import { ReactComponent as NotificationsIcon } from '../Assets/Icons/Notificatio
 export const EnseignantLayout = () => {
 
   const { t } = useTranslation();
-  const socket = useSocket();
+  // const socket = useSocket();
 
-  useEffect(() => {
-    if (!socket) return;
+  // useEffect(() => {
+  //   if (!socket) return;
 
-    const userId = localStorage.getItem('user_id');
-    const userName = `${localStorage.getItem('user_nom')} ${localStorage.getItem('user_prenom')}`
+  //   const userId = localStorage.getItem('user_id');
+  //   const userName = `${localStorage.getItem('user_nom')} ${localStorage.getItem('user_prenom')}`
 
-    socket.emit('register', {
-      userId,
-      userRole: 'enseignant'
-    });
+  //   socket.emit('register', {
+  //     userId,
+  //     userRole: 'enseignant'
+  //   });
 
-    socket.on('user_notification', (data) => {
-      console.log("Notification reçue:", data); 
-      toast.info(`${userName} ${data.message}`);
-    });
+  //   socket.on('user_notification', (data) => {
+  //     console.log("Notification reçue:", data); 
+  //     toast.info(`${userName} ${data.message}`);
+  //   });
 
-    return () => {
-      socket.off('user_notification');
-    };
-  }, [socket]);
+  //   return () => {
+  //     socket.off('user_notification');
+  //   };
+  // }, [socket]);
 
   const adminMenu = [
     {

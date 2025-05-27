@@ -1,6 +1,7 @@
 const { discoverDjangoService } = require('../services/discovery.service');
 const axios = require('axios');
 
+
 exports.getUserDetails = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -48,6 +49,7 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).json({ error: "Error fetching users" });
   }
 };
+
 
 
 

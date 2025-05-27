@@ -8,15 +8,55 @@ import '../../Partials/Components/i18n'
 import sleepImage from '../../../Assets/Images/sleeping.png'
 import doneImg from '../../../Assets/Images/Done.png'
 import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/EmptyState.svg';
+import { 
+  ChevronDownIcon, 
+  XMarkIcon, 
+  SparklesIcon, 
+  HandRaisedIcon, 
+  CheckCircleIcon, 
+  PlusCircleIcon 
+} from '@heroicons/react/24/outline';
 
 export const ThemeAdminContext = createContext();
+
 
 function ThemeAdmin() {
 
     const { id } = useParams();
     const [theme, setTheme] = useState({})
+    const [autoAssignmentMessage, setAutoAssignmentMessage] = useState(null);
+  
     const [groupes, setGroupes] = useState([])
-
+const [modeAffichage, setModeAffichage] = useState(null); // 'manual' ou 'auto' ou null
+ const handleAutoAssignment = async () => {
+  setModeAffichage('auto');
+  try {
+    const response = await axios.post(
+      `http://localhost:8003/assignment-random/${theme.id}/`,
+      {}, 
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    setNotification({
+      visible: true,
+      message: response.data?.message || 'Affectation automatique effectuée',
+      type: 'success'
+    });
+  } catch (error) {
+    setNotification({
+      visible: true,
+      message: error.response?.data?.error || 
+             error.response?.data?.message || 
+             'Erreur réseau ou serveur indisponible',
+      type: 'error'
+    });
+  }
+};
     useEffect(() => {
         const fetchThemeWithExtraInfo = async () => {
             try {
@@ -179,6 +219,8 @@ function ThemeAdmin() {
     }
 
     const [optionsClicked, setOptionsClicked] = useState(false)
+        const [optionsClickedv2, setOptionsClickedv2] = useState(false)
+
 
     const [refuseClicked, setRefuseClicked] = useState(false)
     const [confirmRefuseClicked, setConfirmRefuseClicked] = useState(false)
@@ -230,6 +272,11 @@ function ThemeAdmin() {
     }, [submitted, motif]);
 
     const [loading, setLoading] = useState(false)
+    const [notification, setNotification] = useState({
+  visible: false,
+  message: '',
+  type: 'info' // 'info' | 'success' | 'error'
+});
 
     const [confirmAffecter, setConfirmAffecter] = useState(false)
     const [affecterInfos, setAffecterInfos] = useState({
@@ -510,80 +557,135 @@ function ThemeAdmin() {
                                             </div>
                                         </div>
                                         :
-                                        <div className="themes-display-table">
-                                            <table>
-                                                <thead>
-                                                    <tr style={{ margin: "5px 0" }}>
-                                                        <th className={isRtl ? "th-ltr" : "th-rtl"} style={{ textIndent: "7px", width: "25%" }}>
-                                                            Groupe
-                                                        </th>
-                                                        <th style={{ width: "25%" }}>Année</th>
-                                                        <th style={{ width: "25%" }}>
-                                                            Priorité
-                                                        </th>
-                                                        <th className={`${isRtl ? "th-rtl" : "th-ltr"} text-center`} style={{ width: "100%", paddingLeft: "10px" }}>
-                                                            Options
-                                                        </th>
-                                                    </tr>
-
-                                                </thead>
-                                                <tbody>
-                                                    {
-                                                        groupes.map((groupe) => (
-                                                            <tr style={{ margin: "5px 0" }}>
-                                                                <td
-                                                                    style={{ width: "25%" }}
-                                                                    className={isRtl ? "th-ltr" : "th-rtl"}
-                                                                >
-                                                                    {groupe.nom}
-                                                                </td>
-                                                                <td style={{ width: "25%" }}>
-                                                                    {theme.annee_titre}
-                                                                </td>
-                                                                <td style={{ width: "25%" }}>
-                                                                    {groupe.specialite ? theme.priorities.find(p => p.specialite_id === groupe.specialite).priorite : "Aucun"}
-                                                                </td>
-                                                                <td className={isRtl ? "th-lrt" : "th-ltr"}>
-                                                                    {
-                                                                        groupe.affecte ? (
-                                                                            <button style={{
-                                                                                padding: "4px 12px",
-                                                                                borderRadius: "15px",
-                                                                                background: "#E2E4E5",
-                                                                                color: "#00000090"
-                                                                            }}
-                                                                                onClick={(e) => {
-                                                                                    e.preventDefault()
-                                                                                    setAffecterInfos({ ...affecterInfos, theme_id: theme.id, groupe: groupe.id })
-                                                                                    setConfirmAffecter(true)
-                                                                                }}
-                                                                            >
-                                                                                Affecté
-                                                                            </button>
-                                                                        ) : (
-                                                                            <button style={{
-                                                                                padding: "4px 12px",
-                                                                                borderRadius: "15px",
-                                                                                background: "#925FE2",
-                                                                                color: "#fff"
-                                                                            }}
-                                                                                onClick={(e) => {
-                                                                                    e.preventDefault()
-                                                                                    setAffecterInfos({ ...affecterInfos, theme_id: theme.id, groupe: groupe.id })
-                                                                                    setConfirmAffecter(true)
-                                                                                }}
-                                                                            >
-                                                                                Affecter
-                                                                            </button>
-                                                                        )
-                                                                    }
-                                                                </td>
-                                                            </tr>
-                                                        ))
-                                                    }
-                                                </tbody>
-                                            </table>
-                                        </div>
+                             <div className="space-y-4">
+  {/* Main Button */}
+  <button 
+    onClick={() => setOptionsClickedv2(!optionsClickedv2)}
+    className="px-4 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-800 transition-colors shadow-md hover:shadow-lg"
+  >
+    Mode d'affectation thème
+    <ChevronDownIcon className={`w-4 h-4 ml-2 inline transition-transform ${optionsClickedv2 ? 'rotate-180' : ''}`} />
+  </button>
+  
+  {/* Options Panel */}
+  {optionsClickedv2 && (
+    <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
+      <div className="flex space-x-3">
+        <button 
+          onClick={async () => handleAutoAssignment()}
+          className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-lg hover:from-purple-700 hover:to-purple-600 transition-all shadow hover:shadow-md flex items-center justify-center"
+        >
+          <SparklesIcon className="w-5 h-5 mr-2" />
+          Automatique
+        </button>
+        
+        <button 
+          onClick={() => setModeAffichage('manual')}
+          className="flex-1 px-4 py-2 bg-white text-purple-700 border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors shadow hover:shadow-md flex items-center justify-center"
+        >
+          <HandRaisedIcon className="w-5 h-5 mr-2" />
+          Manuel
+        </button>
+      </div>
+    </div>
+  )}
+  
+  {/* Notification Toast */}
+  {notification.visible && (
+    <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-start max-w-md ${
+      notification.type === 'error' ? 'bg-red-50 text-red-800 border-l-4 border-red-500' :
+      notification.type === 'success' ? 'bg-green-50 text-green-800 border-l-4 border-green-500' :
+      'bg-purple-50 text-purple-800 border-l-4 border-purple-500'
+    }`}>
+      <div className="flex-1">
+        <p className="font-medium">
+          {notification.type === 'error' ? 'Erreur' : 
+           notification.type === 'success' ? 'Succès' : 'Information'}
+        </p>
+        <p>{notification.message}</p>
+      </div>
+      <button 
+        onClick={() => setNotification({...notification, visible: false})}
+        className="ml-4 text-gray-500 hover:text-gray-700"
+      >
+        <XMarkIcon className="w-5 h-5" />
+      </button>
+    </div>
+  )}
+  
+  {/* Manual Assignment Table */}
+  {modeAffichage === 'manual' && (
+    <div className="overflow-hidden rounded-lg border border-purple-100 shadow-sm">
+      <table className="min-w-full divide-y divide-purple-200">
+        <thead className="bg-purple-50">
+          <tr>
+            <th className={`px-6 py-3 text-left text-xs font-medium text-purple-800 uppercase tracking-wider ${isRtl ? 'text-right' : 'text-left'}`}>
+              Groupe
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-purple-800 uppercase tracking-wider">
+              Année
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-purple-800 uppercase tracking-wider">
+              
+            </th>
+            <th className={`px-6 py-3 text-center text-xs font-medium text-purple-800 uppercase tracking-wider ${isRtl ? 'text-right' : 'text-left'}`}>
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-purple-200">
+          {groupes.map((groupe) => (
+            <tr key={groupe.id} className="hover:bg-purple-50 transition-colors">
+              <td className={`px-6 py-4 whitespace-nowrap ${isRtl ? 'text-right' : 'text-left'}`}>
+                <div className="text-sm font-medium text-purple-900">{groupe.nom}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm text-purple-700">{theme.annee_titre}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm text-purple-700">
+                  {groupe.specialite || ""}
+                </div>
+              </td>
+              <td className={`px-6 py-4 whitespace-nowrap ${isRtl ? 'text-right' : 'text-left'}`}>
+                {
+                    groupe.affecte ? 
+                    <button
+                  className={`px-4 py-1 rounded-full text-sm font-medium transition-all ${
+                    groupe.affecte 
+                      ? 'bg-purple-100 text-purple-800 hover:bg-purple-200' 
+                      : 'bg-purple-600 text-white hover:bg-purple-700 shadow-md hover:shadow-lg'
+                  }`}
+                >
+                 
+                      <CheckCircleIcon className="w-4 h-4 inline mr-1" />
+                      Affecté
+                </button> :
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setAffecterInfos({ ...affecterInfos, theme_id: theme.id, groupe: groupe.id });
+                    setConfirmAffecter(true);
+                  }}
+                  className={`px-4 py-1 rounded-full text-sm font-medium transition-all ${
+                    groupe.affecte 
+                      ? 'bg-purple-100 text-purple-800 hover:bg-purple-200' 
+                      : 'bg-purple-600 text-white hover:bg-purple-700 shadow-md hover:shadow-lg'
+                  }`}
+                >
+                      <PlusCircleIcon className="w-4 h-4 inline mr-1" />
+                      Affecter
+                </button>
+                }
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</div>
+                                         
                             }
                         </div>
                     )

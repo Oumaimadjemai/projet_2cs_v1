@@ -4,6 +4,7 @@ import '../Styles/Groupes.css';
 import { ReactComponent as SearchIcon } from '../../../Assets/Icons/Search.svg';
 import { ReactComponent as ArrowIcon } from '../../../Assets/Icons/Arrow.svg';
 import { ReactComponent as EmptyIcon } from '../../../Assets/Icons/notFound.svg';
+import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../../../App';
 import '../../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
@@ -18,13 +19,13 @@ export const GroupeLayout = () => {
 }
 
 function GroupesAdmin() {
-
+const navigate = useNavigate();
     const [groupes, setGroupes] = useState([])
 
     useEffect(() => {
         const fetchGroupesWithDetails = async () => {
             try {
-                const res = await axios.get(`${process.env.REACT_APP_API_URL_SERVICE3}/api/groups/all-groupes`);
+                const res = await axios.get(`http://localhost:3000/api/groups/all-groupes`);
                 const groupesData = res.data.data;
 
                 const groupesWithDetails = await Promise.all(
@@ -67,6 +68,7 @@ function GroupesAdmin() {
 
         fetchGroupesWithDetails();
     }, []);
+    console.log(groupes);
 
     const getGradeColor = (grade) => {
         switch (grade) {
@@ -130,7 +132,7 @@ function GroupesAdmin() {
         <div className='groupes-admin-container' id='dynamic-liste' ref={dynamicListRef}>
             <div className="groupes-admin-wrapper" style={{ paddingRight: isRtl ? "0" : "12px", paddingLeft: isRtl ? "12px" : "0" }}>
                 <h1 style={{ fontSize: "1.6rem", fontWeight: "600", color: "#4F4F4F", marginBottom: "1rem" }}>
-                    Tous Les Groupes <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>10</span>
+                    Tous Les Groupes <span style={{ color: "#A7A7A7", marginLeft: "5px" }}> {groupes.length}</span>
                 </h1>
                 <div className="recherche-groupes-line">
                     <div className="recherche-groupes-input">
@@ -173,8 +175,8 @@ function GroupesAdmin() {
                                     Groupe
                                 </th>
                                 <th style={{ width: "16%" }}>Chef d'Equipe</th>
-                                <th style={{ width: "16%" }}>Encadrant</th>
-                                <th style={{ width: "27% !important" }}>Thème</th>
+                                <th style={{ width: "16%" }}>nombre_membres</th>
+                                <th style={{ width: "27% !important" }}>moyenne_groupe</th>
                                 <th
                                     style={{
                                         width: "100%",
@@ -221,10 +223,12 @@ function GroupesAdmin() {
                                                     {groupe.chef.nom_complet}
                                                 </td>
                                                 <td style={{ width: "16%" }}>
-                                                    {groupe.encadrant ? groupe.encadrant : "Aucun"}
+                                                            {groupe.nombre_membres}
+                                                    {/* {groupe.encadrant ? groupe.encadrant : "Aucun"} */}
                                                 </td>
                                                 <td style={{ width: "27%" }}>
-                                                    {groupe.theme ? groupe.theme : "Pas encore"}
+                                                    {groupe.moyenne_groupe ? groupe.moyenne_groupe.toFixed(2) : "Pas encore de moyenne"}
+                                                    {/* {groupe.theme ? groupe.theme : "Pas encore"} */}
                                                 </td>
                                                 <td
                                                     className='last-td-admin'
@@ -256,12 +260,15 @@ function GroupesAdmin() {
                                                             marginRight: isRtl ? "auto" : "1rem"
                                                         }}
                                                     >
-                                                        <span style={{ display: "flex", gap: "8px", alignItems: "center", color: "#884DFF" }}>
-                                                            Voir plus
-                                                            <svg width="7" height="12" viewBox="0 0 5 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M0 8.825L3.09042 5L0 1.175L0.951417 0L5 5L0.951417 10L0 8.825Z" fill="#884DFF" fill-opacity="0.8" />
-                                                            </svg>
-                                                        </span>
+                                                          <span 
+        style={{ display: "flex", gap: "8px", alignItems: "center", color: "#884DFF", cursor: "pointer" }}
+        onClick={() => navigate(`/admin/groupes/${groupe.id}`)} // Assuming groupe._id is the ID
+    >
+        Voir plus
+        <svg width="7" height="12" viewBox="0 0 5 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 8.825L3.09042 5L0 1.175L0.951417 0L5 5L0.951417 10L0 8.825Z" fill="#884DFF" fill-opacity="0.8" />
+        </svg>
+    </span>
                                                     </div>
                                                 </td>
                                             </tr>

@@ -11,29 +11,29 @@ import { toast } from 'react-toastify';
 
 export const EtudiantLayout = () => {
 
-  const socket = useSocket();
-  useEffect(() => {
-    if (!socket) return;
+  // const socket = useSocket();
+  // useEffect(() => {
+  //   if (!socket) return;
 
-    const userId = localStorage.getItem('user_id');
-    const userName = `${localStorage.getItem('user_nom')} ${localStorage.getItem('user_prenom')}`
+  //   const userId = localStorage.getItem('user_id');
+  //   const userName = `${localStorage.getItem('user_nom')} ${localStorage.getItem('user_prenom')}`
 
-    console.log("Registering to WebSocket:", userId);
+  //   console.log("Registering to WebSocket:", userId);
 
-    socket.emit('register', {
-      userId,
-      userRole: 'etudiant'
-    });
+  //   socket.emit('register', {
+  //     userId,
+  //     userRole: 'etudiant'
+  //   });
 
-    socket.on('user_notification', (data) => {
-      console.log("Notification reçue:", data); 
-        toast.info(`${userName}: ${data.message}`);
-    });
+  //   socket.on('user_notification', (data) => {
+  //     console.log("Notification reçue:", data); 
+  //       toast.info(`${userName}: ${data.message}`);
+  //   });
 
-    return () => {
-      socket.off('user_notification');
-    };
-  }, [socket]);
+  //   return () => {
+  //     socket.off('user_notification');
+  //   };
+  // }, [socket]);
 
     const etudiatMenu = [
         {

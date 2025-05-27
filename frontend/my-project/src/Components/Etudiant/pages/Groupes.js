@@ -12,6 +12,7 @@ import {
   Tag
 } from 'antd';
 import { nodeAxios } from '../../../axios';
+import axiosInstance from '../../../axios';
 import photo from '../pages/image.png';
 
 const { Option } = Select;
@@ -20,6 +21,7 @@ const Groupes = () => {
   const navigate = useNavigate();
 
   const [groups, setGroups] = useState([]);
+  
   const [newGroupName, setNewGroupName] = useState('');
   const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
   const [inviteUserId, setInviteUserId] = useState(null);
@@ -94,12 +96,12 @@ const Groupes = () => {
       console.error('Error fetching user details:', error);
     }
   };
- 
+  const currentUserAnneeId = localStorage.getItem('annee_etude');
 
   const fetchAllUsers = async () => {
     setLoading(prev => ({ ...prev, users: true }));
     try {
-      const response = await nodeAxios.get('/users');
+      const response = await axiosInstance.get(`/etudiants/annee/${currentUserAnneeId}/`);
       setAllUsers(response.data);
     } catch (error) {
       message.error('Failed to load users');
@@ -145,95 +147,7 @@ const Groupes = () => {
     fetchAllUsers();
   };
 
-  // const handleInvite = async () => {
-  //   if (!inviteUserId) {
-  //     message.warning('Please select a user to invite');
-  //     return;
-  //   }
-
-  //   try {
-  //     setLoading(prev => ({ ...prev, inviting: true }));
-  //     await nodeAxios.post(`/groups/${currentGroup._id}/invite/${inviteUserId}`);
-
-  //     message.success('Invitation sent successfully');
-  //     setIsInviteModalVisible(false);
-  //     setInviteUserId(null);
-  //   } catch (error) {
-  //     message.error(error.response?.data?.error || "Failed to send invitation");
-  //   } finally {
-  //     setLoading(prev => ({ ...prev, inviting: false }));
-  //   }
-  // };
-// const handleInvite = async () => {
-//   if (!inviteUserId) {
-//     message.warning('Please select a user to invite');
-//     return;
-//   }
-
-//   try {
-//     setLoading(prev => ({ ...prev, inviting: true }));
-//     const response = await nodeAxios.post(`/groups/${currentGroup._id}/invite/${inviteUserId}`);
-    
-//     message.success('Invitation sent successfully');
-//     setIsInviteModalVisible(false);
-//     setInviteUserId(null);
-    
-//   } catch (error) {
-//     const errorResponse = error.response?.data;
-    
-//     // Handle specific error cases
-//     if (errorResponse) {
-//       switch (errorResponse.error) {
-//         case "Groupe non trouvé":
-//           message.error("Group not found");
-//           break;
-          
-//         case "Action réservée au chef de groupe":
-//           message.error("Only the group leader can invite members");
-//           break;
-          
-//         case "L'utilisateur est déjà membre du groupe":
-//           message.error("This user is already a group member");
-//           break;
-          
-//         case "L'année d'étude de l'utilisateur n'est pas définie":
-//           message.error("User's study year is not defined");
-//           break;
-          
-//         case "Configuration des groupes non définie pour cette année":
-//           message.error("Group configuration not defined for this study year");
-//           break;
-          
-//         case "Le groupe a atteint sa capacité maximale":
-//           message.error(`Group has reached maximum capacity (${errorResponse.max_members} members)`);
-//           break;
-          
-//         case "Incompatibilité d'année d'étude":
-//           message.error("Year of study mismatch between group and user");
-//           break;
-          
-//         case "Utilisateur non trouvé":
-//           message.error("User not found");
-//           break;
-          
-//         default:
-//           message.error(errorResponse.error || "Failed to send invitation");
-//       }
-      
-//       // Log additional details to console
-//       console.error('Invitation error:', errorResponse);
-//       if (errorResponse.details) {
-//         console.error('Details:', errorResponse.details);
-//       }
-//     } else {
-//       message.error("Failed to send invitation");
-//       console.error('Invitation error:', error.message);
-//     }
-//   } finally {
-//     setLoading(prev => ({ ...prev, inviting: false }));
-//   }
-// };
-
+ 
 const handleInvite = async () => {
   if (!inviteUserId) {
     setInviteError('Please select a user to invite');
@@ -280,22 +194,22 @@ const getUserDisplay = (userId) => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">My Groups</h2>
         <div className="flex gap-4">
-          <Input
-            placeholder="New group name"
-            value={newGroupName}
-            onChange={(e) => setNewGroupName(e.target.value)}
-            className="w-64"
-            onPressEnter={createGroup}
-          />
-          <Button
-            type="primary"
-            onClick={createGroup}
-            className="bg-mypurple"
-            loading={loading.creating}
-            disabled={loading.creating}
-          >
-            Create Group
-          </Button>
+      <Input
+    placeholder="New group name"
+    value={newGroupName}
+    onChange={(e) => setNewGroupName(e.target.value)}
+    className="w-64 border-purple-500 focus:border-purple-600 hover:border-purple-400 focus:ring-2 focus:ring-purple-600 "
+    onPressEnter={createGroup}
+  />
+  <Button
+    type="primary"
+    onClick={createGroup}
+    className="!bg-mypurple !border-mypurple hover:!bg-purple-700 focus:!bg-purple-700 active:!bg-purple-800 "
+    loading={loading.creating}
+    disabled={loading.creating}
+  >
+    Create Group
+  </Button>
         </div>
       </div>
 

@@ -50,7 +50,7 @@ const RendezVousEtudiant = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <div style={styles.title}>Rendez-vous <span style={{color:'#888'}}>{rendezVous.length}</span></div>
+        <div style={styles.title}>Rendez-vous<span style={{color:'#888'}}>{rendezVous.length}</span></div>
       </div>
 
       <div style={styles.searchFilter}>
@@ -91,7 +91,9 @@ const RendezVousEtudiant = () => {
             </div>
             <div style={styles.cardBody}>
               <div style={styles.cardRow}>
-                <div><strong>Groupe:</strong> {item.group_name}</div>
+                <div><strong>enseignant :</strong> {item.enseignant.nom_complet}</div>
+              <div><strong>Group :</strong> {item.group_name}</div>
+
                 <div><strong>Salle:</strong> {item.salle}</div>
               </div>
             </div>
