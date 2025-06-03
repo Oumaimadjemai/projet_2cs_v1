@@ -3,7 +3,7 @@ import Entreprise from "./Entreprise";
 import Representant from "./Representant";
 import Final from "./Final";
 import { ReactComponent as CheckIcon } from '../../Assets/Icons/check.svg';
-import logoImg from '../../Assets/Images/logo-login.jpg';
+import logoImg from '../../Assets/Images/logilogin.jpg';
 import '../Partials/Components/i18n'
 import { useTranslation } from 'react-i18next';
 import { AppContext } from "../../App";

@@ -224,7 +224,7 @@ function EnseignantsListe() {
                                             textAlign: isRtl ? "right" : "left"
                                         }}
                                     >
-                                        {t('enseignantsPage.tableSujets')}
+                                        
                                     </th>
                                 </tr>
                             </thead>

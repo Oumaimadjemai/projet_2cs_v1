@@ -486,7 +486,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from .models import Assignment
-from .utils import discover_service, get_user_id_from_token
+from .utils import get_user_id_from_token
 
 SERVICE1_URL = discover_service('SERVICE1-CLIENT')
 SERVICE2_URL = discover_service('SERVICE2-CLIENT')
@@ -648,18 +648,23 @@ class AssignmentListView(APIView):
                 group_url = f'{SERVICE3_URL}/api/groups/{data.get("group_id")}/'
                 r = requests.get(group_url, headers=headers, timeout=5)
                 group_data = r.json() if r.status_code == 200 else None
-                data['group_name'] = group_data.get('name') if group_data else None
 
-                # 🔴 Filter by annee_etude from Service 3
-                group_info = group_data.get("group") or group_data  # supporte les deux structures
+    # Extract the nested group object if present
+                group_info = group_data.get("group") if group_data and "group" in group_data else group_data
+
+    # Set group_name safely
+                data['group_name'] = group_info.get('name') if group_info else None
+
+    # 🔴 Filter by annee_etude from Service 3
                 if annee_etude_filter and group_info:
-                  if str(group_info.get("annee_etude")) != str(annee_etude_filter):
-                      continue  # Ne pas ajouter cette affectation au résultat
+                   if str(group_info.get("annee_etude")) != str(annee_etude_filter):
+                    continue  # Skip if annee_etude does not match
 
-            except:
+            except Exception as e:
                 data['group_name'] = None
                 if annee_etude_filter:
-                    continue  # Skip if we can't check annee_etude
+                  continue  # Skip if we can't check annee_etude
+
 
             # Group members
             try:

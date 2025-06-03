@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axiosInstance from '../../axios';
-import logoImg from '../../Assets/Images/logo-login.jpg';
+import logoImg from '../../Assets/Images/logilogin.jpg';
 import '../Partials/Components/i18n'
 import { useTranslation, Trans } from 'react-i18next';
 import reactconnet from '../../Assets/Images/logo.jpg';

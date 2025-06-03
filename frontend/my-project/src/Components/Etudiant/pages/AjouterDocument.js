@@ -93,10 +93,10 @@ const handleSubmit = async (e) => {
 };
 
     return (
-        <div className='ajouter-enseignant-container' style={{ height: "480px" }}>
+        <div className='ajouter-enseignant-container' style={{ height: "500px" }}>
             <div className="ajouter-enseignant-wrapper">
                 <div className="title-line">
-                    <h1>{t('document.uploadTitle')}</h1>
+                    <h1>Déposer Document</h1>
                     <button 
                         className="close-button" 
                         onClick={annulerAjouter}
@@ -109,17 +109,21 @@ const handleSubmit = async (e) => {
                 </div>
 
                 <form id='ajouterFormEnseignant' onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="documentTitle">{t('document.title')}</label>
-                        <input
-                            type="text"
-                            id="documentTitle"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder={t('document.titlePlaceholder')}
-                            required
-                        />
-                    </div>
+                  <div className="mb-4 flex items-center gap-4"> 
+  <label htmlFor="documentTitle" className="mb-2 font-semibold text-gray-700 ">
+    Titre
+  </label>
+  <input
+    type="text"
+    id="documentTitle"
+    value={title}
+    onChange={(e) => setTitle(e.target.value)}
+    placeholder="Entrez le titre du document"
+    required
+    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent "
+  />
+</div>
+
 
                     <div className="drop-file-container">
                         <div 
@@ -133,10 +137,10 @@ const handleSubmit = async (e) => {
                                 {!file ? (
                                     <>
                                         <h2 style={{ color: "#292D32", fontSize: "1.25rem", fontWeight: "500" }}>
-                                            {t('document.dropTitle')}
+                                           Glisser-déposer un fichier
                                         </h2>
                                         <span style={{ color: "#A9ACB4" }}>
-                                            {t('document.dropRemark')} PDF (max. 5MB)
+                                            Fichiers PDF (max. 5MB)
                                         </span>
                                         <input
                                             type="file"
@@ -152,7 +156,7 @@ const handleSubmit = async (e) => {
                                                 document.getElementById("fileUpload").click();
                                             }}
                                         >
-                                            {t('document.browseBtn')}
+                                        Parcourir les fichiers
                                         </button>
                                         {error && (
                                             <p style={{ 

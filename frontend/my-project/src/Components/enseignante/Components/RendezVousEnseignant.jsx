@@ -7,6 +7,7 @@ import '../Styles/RendezVous.css'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import ModifireRendezVous from './ModifierRendezVous';
+import {Link} from "react-router-dom";
 
 export const RendezVousContexte = createContext();
 
@@ -127,7 +128,7 @@ const RendezVousPage = () => {
       <div style={styles.container}>
         <div style={styles.header}>
           <h1 style={{ fontSize: "1.2rem", fontWeight: "600", color: "#4F4F4F", marginBottom: "1rem" }}>
-            Tous Les Groupes &gt; Rendez-vous &gt; <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>{rendez.length}</span>
+            <Link to="/enseignant/groupes" style={{cursor: "pointer"}}>Tous Les Groupes </Link> &gt; Rendez-vous &gt; <span style={{ color: "#A7A7A7", marginLeft: "5px" }}>{rendez.length}</span>
           </h1>
           <button style={styles.addBtn} onClick={() => { setShowModal(true); setEditingIndex(null); }}>
             <FaPlus /> Ajouter Rendez-vous

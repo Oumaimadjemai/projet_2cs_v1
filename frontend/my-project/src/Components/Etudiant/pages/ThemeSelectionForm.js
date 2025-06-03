@@ -75,9 +75,7 @@ const ThemeSelectionForm = () => {
 
       setStatus('submitted');
       setSuccess(true);
-      setTimeout(() => {
-        navigate('/confirmation');
-      }, 2000);
+     
     } catch (err) {
       setError(err.response?.data?.error || 'Submission failed. Please try again.');
     } finally {

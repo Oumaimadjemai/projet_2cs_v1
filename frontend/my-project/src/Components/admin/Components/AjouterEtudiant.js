@@ -99,6 +99,7 @@ export const AjouterEtudiant = ({ annulerAjouter, handleDraftSave }) => {
                 setEtudiants(prev => [...prev, ...data]);
                 annulerAjouter();
                 localStorage.removeItem("brouillonEtudiant");
+                window.location.reload(); // Reload the page to reflect changes
             })
             .catch((err) => {
                 console.error("Erreur Axios :", err);

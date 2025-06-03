@@ -543,7 +543,7 @@ const AjouterSoutenance = ({ annulerAjouter, handleDraftSave }) => {
 
     useEffect(() => {
 
-        axios.get(`${process.env.REACT_APP_API_URL_SERVICE4}/assignments/?soutenance_valide=true`, {
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE4}/assignments/?soutenance_valide=true&annee_etude=${newSoutenance.annee}`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('access_token')}`
             }

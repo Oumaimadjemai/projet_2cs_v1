@@ -318,6 +318,7 @@
     display: flex;
     gap: 1rem;
     margin-top: 0.5rem;
+     align-self: flex-end;
 }
 
 .ajouter-admin-wrapper .btns-form-line button {

@@ -2,7 +2,7 @@
     "schoolName": "Higher School of Computer Science",
     "school": "May 8, 1945 - Sidi-Bel-Abbès",
     "login": {
-        "loginTitle": "Welcome to CodeGradia",
+        "loginTitle": "Welcome to CodeGrade",
         "emailInput": "E-mail address",
         "PwdInput": "Password",
         "pwdLost": "Forgot your password?",
@@ -185,10 +185,7 @@
             "Password": {
               "tooShort": "Password must be at least 8 characters",
               "mismatch": "Passwords do not match"
-            }
-          
-      
-    },
+            },
     "dashboard": {
         "admin": "Administration",
         "soutenances": "Defenses",

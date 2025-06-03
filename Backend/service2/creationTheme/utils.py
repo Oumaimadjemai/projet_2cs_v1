@@ -18,6 +18,33 @@ def verify_entreprise_id(entreprise_id):
         return False
 
 
+# def verify_user(request, role):
+#     token = request.headers.get("Authorization")
+#     if not token:
+#         raise PermissionDenied("Token manquant. Veuillez vous authentifier.")
+
+#     try:
+#         response = requests.get(
+#             f"{get_service_1_url_lazy()}/verify-user/",
+#             headers={"Authorization": token}
+#         )
+#     except requests.exceptions.RequestException:
+#         raise PermissionDenied("Service d'authentification temporairement indisponible.")
+
+#     if response.status_code != 200:
+#         raise PermissionDenied(f"Échec de l'authentification (code {response.status_code}).")
+
+#     user_data = response.json()
+
+#     roles = {
+#         "enseignant": "is_enseignant",
+#         "entreprise": "is_entreprise"
+#     }
+#     if role not in roles or not user_data.get(roles[role]):
+#         raise PermissionDenied(f"Accès réservé aux {role}s.")
+
+#     return user_data
+
 def verify_user(request, role):
     token = request.headers.get("Authorization")
     if not token:
@@ -36,14 +63,19 @@ def verify_user(request, role):
 
     user_data = response.json()
 
-    roles = {
+    roles_map = {
         "enseignant": "is_enseignant",
         "entreprise": "is_entreprise"
     }
-    if role not in roles or not user_data.get(roles[role]):
-        raise PermissionDenied(f"Accès réservé aux {role}s.")
+
+    if isinstance(role, str):
+        role = [role]
+
+    if not any(user_data.get(roles_map.get(r)) for r in role if r in roles_map):
+        raise PermissionDenied(f"Accès réservé aux rôles : {', '.join(role)}.")
 
     return user_data
+
 
 
 def find_annee_academique_id(soumission_date=None):

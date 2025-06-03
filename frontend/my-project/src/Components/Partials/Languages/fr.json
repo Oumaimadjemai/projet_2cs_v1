@@ -2,7 +2,7 @@
     "schoolName": "École Supérieure En Informatique ",
     "school": "8 Mai 1945 - Sidi-Bel-Abbès",
     "login": {
-        "loginTitle": "Bienvenue à CodeGradia",
+        "loginTitle": "Bienvenue à CodeGrade",
         "emailInput": "Adresse Email",
         "PwdInput": "Mot de Passe",
         "pwdLost": "Mot de passe oublié ?",
@@ -174,9 +174,7 @@
           "backButton": "Retour",
           "submitButton": "Envoyer",
           "loading": "Traitement en cours..."
-        }
-      
-    },
+        },
     "dashboard": {
         "admin": "Administaration",
         "soutenances": "Les Soutenances",
@@ -188,5 +186,4 @@
             "salle": "Salle",
             "voir": "Voir tout"
         }
-    }
-}
+    }}

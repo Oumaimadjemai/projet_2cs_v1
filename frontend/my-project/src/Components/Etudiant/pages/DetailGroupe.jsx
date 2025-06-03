@@ -151,7 +151,7 @@ useEffect(() => {
             <div className="groupes-liste-wrapper" style={{ paddingRight: isRtl ? "0" : "12px", paddingLeft: isRtl ? "12px" : "0" }}>
                 <div className="title-detail-line">
                     <h1 style={{ fontSize: "1.2rem", fontWeight: "500", color: "#4F4F4F" }}>
-                        Mes Groupes  &gt; <span style={{ color: "#925FE2" }}>{groupName}</span>
+                        <NavLink to={"/etudiant/groupes"}>Mes Groupes</NavLink>  &gt; <span style={{ color: "#925FE2" }}>{groupName}</span>
                     </h1>
                     <div style={{ display: "flex", gap: "1.1rem", alignItems: "center", marginRight: "1rem" }}>
                         <button onClick={() => setAjouterDocument(true)} className='ajout-btn'>

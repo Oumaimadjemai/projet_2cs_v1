@@ -288,7 +288,8 @@ function EtudiantsListe() {
                                             borderBottomLeftRadius: isRtl ? "8px" : "0",
                                             borderRight: isRtl ? "none" : "1px solid #E4E4E4",
                                             borderLeft: isRtl ? "1px solid #E4E4E4" : "none",
-                                            textAlign: isRtl ? "right" : "left"
+                                            textAlign: isRtl ? "right" : "left",
+                                            textIndent: "4rem"
                                         }}                                >
                                         {t('etudiantsPage.tableMoyen')}
                                     </th>

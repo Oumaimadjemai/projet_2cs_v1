@@ -525,11 +525,11 @@ function DocumentEtudiant() {
                 }
                 {
                     ajouterNoteSuccess &&
-                    <AjouterNoteSuccess acceptSuccess={() => setAjouterNoteSuccess(false)} />
+                    <AjouterNoteSuccess acceptSuccess={() => {setAjouterNoteSuccess(false); setAjouteNote(false)}} />
                 }
                 {
                     modifierNoteSuccess &&
-                    <ModifierNoteSuccess acceptSuccess={() => setModifierrNoteSuccess(false)} />
+                    <ModifierNoteSuccess acceptSuccess={() => {setModifierrNoteSuccess(false); setModifieNote(false)}} />
                 }
             </div>
         </DocumentContext.Provider>

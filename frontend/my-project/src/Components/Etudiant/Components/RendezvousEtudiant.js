@@ -101,7 +101,7 @@ const RendezVousEtudiant = () => {
             <div style={styles.cardBody}>
               <div style={styles.cardRow}>
                 <div>
-                  <strong>enseignant :</strong> {item.enseignant.nom_complet}
+                  <strong>enseignant :</strong> {item.nomComplet}
                 </div>
                 <div>
                   <strong>Group :</strong> {item.group_name}

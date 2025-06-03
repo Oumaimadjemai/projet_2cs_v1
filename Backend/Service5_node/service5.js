@@ -629,6 +629,11 @@ app.get(
         fileUrl: doc.fileUrl,
         createdBy: doc.createdBy,
         etudiantNom: idToNomPrenom[doc.createdBy] || "Étudiant inconnu",
+        createdAt: doc.createdAt
+        ? (typeof doc.createdAt === 'string'
+          ? doc.createdAt
+          : doc.createdAt.toISOString())
+        : null,
       }));
 
       res.json({ success: true, documents: documentsWithCreator });
@@ -866,7 +871,7 @@ if (!fs.existsSync(uploadsPath)) {
   fs.mkdirSync(uploadsPath, { recursive: true });
 }
 
-app.get("/api/document/:id/pdf", authenticateJWT, async (req, res) => {
+app.get("/api/document/:id/pdf", async (req, res) => {
   try {
     const document = await Document.findById(req.params.id);
 
@@ -965,53 +970,104 @@ app.post(
   }
 );
 // GET /api/enseignant/rendez-vous/:groupId
-app.get(
-  "/api/enseignant/rendez-vous/:groupId",
-  authenticateTeacherJWT,
-  async (req, res) => {
-    const { groupId } = req.params;
-    const enseignantId = req.user.user_id;
+// app.get(
+//   "/api/enseignant/rendez-vous/:groupId",
+//   authenticateTeacherJWT,
+//   async (req, res) => {
+//     const { groupId } = req.params;
+//     const enseignantId = req.user.user_id;
 
-    try {
-      // Vérifier que l'enseignant encadre ce groupe via Service 4
-      // const verifyUrl = `http://localhost:8003/encadreur/group/${groupId}`;
-      // const response = await axios.get(verifyUrl, {
-      //   headers: { Authorization: `Bearer ${req.token}` }
-      // });
-      const { SERVICE4_NAME } = process.env;
-      const service4Url = await discoverService(SERVICE4_NAME);
+//     try {
+//       // Vérifier que l'enseignant encadre ce groupe via Service 4
+//       // const verifyUrl = `http://localhost:8003/encadreur/group/${groupId}`;
+//       // const response = await axios.get(verifyUrl, {
+//       //   headers: { Authorization: `Bearer ${req.token}` }
+//       // });
+//       const { SERVICE4_NAME } = process.env;
+//       const service4Url = await discoverService(SERVICE4_NAME);
 
-      const verifyUrl = `${service4Url}/encadreur/group/${groupId}`;
-      const response = await axios.get(verifyUrl, {
-        headers: { Authorization: `Bearer ${req.token}` },
-      });
+//       const verifyUrl = `${service4Url}/encadreur/group/${groupId}`;
+//       const response = await axios.get(verifyUrl, {
+//         headers: { Authorization: `Bearer ${req.token}` },
+//       });
 
-      if (!response.data.authorized) {
-        return res
-          .status(403)
-          .json({ error: "Vous n'êtes pas l'encadrant de ce groupe." });
-      }
+//       if (!response.data.authorized) {
+//         return res
+//           .status(403)
+//           .json({ error: "Vous n'êtes pas l'encadrant de ce groupe." });
+//       }
 
-      // Récupérer les rendez-vous pour ce groupe et cet enseignant
-      const rdvs = await RendezVous.find({
-        groupeId: groupId,
-        enseignantId: enseignantId,
-      });
+//       // Récupérer les rendez-vous pour ce groupe et cet enseignant
+//       const rdvs = await RendezVous.find({
+//         groupeId: groupId,
+//         enseignantId: enseignantId,
+//       });
 
-      res.status(200).json({ rendezvous: rdvs });
-    } catch (error) {
-      console.error(error.message);
-      if (error.response) {
-        return res
-          .status(error.response.status)
-          .json({ error: error.response.data });
-      }
-      res
-        .status(500)
-        .json({ error: "Erreur lors de la récupération des rendez-vous." });
+//       res.status(200).json({ rendezvous: rdvs });
+//     } catch (error) {
+//       console.error(error.message);
+//       if (error.response) {
+//         return res
+//           .status(error.response.status)
+//           .json({ error: error.response.data });
+//       }
+//       res
+//         .status(500)
+//         .json({ error: "Erreur lors de la récupération des rendez-vous." });
+//     }
+//   }
+// );
+app.get('/api/enseignant/rendez-vous/:groupId', authenticateTeacherJWT, async (req, res) => {
+  const { groupId } = req.params;
+  const enseignantId = req.user.user_id;
+
+  try {
+    // Découverte des services
+    const { SERVICE1_NAME, SERVICE4_NAME } = process.env;
+    const service4Url = await discoverService(SERVICE4_NAME);
+    const service1Url = await discoverService(SERVICE1_NAME);
+
+    // Vérifier que l'enseignant encadre ce groupe via Service 4
+    const verifyUrl = `${service4Url}/encadreur/group/${groupId}`;
+    const response = await axios.get(verifyUrl, {
+      headers: { Authorization: `Bearer ${req.token}` }
+    });
+
+    if (!response.data.authorized) {
+      return res.status(403).json({ error: "Vous n'êtes pas l'encadrant de ce groupe." });
     }
+
+    // Récupérer les rendez-vous pour ce groupe et cet enseignant
+    const rdvs = await RendezVous.find({ groupeId: groupId, enseignantId: enseignantId });
+
+    // 🔍 Récupérer les infos de l'enseignant depuis Service 1
+    const enseignantRes = await axios.get(`${service1Url}/enseignants/${enseignantId}/`, {
+      headers: { Authorization: `Bearer ${req.token}` }
+    });
+
+    const enseignant = enseignantRes.data;
+    const nomComplet = `${enseignant.prenom} ${enseignant.nom}`;
+
+    // 🛠️ Ajouter nom complet à chaque rendez-vous
+    const rdvsWithNom = rdvs.map(rdv => ({
+      ...rdv.toObject(),
+      nomComplet: nomComplet
+    }));
+
+    // Répondre avec les rendez-vous enrichis
+    res.status(200).json({
+      rendezvous: rdvsWithNom
+    });
+
+  } catch (error) {
+    console.error(error.message);
+    if (error.response) {
+      return res.status(error.response.status).json({ error: error.response.data });
+    }
+    res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous." });
   }
-);
+});
+
 // GET /api/enseignant/rendez-vous
 app.get(
   "/api/enseignant/rendez-vous",
@@ -1090,56 +1146,122 @@ app.get(
 //   }
 // });
 
-app.get("/api/etudiant/rendezvous", authenticateJWT, async (req, res) => {
+// app.get("/api/etudiant/rendezvous", authenticateJWT, async (req, res) => {
+//   try {
+//     const token = req.token;
+
+//     // Découverte dynamique de SERVICE3-NODE
+//     const service3Url = await discoverService(process.env.SERVICE3_NAME);
+
+//     // Appel pour récupérer les groupes de l'étudiant
+//     const groupsResponse = await axios.get(`${service3Url}/api/groups/user`, {
+//       headers: { Authorization: `Bearer ${token}` },
+//     });
+
+//     const userGroups = groupsResponse.data;
+
+//     if (!userGroups.length) {
+//       return res
+//         .status(404)
+//         .json({ error: "Vous n'appartenez à aucun groupe." });
+//     }
+
+//     // Map des _id => name pour tous les groupes
+//     const groupMap = {};
+//     userGroups.forEach((group) => {
+//       groupMap[group._id] = group.name;
+//     });
+
+//     const groupIds = userGroups.map((g) => g._id);
+
+//     // Récupération des rendez-vous pour ces groupes
+//     const rendezvous = await RendezVous.find({ groupeId: { $in: groupIds } });
+
+//     // Ajouter group_name à chaque rendez-vous
+//     const enrichedRendezvous = rendezvous.map((rdv) => ({
+//       ...rdv.toObject(),
+//       group_name: groupMap[rdv.groupeId] || null,
+//     }));
+
+//     res.json({ rendezvous: enrichedRendezvous });
+//   } catch (error) {
+//     console.error("Erreur récupération rendez-vous:", error.message);
+//     if (error.response) {
+//       return res
+//         .status(error.response.status)
+//         .json({ error: error.response.data });
+//     }
+//     res
+//       .status(500)
+//       .json({ error: "Erreur lors de la récupération des rendez-vous." });
+//   }
+// });
+app.get('/api/etudiant/rendezvous', authenticateJWT, async (req, res) => {
   try {
     const token = req.token;
 
-    // Découverte dynamique de SERVICE3-NODE
+    // Découverte dynamique des services
     const service3Url = await discoverService(process.env.SERVICE3_NAME);
+    const service1Url = await discoverService(process.env.SERVICE1_NAME);
 
-    // Appel pour récupérer les groupes de l'étudiant
+    // Récupération des groupes de l'étudiant
     const groupsResponse = await axios.get(`${service3Url}/api/groups/user`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     const userGroups = groupsResponse.data;
 
     if (!userGroups.length) {
-      return res
-        .status(404)
-        .json({ error: "Vous n'appartenez à aucun groupe." });
+      return res.status(404).json({ error: "Vous n'appartenez à aucun groupe." });
     }
 
     // Map des _id => name pour tous les groupes
     const groupMap = {};
-    userGroups.forEach((group) => {
+    userGroups.forEach(group => {
       groupMap[group._id] = group.name;
     });
 
-    const groupIds = userGroups.map((g) => g._id);
+    const groupIds = userGroups.map(g => g._id);
 
     // Récupération des rendez-vous pour ces groupes
     const rendezvous = await RendezVous.find({ groupeId: { $in: groupIds } });
 
-    // Ajouter group_name à chaque rendez-vous
-    const enrichedRendezvous = rendezvous.map((rdv) => ({
+    // 🔍 Obtenir tous les enseignantId uniques
+    const enseignantIds = [...new Set(rendezvous.map(r => r.enseignantId))];
+
+    // 🔄 Récupération de chaque enseignant depuis Service 1
+    const enseignantMap = {};
+    for (const id of enseignantIds) {
+      try {
+        const response = await axios.get(`${service1Url}/enseignants/${id}/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const enseignant = response.data;
+        enseignantMap[id] = `${enseignant.prenom} ${enseignant.nom}`;
+      } catch (err) {
+        console.warn(`Impossible de récupérer les infos pour l'enseignant ${id}`);
+        enseignantMap[id] = null;
+      }
+    }
+
+    // Enrichir les rendez-vous
+    const enrichedRendezvous = rendezvous.map(rdv => ({
       ...rdv.toObject(),
       group_name: groupMap[rdv.groupeId] || null,
+      nomComplet: enseignantMap[rdv.enseignantId] || "Inconnu"
     }));
 
     res.json({ rendezvous: enrichedRendezvous });
+
   } catch (error) {
     console.error("Erreur récupération rendez-vous:", error.message);
     if (error.response) {
-      return res
-        .status(error.response.status)
-        .json({ error: error.response.data });
+      return res.status(error.response.status).json({ error: error.response.data });
     }
-    res
-      .status(500)
-      .json({ error: "Erreur lors de la récupération des rendez-vous." });
+    res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous." });
   }
 });
+
 app.put(
   "/api/enseignant/rendez-vous/:groupId",
   authenticateTeacherJWT,

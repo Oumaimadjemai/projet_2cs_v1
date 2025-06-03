@@ -14,61 +14,61 @@ import { toast } from 'react-toastify';
 export const AdminLayout = () => {
 
   const { t } = useTranslation();
-  // const socket = useSocket();
+  const socket = useSocket();
 
-  // useEffect(() => {
-  //   if (!socket) {
-  //     console.log("WebSocket non connecté");
-  //     return;
-  //   }
+  useEffect(() => {
+    if (!socket) {
+      console.log("WebSocket non connecté");
+      return;
+    }
 
-  //   const userId = localStorage.getItem('user_id');
-  //   const userName = `${localStorage.getItem('user_nom')} ${localStorage.getItem('user_prenom')}`
-  //   const userRole = 'admin'; // À remplacer par la valeur dynamique si nécessaire
+    const userId = localStorage.getItem('user_id');
+    const userName = `${localStorage.getItem('user_nom')} ${localStorage.getItem('user_prenom')}`
+    const userRole = 'admin'; // À remplacer par la valeur dynamique si nécessaire
 
-  //   console.log("📡 Enregistrement WebSocket - ID:", userId, "Rôle:", userRole);
+    console.log("📡 Enregistrement WebSocket - ID:", userId, "Rôle:", userRole);
 
-  //   // 1. Enregistrement standard
-  //   socket.emit('register', {
-  //     userId,
-  //     userRole
-  //   });
+    // 1. Enregistrement standard
+    socket.emit('register', {
+      userId,
+      userRole
+    });
 
-  //   // 2. Enregistrement supplémentaire pour les notifications admin
-  //   socket.emit('register_admin');
+    // 2. Enregistrement supplémentaire pour les notifications admin
+    socket.emit('register_admin');
 
-  //   // 3. Gestion des notifications
-  //   const handleRoleNotification = (data) => {
-  //     if (data.role === 'admin') {
-  //       toast.info(`${userName} ${data.message}`);
-  //     }
-  //   };
+    // 3. Gestion des notifications
+    const handleRoleNotification = (data) => {
+      if (data.role === 'admin') {
+        toast.info(`${userName} ${data.message}`);
+      }
+    };
 
-  //   const handleSystemNotification = (data) => {
-  //     if (data.type === 'ENTREPRISE_DEMANDE') {
-  //       toast.info(
-  //         <div>
-  //           <b>Nouvelle demande entreprise</b>
-  //           <p>{data.metadata.entrepriseNom}</p>
-  //           <p>Contact: {data.metadata.email}</p>
-  //         </div>,
-  //         { autoClose: false } // Garde la notification visible
-  //       );
-  //     } else {
-  //       toast.info(`[SYSTÈME] ${data.message}`);
-  //     }
-  //   };
+    const handleSystemNotification = (data) => {
+      if (data.type === 'ENTREPRISE_DEMANDE') {
+        toast.info(
+          <div>
+            <b>Nouvelle demande entreprise</b>
+            <p>{data.metadata.entrepriseNom}</p>
+            <p>Contact: {data.metadata.email}</p>
+          </div>,
+          { autoClose: false } // Garde la notification visible
+        );
+      } else {
+        toast.info(`[SYSTÈME] ${data.message}`);
+      }
+    };
 
-  //   // Abonnement
-  //   socket.on('role_notification', handleRoleNotification);
-  //   socket.on('system_notification', handleSystemNotification);
+    // Abonnement
+    socket.on('role_notification', handleRoleNotification);
+    socket.on('system_notification', handleSystemNotification);
 
-  //   // Nettoyage
-  //   return () => {
-  //     socket.off('role_notification', handleRoleNotification);
-  //     socket.off('system_notification', handleSystemNotification);
-  //   };
-  // }, [socket]);
+    // Nettoyage
+    return () => {
+      socket.off('role_notification', handleRoleNotification);
+      socket.off('system_notification', handleSystemNotification);
+    };
+  }, [socket]);
 
 
   const adminMenu = [

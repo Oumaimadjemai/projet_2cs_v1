@@ -68,8 +68,6 @@ def get_theme_info(theme_id):
 #     res.raise_for_status()
 #     return res.json()
 
-import requests
-
 def get_group_members(group_id, jwt_token):
     if not jwt_token.startswith("Bearer "):
         jwt_token = f"Bearer {jwt_token}"
@@ -79,7 +77,14 @@ def get_group_members(group_id, jwt_token):
     try:
         response = requests.get(f"{base_url}/api/groups/{group_id}/members", headers=headers)
         response.raise_for_status()
-        return response.json().get("members", [])
+        data = response.json()
+        return {
+            "members": data.get("members", []),
+            "chef_id": data.get("chef_id")  # à condition que cet ID soit présent dans la réponse
+        }
     except requests.RequestException as e:
         print(f"Erreur lors de la récupération des membres: {e}")
-        return []
+        return {
+            "members": [],
+            "chef_id": None
+        }

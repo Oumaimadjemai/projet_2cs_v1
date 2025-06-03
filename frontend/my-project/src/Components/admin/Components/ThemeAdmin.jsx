@@ -104,7 +104,7 @@ const [modeAffichage, setModeAffichage] = useState(null); // 'manual' ou 'auto' 
 
     useEffect(() => {
 
-        axios.get(`${process.env.REACT_APP_API_URL_SERVICE4}/assign-manual/`, {
+        axios.get(`${process.env.REACT_APP_API_URL_SERVICE4}/assignments/`, {
             headers: {
                 authorization: `Bearer ${localStorage.getItem('access_token')}`
             }
